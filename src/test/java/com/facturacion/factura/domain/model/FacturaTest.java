@@ -39,9 +39,7 @@ class FacturaTest {
 
     @Test
     void permiteIvaCeroYPrecioCero() {
-        Factura factura = factura("0", List.of(linea("1", "0")));
-
-        assertThat(factura.total()).isEqualByComparingTo("0.00");
+        assertThat(factura("0", List.of(linea("1", "0"))).total()).isEqualByComparingTo("0.00");
     }
 
     @Test
@@ -62,11 +60,13 @@ class FacturaTest {
     }
 
     @Test
-    void rechazaFacturaSinLineas() {
-        assertThatThrownBy(() -> factura("21", List.of()))
-                .isInstanceOf(FacturaInvalidaException.class);
-        assertThatThrownBy(() -> factura("21", null))
-                .isInstanceOf(FacturaInvalidaException.class);
+    void rechazaFacturaSinLineasOConLineaNula() {
+        List<LineaFactura> conNula = new ArrayList<>();
+        conNula.add(null);
+
+        assertThatThrownBy(() -> factura("21", List.of())).isInstanceOf(FacturaInvalidaException.class);
+        assertThatThrownBy(() -> factura("21", null)).isInstanceOf(FacturaInvalidaException.class);
+        assertThatThrownBy(() -> factura("21", conNula)).isInstanceOf(FacturaInvalidaException.class);
     }
 
     @Test
