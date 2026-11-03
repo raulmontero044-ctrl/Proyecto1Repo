@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: facturacion
+  datasource:
+    url: ${DB_URL:jdbc:mariadb://localhost:3306/facturacion}
+    username: ${DB_USERNAME:facturacion}
+    password: ${DB_PASSWORD:facturacion}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
