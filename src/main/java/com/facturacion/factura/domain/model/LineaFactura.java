@@ -1,0 +1,23 @@
+package com.facturacion.factura.domain.model;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+public record LineaFactura(String concepto, BigDecimal cantidad, BigDecimal precioUnitario) {
+
+    public LineaFactura {
+        if (concepto == null || concepto.isBlank()) {
+            throw new FacturaInvalidaException("El concepto de la línea es obligatorio");
+        }
+        if (cantidad == null || cantidad.signum() <= 0) {
+            throw new FacturaInvalidaException("La cantidad de la línea debe ser mayor que cero");
+        }
+        if (precioUnitario == null || precioUnitario.signum() < 0) {
+            throw new FacturaInvalidaException("El precio unitario de la línea no puede ser negativo");
+        }
+    }
+
+    public BigDecimal importe() {
+        return cantidad.multiply(precioUnitario).setScale(2, RoundingMode.HALF_UP);
+    }
+}
