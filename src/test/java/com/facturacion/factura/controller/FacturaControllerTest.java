@@ -91,12 +91,12 @@ class FacturaControllerTest {
 
     @Test
     void rechazaPeticionInvalidaCon400SinInvocarCasoDeUso() throws Exception {
-        String sinLineas = """
+        String invalida = """
                 {"numero": "", "fecha": "2026-11-03", "clienteNombre": "Cliente SL",
                  "clienteNif": "B12345678", "porcentajeIva": -1, "lineas": []}
                 """;
 
-        mockMvc.perform(post("/facturas").contentType(MediaType.APPLICATION_JSON).content(sinLineas))
+        mockMvc.perform(post("/facturas").contentType(MediaType.APPLICATION_JSON).content(invalida))
                 .andExpect(status().isBadRequest());
 
         verify(crearFactura, never()).ejecutar(any());
