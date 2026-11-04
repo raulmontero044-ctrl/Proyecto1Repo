@@ -20,9 +20,14 @@ class ArquitecturaTest {
                     "org.springframework..",
                     "jakarta.persistence..",
                     "org.hibernate..",
+                    "jakarta.validation..",
+                    "com.fasterxml.jackson..",
                     "..persistence..",
                     "..controller..",
-                    "..apln..")
+                    "..apln..",
+                    "..service..",
+                    "..config..",
+                    "..api..")
             .allowEmptyShould(true);
 
     @ArchTest
