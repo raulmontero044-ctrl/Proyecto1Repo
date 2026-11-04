@@ -51,6 +51,12 @@ class ArquitecturaTest {
             .allowEmptyShould(true);
 
     @ArchTest
+    static final ArchRule persistenciaSoloDependeDelDominio = noClasses()
+            .that().resideInAPackage("..persistence..")
+            .should().dependOnClassesThat().resideInAnyPackage("..apln..", "..controller..", "..service..", "..api..")
+            .allowEmptyShould(true);
+
+    @ArchTest
     static final ArchRule daoSoloUsadoPorImplementacionesDeRepository = classes()
             .that().resideInAPackage("..persistence.dao..")
             .should().onlyBeAccessed().byClassesThat().resideInAnyPackage("..persistence", "..persistence.dao..")
