@@ -1,9 +1,9 @@
 package com.facturacion.factura.apln;
 
-import com.facturacion.factura.api.dto.FacturaDto;
-import com.facturacion.factura.api.dto.LineaFacturaDto;
-import com.facturacion.factura.api.dto.NuevaFacturaDto;
-import com.facturacion.factura.api.dto.NuevaLineaFacturaDto;
+import com.facturacion.factura.api.facade.dto.FacturaDto;
+import com.facturacion.factura.api.facade.dto.LineaFacturaDto;
+import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
+import com.facturacion.factura.api.facade.dto.NuevaLineaFacturaDto;
 import com.facturacion.factura.internal.domain.exception.FacturaInvalidaException;
 import com.facturacion.factura.internal.domain.exception.FacturaNoEncontradaException;
 import com.facturacion.factura.internal.domain.exception.NumeroFacturaDuplicadoException;

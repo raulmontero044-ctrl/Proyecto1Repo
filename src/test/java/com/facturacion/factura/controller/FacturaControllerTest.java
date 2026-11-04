@@ -1,9 +1,9 @@
 package com.facturacion.factura.controller;
 
-import com.facturacion.factura.api.dto.FacturaDto;
-import com.facturacion.factura.api.dto.LineaFacturaDto;
-import com.facturacion.factura.api.dto.NuevaFacturaDto;
-import com.facturacion.factura.api.dto.NuevaLineaFacturaDto;
+import com.facturacion.factura.api.facade.dto.FacturaDto;
+import com.facturacion.factura.api.facade.dto.LineaFacturaDto;
+import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
+import com.facturacion.factura.api.facade.dto.NuevaLineaFacturaDto;
 import com.facturacion.factura.apln.CrearFactura;
 import com.facturacion.factura.apln.EliminarFactura;
 import com.facturacion.factura.apln.ListarFacturas;

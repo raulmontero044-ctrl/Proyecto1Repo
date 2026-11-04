@@ -81,14 +81,20 @@ class ArquitecturaTest {
 
     @ArchTest
     static final ArchRule dtoSonRecords = classes()
-            .that().resideInAPackage("..api.dto..")
+            .that().resideInAnyPackage("..api.facade.dto..", "..api.http.dto..")
             .should().beRecords()
             .allowEmptyShould(true);
 
     @ArchTest
-    static final ArchRule dtoSoloDependenDeJavaValidacionYOtrosDto = classes()
-            .that().resideInAPackage("..api.dto..")
-            .should().onlyDependOnClassesThat().resideInAnyPackage("java..", "jakarta.validation..", "..api.dto..")
+    static final ArchRule dtoDeContratoSoloDependenDeJavaYOtrosDtoDeContrato = classes()
+            .that().resideInAPackage("..api.facade.dto..")
+            .should().onlyDependOnClassesThat().resideInAnyPackage("java..", "..api.facade.dto..")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule dtoHttpSoloDependenDeJavaValidacionYOtrosDtoHttp = classes()
+            .that().resideInAPackage("..api.http.dto..")
+            .should().onlyDependOnClassesThat().resideInAnyPackage("java..", "jakarta.validation..", "..api.http.dto..")
             .allowEmptyShould(true);
 
     @ArchTest
@@ -147,7 +153,7 @@ class ArquitecturaTest {
             .allowEmptyShould(true);
 
     private static ArchCondition<JavaClass> accederAOtrosModulosSoloDesdeAplicacionYPorSuApi() {
-        return new ArchCondition<>("acceder a otros módulos solo desde apln o service y solo a su api, sin DTO HTTP") {
+        return new ArchCondition<>("acceder a otros módulos solo desde apln o service y solo a su api.facade") {
             @Override
             public void check(JavaClass origen, ConditionEvents eventos) {
                 Optional<String> moduloOrigen = modulo(origen);
@@ -161,8 +167,7 @@ class ArquitecturaTest {
                         continue;
                     }
                     boolean permitida = estaEnCapa(origen, moduloOrigen.get(), "apln", "service")
-                            && estaEnCapa(destino, moduloDestino.get(), "api")
-                            && !destino.getSimpleName().endsWith("Request");
+                            && estaEnCapa(destino, moduloDestino.get(), "api.facade");
                     if (!permitida) {
                         eventos.add(SimpleConditionEvent.violated(dependencia, dependencia.getDescription()));
                     }

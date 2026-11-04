@@ -35,12 +35,12 @@ class ReglaContratoEntreModulosTest {
 
     @ParameterizedTest
     @CsvSource({
-            "ConsumidorDelRequestHttpDeFactura, com.facturacion.factura.api.dto.CrearFacturaRequest",
+            "ConsumidorDelRequestHttpDeFactura, com.facturacion.factura.api.http.dto.CrearFacturaRequest",
             "ConsumidorDelDominioDeFactura, com.facturacion.factura.internal.domain.model.Factura",
             "ConsumidorDeUnCasoDeUsoDeFactura, com.facturacion.factura.apln.CrearFactura",
-            "ControladorConsumidorDelContratoDeFactura, com.facturacion.factura.api.dto.FacturaDto",
+            "ControladorConsumidorDelContratoDeFactura, com.facturacion.factura.api.facade.dto.FacturaDto",
             "PersistenciaConsumidoraDeEntidadesDeFactura, com.facturacion.factura.internal.persistence.entity.FacturaEntity",
-            "DominioConsumidorDelContratoDeFactura, com.facturacion.factura.api.dto.FacturaDto"})
+            "DominioConsumidorDelContratoDeFactura, com.facturacion.factura.api.facade.dto.FacturaDto"})
     void rechazaLosAccesosDeOtroModuloFueraDelContratoApiDeFactura(String origen, String destino) {
         JavaClasses clases = clase(origen);
 

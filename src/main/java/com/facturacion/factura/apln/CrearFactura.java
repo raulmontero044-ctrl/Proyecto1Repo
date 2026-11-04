@@ -1,7 +1,7 @@
 package com.facturacion.factura.apln;
 
-import com.facturacion.factura.api.dto.FacturaDto;
-import com.facturacion.factura.api.dto.NuevaFacturaDto;
+import com.facturacion.factura.api.facade.dto.FacturaDto;
+import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.exception.NumeroFacturaDuplicadoException;
 import com.facturacion.factura.internal.domain.repository.FacturaRepository;

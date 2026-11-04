@@ -1,6 +1,6 @@
 package com.facturacion.factura.apln;
 
-import com.facturacion.factura.api.dto.FacturaDto;
+import com.facturacion.factura.api.facade.dto.FacturaDto;
 import com.facturacion.factura.internal.domain.repository.FacturaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

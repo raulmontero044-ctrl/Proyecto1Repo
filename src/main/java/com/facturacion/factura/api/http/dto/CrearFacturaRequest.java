@@ -1,4 +1,4 @@
-package com.facturacion.factura.api.dto;
+package com.facturacion.factura.api.http.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;

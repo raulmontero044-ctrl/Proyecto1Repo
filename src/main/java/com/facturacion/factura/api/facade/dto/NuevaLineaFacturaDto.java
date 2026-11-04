@@ -1,4 +1,4 @@
-package com.facturacion.factura.api.dto;
+package com.facturacion.factura.api.facade.dto;
 
 import java.math.BigDecimal;
 
