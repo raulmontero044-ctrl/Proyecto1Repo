@@ -23,26 +23,6 @@ class FacturaTest {
     }
 
     @Test
-    void calculaBaseCuotaIvaYTotal() {
-        Factura factura = factura("21", List.of(linea("2", "10.50"), linea("1", "4.25")));
-
-        assertThat(factura.base()).isEqualByComparingTo("25.25");
-        assertThat(factura.cuotaIva()).isEqualByComparingTo("5.30");
-        assertThat(factura.total()).isEqualByComparingTo("30.55");
-        assertThat(factura.total().scale()).isEqualTo(2);
-    }
-
-    @Test
-    void redondeaImporteDeLineaHalfUp() {
-        assertThat(linea("3", "0.335").importe()).isEqualByComparingTo("1.01");
-    }
-
-    @Test
-    void permiteIvaCeroYPrecioCero() {
-        assertThat(factura("0", List.of(linea("1", "0"))).total()).isEqualByComparingTo("0.00");
-    }
-
-    @Test
     void nuevaFacturaNoTieneId() {
         assertThat(factura("21", List.of(linea("1", "1"))).id()).isNull();
     }
@@ -86,6 +66,22 @@ class FacturaTest {
     @Test
     void rechazaIvaNegativo() {
         assertThatThrownBy(() -> factura("-1", List.of(linea("1", "1"))))
+                .isInstanceOf(FacturaInvalidaException.class);
+    }
+
+    @Test
+    void rechazaIvaNulo() {
+        assertThatThrownBy(() -> Factura.nueva("F-1", FECHA, "Cliente", "NIF", null, List.of(linea("1", "1"))))
+                .isInstanceOf(FacturaInvalidaException.class);
+    }
+
+    @Test
+    void rechazaDatosObligatoriosNulosDeLinea() {
+        assertThatThrownBy(() -> new LineaFactura(null, BigDecimal.ONE, BigDecimal.ONE))
+                .isInstanceOf(FacturaInvalidaException.class);
+        assertThatThrownBy(() -> new LineaFactura("Servicio", null, BigDecimal.ONE))
+                .isInstanceOf(FacturaInvalidaException.class);
+        assertThatThrownBy(() -> new LineaFactura("Servicio", BigDecimal.ONE, null))
                 .isInstanceOf(FacturaInvalidaException.class);
     }
 

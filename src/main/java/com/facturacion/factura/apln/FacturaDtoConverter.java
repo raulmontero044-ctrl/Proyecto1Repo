@@ -3,6 +3,7 @@ package com.facturacion.factura.apln;
 import com.facturacion.factura.api.dto.FacturaDto;
 import com.facturacion.factura.api.dto.LineaFacturaDto;
 import com.facturacion.factura.api.dto.NuevaFacturaDto;
+import com.facturacion.factura.domain.model.CalculadoraFactura;
 import com.facturacion.factura.domain.model.Factura;
 import com.facturacion.factura.domain.model.FacturaInvalidaException;
 import com.facturacion.factura.domain.model.LineaFactura;
@@ -41,7 +42,7 @@ final class FacturaDtoConverter {
                         linea.concepto(),
                         linea.cantidad(),
                         linea.precioUnitario(),
-                        linea.importe()))
+                        CalculadoraFactura.importe(linea)))
                 .toList();
         return new FacturaDto(
                 factura.id(),
@@ -51,8 +52,8 @@ final class FacturaDtoConverter {
                 factura.clienteNif(),
                 factura.porcentajeIva(),
                 lineas,
-                factura.base(),
-                factura.cuotaIva(),
-                factura.total());
+                CalculadoraFactura.base(factura),
+                CalculadoraFactura.cuotaIva(factura),
+                CalculadoraFactura.total(factura));
     }
 }

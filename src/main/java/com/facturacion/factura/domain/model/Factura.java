@@ -1,7 +1,7 @@
 package com.facturacion.factura.domain.model;
 
+
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -14,8 +14,6 @@ public record Factura(
         String clienteNif,
         BigDecimal porcentajeIva,
         List<LineaFactura> lineas) {
-
-    private static final BigDecimal CIEN = BigDecimal.valueOf(100);
 
     public Factura {
         if (numero == null || numero.isBlank()) {
@@ -50,20 +48,5 @@ public record Factura(
             BigDecimal porcentajeIva,
             List<LineaFactura> lineas) {
         return new Factura(null, numero, fecha, clienteNombre, clienteNif, porcentajeIva, lineas);
-    }
-
-    public BigDecimal base() {
-        return lineas.stream()
-                .map(LineaFactura::importe)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .setScale(2, RoundingMode.HALF_UP);
-    }
-
-    public BigDecimal cuotaIva() {
-        return base().multiply(porcentajeIva).divide(CIEN, 2, RoundingMode.HALF_UP);
-    }
-
-    public BigDecimal total() {
-        return base().add(cuotaIva()).setScale(2, RoundingMode.HALF_UP);
     }
 }
