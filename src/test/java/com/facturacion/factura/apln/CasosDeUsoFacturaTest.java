@@ -1,6 +1,7 @@
 package com.facturacion.factura.apln;
 
 import com.facturacion.factura.api.dto.FacturaDto;
+import com.facturacion.factura.api.dto.LineaFacturaDto;
 import com.facturacion.factura.api.dto.NuevaFacturaDto;
 import com.facturacion.factura.api.dto.NuevaLineaFacturaDto;
 import com.facturacion.factura.domain.model.FacturaInvalidaException;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,6 +51,50 @@ class CasosDeUsoFacturaTest {
         assertThat(creada.base()).isEqualByComparingTo("25.25");
         assertThat(creada.cuotaIva()).isEqualByComparingTo("5.30");
         assertThat(creada.total()).isEqualByComparingTo("30.55");
+    }
+
+    @Test
+    void conservaLosDatosDeLaFacturaYSusLineas() {
+        FacturaDto creada = crear.ejecutar(nueva("F-001", dosLineas()));
+
+        assertThat(creada.numero()).isEqualTo("F-001");
+        assertThat(creada.fecha()).isEqualTo(LocalDate.of(2026, 11, 3));
+        assertThat(creada.clienteNombre()).isEqualTo("Cliente SL");
+        assertThat(creada.clienteNif()).isEqualTo("B12345678");
+        assertThat(creada.porcentajeIva()).isEqualByComparingTo("21");
+        assertThat(creada.lineas()).extracting(LineaFacturaDto::concepto).containsExactly("Primera", "Segunda");
+        assertThat(creada.lineas().get(0).cantidad()).isEqualByComparingTo("2");
+        assertThat(creada.lineas().get(0).precioUnitario()).isEqualByComparingTo("10.50");
+        assertThat(obtener.ejecutar(creada.id())).isEqualTo(creada);
+    }
+
+    @Test
+    void rechazaFacturaConLineaNulaOInvalidaSinGuardarla() {
+        List<NuevaLineaFacturaDto> conNula = new ArrayList<>();
+        conNula.add(null);
+        List<NuevaLineaFacturaDto> conCantidadCero = List.of(
+                new NuevaLineaFacturaDto("Servicio", BigDecimal.ZERO, BigDecimal.ONE));
+
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", conNula)))
+                .isInstanceOf(FacturaInvalidaException.class);
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", conCantidadCero)))
+                .isInstanceOf(FacturaInvalidaException.class);
+        assertThat(listar.ejecutar()).isEmpty();
+    }
+
+    @Test
+    void listaVaciaSinFacturas() {
+        assertThat(listar.ejecutar()).isEmpty();
+    }
+
+    @Test
+    void eliminarSoloBorraLaFacturaIndicada() {
+        Long primera = crear.ejecutar(nueva("F-001", dosLineas())).id();
+        crear.ejecutar(nueva("F-002", dosLineas()));
+
+        eliminar.ejecutar(primera);
+
+        assertThat(listar.ejecutar()).extracting(FacturaDto::numero).containsExactly("F-002");
     }
 
     @Test

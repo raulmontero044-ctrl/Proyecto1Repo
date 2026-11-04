@@ -33,4 +33,29 @@ class FacturaMapperTest {
         assertThat(entidad.getLineas()).extracting("posicion").containsExactly(0, 1);
         assertThat(mapper.aDominio(entidad)).isEqualTo(factura);
     }
+
+    @Test
+    void facturaNuevaGeneraEntidadSinIdYConDatosCopiados() {
+        Factura nueva = Factura.nueva(
+                "F-002",
+                LocalDate.of(2026, 11, 3),
+                "Cliente SL",
+                "B12345678",
+                new BigDecimal("10.50"),
+                List.of(new LineaFactura("Única", new BigDecimal("1.5"), new BigDecimal("3.00"))));
+
+        FacturaEntity entidad = mapper.aEntidad(nueva);
+
+        assertThat(entidad.getId()).isNull();
+        assertThat(entidad.getNumero()).isEqualTo("F-002");
+        assertThat(entidad.getFecha()).isEqualTo(LocalDate.of(2026, 11, 3));
+        assertThat(entidad.getClienteNombre()).isEqualTo("Cliente SL");
+        assertThat(entidad.getClienteNif()).isEqualTo("B12345678");
+        assertThat(entidad.getPorcentajeIva()).isEqualByComparingTo("10.50");
+        assertThat(entidad.getLineas()).singleElement().satisfies(linea -> {
+            assertThat(linea.getConcepto()).isEqualTo("Única");
+            assertThat(linea.getCantidad()).isEqualByComparingTo("1.5");
+            assertThat(linea.getPrecioUnitario()).isEqualByComparingTo("3.00");
+        });
+    }
 }

@@ -23,7 +23,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/facturas")
+@RequestMapping("/api/facturas")
 public class FacturaController {
 
     private final CrearFactura crearFactura;
