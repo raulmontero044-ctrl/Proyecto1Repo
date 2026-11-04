@@ -73,7 +73,7 @@ Cada responsabilidad se resuelve con la norma de la skill indicada. Lo que no ap
 | 1 | Raíz del módulo | `<raiz>.<modulo>` | `<raiz>.<modulo>` | `/k-back`, `/k-back-module` |
 | 2 | `package-info.java` | `@ApplicationModule` con `allowedDependencies` explícito (o alternativa sin Modulith si así está el proyecto) | No aplica | `/k-back-module` §9 |
 | 3 | API pública | `api.facade.<Modulo>Facade` + `api.facade.dto` + `package-info` con `@NamedInterface`, solo si hay consumidor o lo exige la especificación | Interfaz en `api` solo con consumidor real | `/k-back-module` §5-§6, `/k-back-dto` |
-| 4 | API HTTP | `api.http` + `api.http.dto` | `controller` + `api.dto` | `/k-back-controller`, `/k-back-dto` |
+| 4 | API HTTP | `api.http.controllers` + `api.http.handlers` + `api.http.dto` | `controller` + `api.dto` | `/k-back-controller`, `/k-back-dto` |
 | 5 | Casos de uso | `internal.application` (+ `<Modulo>FacadeImpl`) | `apln` | `/k-back-service` |
 | 6 | Dominio | `internal.domain.{model,service,exception,repository}` | `domain.{model,repository}` | `/k-back-domain`, `/k-back-repository` |
 | 7 | Infraestructura | `internal.infrastructure`, solo si hay integración externa en los requisitos | `service` solo si se justifica | `/k-back`, `/k-back-service` |

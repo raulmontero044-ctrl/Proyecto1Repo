@@ -42,7 +42,7 @@ Skills de conocimiento que DEBEN leerse (`.claude/skills/<nombre>/SKILL.md`) y p
 | `/k-back-module` | Facade, `app`, `package-info.java`, Spring Modulith, `allowedDependencies`, `@NamedInterface` |
 | `/k-back-dto` | DTO de `api.facade.dto` frente a `api.http.dto`, `<X>Response` |
 | `/k-back-service` | Casos de uso e implementación de la facade en `internal.application`, transacciones |
-| `/k-back-controller` | `api.http`: controlador y manejador de excepciones |
+| `/k-back-controller` | `api.http.controllers` y `api.http.handlers`: controlador y manejador de excepciones |
 | `/k-back-domain` | `internal.domain.{model,service,exception}` |
 | `/k-back-repository` | `internal.domain.repository` |
 | `/k-back-persistence` | `internal.persistence.{entity,dao,mapper,repository}`, Flyway |
@@ -74,14 +74,14 @@ Prefijo común: `com.facturacion.factura`.
 | `apln.FacturaDtoConverter` | `internal.application.FacturaDtoConverter` | |
 | — | `api.facade.FacturaFacade` | Nueva (sección 3) |
 | — | `internal.application.FacturaFacadeImpl` | Nueva, decisión D1 |
-| `controller.FacturaController` | `api.http.FacturaController` | Sigue delegando en los casos de uso de `internal.application`, no en la facade; convierte `api.http.dto` ↔ `api.facade.dto` (D2, sección 3.4) |
-| `controller.FacturaExceptionHandler` | `api.http.FacturaExceptionHandler` | Mismos códigos y `ProblemDetail` |
+| `controller.FacturaController` | `api.http.controllers.FacturaController` | Sigue delegando en los casos de uso de `internal.application`, no en la facade; convierte `api.http.dto` ↔ `api.facade.dto` (D2, sección 3.4) |
+| `controller.FacturaExceptionHandler` | `api.http.handlers.FacturaExceptionHandler` | Mismos códigos y `ProblemDetail` |
 | `api.dto.CrearFacturaRequest`, `api.dto.LineaFacturaRequest` | `api.http.dto.*` | Conservan Bean Validation |
 | `api.dto.FacturaDto`, `api.dto.LineaFacturaDto`, `api.dto.NuevaFacturaDto`, `api.dto.NuevaLineaFacturaDto` | `api.facade.dto.*` | Contrato de casos de uso y facade |
 | — | `api.http.dto.FacturaResponse`, `api.http.dto.LineaFacturaResponse` | Nuevas, D3: mismos campos y mismo JSON que `FacturaDto` / `LineaFacturaDto` |
 | `domain.model.Factura`, `domain.model.LineaFactura` | `internal.domain.model.*` | |
 | `domain.model.CalculadoraFactura` | `internal.domain.service.CalculadoraFactura` | |
-| `domain.model.FacturaInvalidaException`, `FacturaNoEncontradaException`, `NumeroFacturaDuplicadoException` | `internal.domain.exception.*` | `api.http.FacturaExceptionHandler` las importa solo para traducirlas a HTTP (`/k-back-controller`) |
+| `domain.model.FacturaInvalidaException`, `FacturaNoEncontradaException`, `NumeroFacturaDuplicadoException` | `internal.domain.exception.*` | `api.http.handlers.FacturaExceptionHandler` las importa solo para traducirlas a HTTP (`/k-back-controller`) |
 | `domain.repository.FacturaRepository` | `internal.domain.repository.FacturaRepository` | |
 | `persistence.entity.FacturaEntity`, `persistence.entity.LineaFacturaEntity` | `internal.persistence.entity.*` | Sin cambiar `@Table`/`@Column` |
 | `persistence.dao.FacturaDao` | `internal.persistence.dao.FacturaDao` | |
@@ -99,7 +99,7 @@ Tests (paquete espejo, `/k-back-testing`):
 | `factura.domain.model.CalculadoraFacturaTest` | `factura.internal.domain.service.CalculadoraFacturaTest` |
 | `factura.persistence.mapper.FacturaMapperTest` | `factura.internal.persistence.mapper.FacturaMapperTest` |
 | `factura.apln.CasosDeUsoFacturaTest`, `factura.apln.FacturaRepositoryEnMemoria` | `factura.internal.application.*` |
-| `factura.controller.FacturaControllerTest` | `factura.api.http.FacturaControllerTest`: solo cambian el paquete y los imports; casos, mocks de casos de uso y aserciones de JSON y códigos idénticos |
+| `factura.controller.FacturaControllerTest` | `factura.api.http.controllers.FacturaControllerTest`: solo cambian el paquete y los imports; casos, mocks de casos de uso y aserciones de JSON y códigos idénticos |
 | `com.facturacion.ArquitecturaTest` | Mismo paquete, reglas adaptadas y ampliadas (sección 4) |
 | — | `com.facturacion.ModulosTest` (nuevo) y test de `FacturaFacadeImpl` en `factura.internal.application` |
 
@@ -141,7 +141,7 @@ Registra las 10 unidades según el procedimiento común (sección 2.1). Unidades
 5. DTO de contrato → `api.facade.dto`; DTO HTTP de entrada → `api.http.dto`.
 6. Casos de uso y `FacturaDtoConverter` → `internal.application` con `CasosDeUsoFacturaTest`, y las reglas que nombran `..apln..` (`aplicacionSinControladores`, `dominioIndependienteDeFrameworks`) adaptadas a `..internal.application..`.
 7. `FacturaFacade` en `api.facade` y `FacturaFacadeImpl` en `internal.application` (sección 3.1).
-8. `FacturaController` y `FacturaExceptionHandler` → `api.http`; `FacturaResponse` y `LineaFacturaResponse`; `FacturaControllerTest` movido (solo paquete e imports) y en verde; las reglas que nombran `..controller..` (`controladoresSinRepositoryNiServiceInterno`, `aplicacionSinControladores`, `dominioIndependienteDeFrameworks`) adaptadas a `..api.http..`.
+8. `FacturaController` → `api.http.controllers` y `FacturaExceptionHandler` → `api.http.handlers`; `FacturaResponse` y `LineaFacturaResponse`; `FacturaControllerTest` movido (solo paquete e imports) y en verde; las reglas que nombran `..controller..` (`controladoresSinRepositoryNiServiceInterno`, `aplicacionSinControladores`, `dominioIndependienteDeFrameworks`) adaptadas a `..api.http..`.
 9. `package-info.java` de `factura`, `api.facade`, `api.facade.dto` y `app` (secciones 3.2 y 3.3).
 10. Reglas nuevas de `ArquitecturaTest` (`internal` no accesible desde otros módulos, ningún módulo depende de `app`), `ModulosTest`, comprobación de que no quedan paquetes antiguos y suite completa. Las reglas existentes ya se adaptaron en las unidades 2, 4, 6 y 8 (sección 4.2).
 
