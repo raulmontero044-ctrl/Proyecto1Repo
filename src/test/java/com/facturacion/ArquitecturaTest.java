@@ -29,7 +29,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 class ArquitecturaTest {
 
     private static final String RAIZ = "com.facturacion.";
-    private static final String CONFIGURACION_TRANSVERSAL = "config";
+    private static final String COMPOSICION = "app";
     private static final String PACKAGE_INFO = "package-info";
 
     @ArchTest
@@ -44,6 +44,7 @@ class ArquitecturaTest {
                     "..persistence..",
                     "..internal.application..",
                     "..config..",
+                    RAIZ + COMPOSICION + "..",
                     "..api..")
             .allowEmptyShould(true);
 
@@ -179,13 +180,76 @@ class ArquitecturaTest {
         };
     }
 
+    @ArchTest
+    static final ArchRule internalNoAccesibleDesdeOtrosModulos = classes()
+            .that().resideInAPackage("com.facturacion..")
+            .should(noAccederAlInternalDeOtroModulo())
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule ningunModuloDependeDeApp = noClasses()
+            .that().resideInAPackage("com.facturacion..")
+            .and().resideOutsideOfPackage(RAIZ + COMPOSICION + "..")
+            .should().dependOnClassesThat().resideInAPackage(RAIZ + COMPOSICION + "..")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule facadeSoloExponeElContrato = classes()
+            .that().resideInAPackage("..api.facade..")
+            .and().doNotHaveSimpleName(PACKAGE_INFO)
+            .should().onlyDependOnClassesThat().resideInAnyPackage("java..", "..api.facade..")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule apiNoExponeTiposInternos = methods()
+            .that().arePublic()
+            .and().areDeclaredInClassesThat().resideInAPackage("..api..")
+            .should().notHaveRawReturnType(resideInAPackage("..internal.."))
+            .andShould().notHaveRawParameterTypes(describe(
+                    "algún parámetro de modelo, repositorio, aplicación o persistencia interna",
+                    tipos -> tipos.stream().anyMatch(resideInAnyPackage(
+                            "..internal.domain.model..",
+                            "..internal.domain.service..",
+                            "..internal.domain.repository..",
+                            "..internal.application..",
+                            "..internal.persistence..")::test)))
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule controladoresNoDeleganEnLaFacade = noClasses()
+            .that().resideInAPackage("..api.http..")
+            .should().dependOnClassesThat().resideInAPackage("..api.facade")
+            .allowEmptyShould(true);
+
+    private static ArchCondition<JavaClass> noAccederAlInternalDeOtroModulo() {
+        return new ArchCondition<>("no acceder a internal de un módulo distinto del propio") {
+            @Override
+            public void check(JavaClass origen, ConditionEvents eventos) {
+                Optional<String> moduloOrigen = nombreDeModulo(origen);
+                for (Dependency dependencia : origen.getDirectDependenciesFromSelf()) {
+                    JavaClass destino = dependencia.getTargetClass().getBaseComponentType();
+                    Optional<String> moduloDestino = nombreDeModulo(destino);
+                    if (moduloDestino.isEmpty() || moduloDestino.equals(moduloOrigen)) {
+                        continue;
+                    }
+                    if (estaEnCapa(destino, moduloDestino.get(), "internal")) {
+                        eventos.add(SimpleConditionEvent.violated(dependencia, dependencia.getDescription()));
+                    }
+                }
+            }
+        };
+    }
+
     private static Optional<String> modulo(JavaClass clase) {
+        return nombreDeModulo(clase).filter(modulo -> !modulo.equals(COMPOSICION));
+    }
+
+    private static Optional<String> nombreDeModulo(JavaClass clase) {
         String paquete = clase.getPackageName();
         if (!paquete.startsWith(RAIZ)) {
             return Optional.empty();
         }
-        String modulo = paquete.substring(RAIZ.length()).split("\\.")[0];
-        return modulo.equals(CONFIGURACION_TRANSVERSAL) ? Optional.empty() : Optional.of(modulo);
+        return Optional.of(paquete.substring(RAIZ.length()).split("\\.")[0]);
     }
 
     private static boolean estaEnCapa(JavaClass clase, String modulo, String... capas) {
