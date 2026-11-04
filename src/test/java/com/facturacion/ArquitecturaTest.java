@@ -1,12 +1,19 @@
 package com.facturacion;
 
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import jakarta.persistence.Entity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
@@ -20,6 +27,9 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 
 @AnalyzeClasses(packages = "com.facturacion", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArquitecturaTest {
+
+    private static final String RAIZ = "com.facturacion.";
+    private static final String CONFIGURACION_TRANSVERSAL = "config";
 
     @ArchTest
     static final ArchRule dominioIndependienteDeFrameworks = noClasses()
@@ -122,4 +132,55 @@ class ArquitecturaTest {
             .matching("com.facturacion.(*)..")
             .should().beFreeOfCycles()
             .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule modulosSoloUsanElContratoApiDeOtrosDesdeAplicacion = classes()
+            .that().resideInAPackage("com.facturacion.*..")
+            .should(accederAOtrosModulosSoloDesdeAplicacionYPorSuApi())
+            .allowEmptyShould(true);
+
+    private static ArchCondition<JavaClass> accederAOtrosModulosSoloDesdeAplicacionYPorSuApi() {
+        return new ArchCondition<>("acceder a otros módulos solo desde apln o service y solo a su api, sin DTO HTTP") {
+            @Override
+            public void check(JavaClass origen, ConditionEvents eventos) {
+                Optional<String> moduloOrigen = modulo(origen);
+                if (moduloOrigen.isEmpty()) {
+                    return;
+                }
+                for (Dependency dependencia : origen.getDirectDependenciesFromSelf()) {
+                    JavaClass destino = dependencia.getTargetClass().getBaseComponentType();
+                    Optional<String> moduloDestino = modulo(destino);
+                    if (moduloDestino.isEmpty() || moduloDestino.equals(moduloOrigen)) {
+                        continue;
+                    }
+                    boolean permitida = estaEnCapa(origen, moduloOrigen.get(), "apln", "service")
+                            && estaEnCapa(destino, moduloDestino.get(), "api")
+                            && !destino.getSimpleName().endsWith("Request");
+                    if (!permitida) {
+                        eventos.add(SimpleConditionEvent.violated(dependencia, dependencia.getDescription()));
+                    }
+                }
+            }
+        };
+    }
+
+    private static Optional<String> modulo(JavaClass clase) {
+        String paquete = clase.getPackageName();
+        if (!paquete.startsWith(RAIZ)) {
+            return Optional.empty();
+        }
+        String modulo = paquete.substring(RAIZ.length()).split("\\.")[0];
+        return modulo.equals(CONFIGURACION_TRANSVERSAL) ? Optional.empty() : Optional.of(modulo);
+    }
+
+    private static boolean estaEnCapa(JavaClass clase, String modulo, String... capas) {
+        String paquete = clase.getPackageName();
+        for (String capa : capas) {
+            String paqueteCapa = RAIZ + modulo + "." + capa;
+            if (paquete.equals(paqueteCapa) || paquete.startsWith(paqueteCapa + ".")) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
