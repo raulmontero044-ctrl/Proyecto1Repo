@@ -38,7 +38,7 @@ Normas, criterios, ejemplos breves y checklist de la capa HTTP. Ningún archivo 
 
 ### 1. Ubicación
 
-1.1. Según la tabla de `/k-back`: el controlador y su manejador de excepciones DEBEN estar en `<raiz>.controller` (Etapa 1) / `<raiz>.<modulo>.controller` (Etapa 2, hoy `com.facturacion.factura.controller.FacturaController` y `FacturaExceptionHandler`); en la Etapa 3, en `<raiz>.<modulo>.api.http`, con sus DTO en `<raiz>.<modulo>.api.http.dto`.
+1.1. Según la tabla de `/k-back`: el controlador y su manejador de excepciones DEBEN estar en `<raiz>.controller` (Etapa 1) / `<raiz>.<modulo>.controller` (Etapa 2, hoy `com.facturacion.factura.controller.FacturaController` y `FacturaExceptionHandler`); en la Etapa 3, el controlador en `<raiz>.<modulo>.api.http.controllers` y el manejador en `<raiz>.<modulo>.api.http.handlers` (hoy `com.facturacion.factura.api.http.controllers.FacturaController` y `com.facturacion.factura.api.http.handlers.FacturaExceptionHandler`), con sus DTO en `<raiz>.<modulo>.api.http.dto`. Como el manejador referencia al controlador desde otro paquete en `assignableTypes`, el controlador DEBE ser `public`.
 
 1.2. El nombre DEBE ser `<Agregado>Controller` y `<Agregado>ExceptionHandler`.
 

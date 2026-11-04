@@ -118,7 +118,9 @@ Ejemplo real en Etapa 2: `com.facturacion.factura.apln.CrearFactura`, `com.factu
     ├── api/
     │   ├── facade/                      <Modulo>Facade (interfaz pública entre módulos)
     │   │   └── dto/                     DTO record de contrato
-    │   └── http/                        <Modulo>Controller, <Modulo>ExceptionHandler
+    │   └── http/
+    │       ├── controllers/             <Modulo>Controller
+    │       ├── handlers/                <Modulo>ExceptionHandler
     │       └── dto/                     DTO record HTTP
     └── internal/
         ├── application/                 casos de uso + implementación de la facade; límite transaccional
