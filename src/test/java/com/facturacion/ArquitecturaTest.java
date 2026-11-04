@@ -5,8 +5,13 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import jakarta.persistence.Entity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import static com.tngtech.archunit.base.DescribedPredicate.describe;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
@@ -70,6 +75,31 @@ class ArquitecturaTest {
     static final ArchRule aplicacionSinControladores = noClasses()
             .that().resideInAPackage("..apln..")
             .should().dependOnClassesThat().resideInAPackage("..controller..")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule transaccionesSoloEnAplicacion = noClasses()
+            .that().resideOutsideOfPackage("..apln..")
+            .should().dependOnClassesThat().resideInAPackage("org.springframework.transaction..")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule casosDeUsoTransaccionales = methods()
+            .that().arePublic()
+            .and().areDeclaredInClassesThat().resideInAPackage("..apln..")
+            .and().areDeclaredInClassesThat().areAnnotatedWith(Service.class)
+            .should().beAnnotatedWith(Transactional.class)
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule casosDeUsoSinModelosNiEntidadesEnSuFirma = methods()
+            .that().arePublic()
+            .and().areDeclaredInClassesThat().resideInAPackage("..apln..")
+            .and().areDeclaredInClassesThat().arePublic()
+            .should().notHaveRawReturnType(resideInAnyPackage("..domain..", "..persistence.."))
+            .andShould().notHaveRawParameterTypes(describe(
+                    "algún parámetro de dominio o persistencia",
+                    tipos -> tipos.stream().anyMatch(resideInAnyPackage("..domain..", "..persistence..")::test)))
             .allowEmptyShould(true);
 
     @ArchTest
