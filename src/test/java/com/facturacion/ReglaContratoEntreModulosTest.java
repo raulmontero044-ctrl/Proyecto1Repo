@@ -36,7 +36,7 @@ class ReglaContratoEntreModulosTest {
     @ParameterizedTest
     @CsvSource({
             "ConsumidorDelRequestHttpDeFactura, com.facturacion.factura.api.dto.CrearFacturaRequest",
-            "ConsumidorDelDominioDeFactura, com.facturacion.factura.domain.model.Factura",
+            "ConsumidorDelDominioDeFactura, com.facturacion.factura.internal.domain.model.Factura",
             "ConsumidorDeUnCasoDeUsoDeFactura, com.facturacion.factura.apln.CrearFactura",
             "ControladorConsumidorDelContratoDeFactura, com.facturacion.factura.api.dto.FacturaDto",
             "PersistenciaConsumidoraDeEntidadesDeFactura, com.facturacion.factura.persistence.entity.FacturaEntity",

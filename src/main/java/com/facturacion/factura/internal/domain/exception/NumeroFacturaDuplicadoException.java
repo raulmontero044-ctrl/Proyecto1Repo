@@ -1,4 +1,4 @@
-package com.facturacion.factura.domain.model;
+package com.facturacion.factura.internal.domain.exception;
 
 public class NumeroFacturaDuplicadoException extends RuntimeException {
 

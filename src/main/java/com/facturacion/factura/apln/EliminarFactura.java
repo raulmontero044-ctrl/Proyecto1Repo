@@ -1,6 +1,6 @@
 package com.facturacion.factura.apln;
 
-import com.facturacion.factura.domain.model.FacturaNoEncontradaException;
+import com.facturacion.factura.internal.domain.exception.FacturaNoEncontradaException;
 import com.facturacion.factura.domain.repository.FacturaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -3,10 +3,10 @@ package com.facturacion.factura.apln;
 import com.facturacion.factura.api.dto.FacturaDto;
 import com.facturacion.factura.api.dto.LineaFacturaDto;
 import com.facturacion.factura.api.dto.NuevaFacturaDto;
-import com.facturacion.factura.domain.model.CalculadoraFactura;
-import com.facturacion.factura.domain.model.Factura;
-import com.facturacion.factura.domain.model.FacturaInvalidaException;
-import com.facturacion.factura.domain.model.LineaFactura;
+import com.facturacion.factura.internal.domain.service.CalculadoraFactura;
+import com.facturacion.factura.internal.domain.model.Factura;
+import com.facturacion.factura.internal.domain.exception.FacturaInvalidaException;
+import com.facturacion.factura.internal.domain.model.LineaFactura;
 
 import java.util.List;
 

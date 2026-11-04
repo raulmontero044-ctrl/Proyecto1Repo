@@ -1,6 +1,6 @@
 package com.facturacion.factura.persistence;
 
-import com.facturacion.factura.domain.model.Factura;
+import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.domain.repository.FacturaRepository;
 import com.facturacion.factura.persistence.dao.FacturaDao;
 import com.facturacion.factura.persistence.mapper.FacturaMapper;

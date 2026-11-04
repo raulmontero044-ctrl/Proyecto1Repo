@@ -1,4 +1,6 @@
-package com.facturacion.factura.domain.model;
+package com.facturacion.factura.internal.domain.model;
+
+import com.facturacion.factura.internal.domain.exception.FacturaInvalidaException;
 
 import java.math.BigDecimal;
 public record LineaFactura(String concepto, BigDecimal cantidad, BigDecimal precioUnitario) {

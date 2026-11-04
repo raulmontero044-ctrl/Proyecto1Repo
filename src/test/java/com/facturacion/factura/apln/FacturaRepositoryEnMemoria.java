@@ -1,6 +1,6 @@
 package com.facturacion.factura.apln;
 
-import com.facturacion.factura.domain.model.Factura;
+import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.domain.repository.FacturaRepository;
 
 import java.util.ArrayList;

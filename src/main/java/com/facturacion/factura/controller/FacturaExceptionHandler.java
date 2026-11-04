@@ -1,8 +1,8 @@
 package com.facturacion.factura.controller;
 
-import com.facturacion.factura.domain.model.FacturaInvalidaException;
-import com.facturacion.factura.domain.model.FacturaNoEncontradaException;
-import com.facturacion.factura.domain.model.NumeroFacturaDuplicadoException;
+import com.facturacion.factura.internal.domain.exception.FacturaInvalidaException;
+import com.facturacion.factura.internal.domain.exception.FacturaNoEncontradaException;
+import com.facturacion.factura.internal.domain.exception.NumeroFacturaDuplicadoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;

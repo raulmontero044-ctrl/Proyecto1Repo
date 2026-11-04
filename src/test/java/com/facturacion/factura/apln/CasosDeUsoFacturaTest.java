@@ -4,9 +4,9 @@ import com.facturacion.factura.api.dto.FacturaDto;
 import com.facturacion.factura.api.dto.LineaFacturaDto;
 import com.facturacion.factura.api.dto.NuevaFacturaDto;
 import com.facturacion.factura.api.dto.NuevaLineaFacturaDto;
-import com.facturacion.factura.domain.model.FacturaInvalidaException;
-import com.facturacion.factura.domain.model.FacturaNoEncontradaException;
-import com.facturacion.factura.domain.model.NumeroFacturaDuplicadoException;
+import com.facturacion.factura.internal.domain.exception.FacturaInvalidaException;
+import com.facturacion.factura.internal.domain.exception.FacturaNoEncontradaException;
+import com.facturacion.factura.internal.domain.exception.NumeroFacturaDuplicadoException;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

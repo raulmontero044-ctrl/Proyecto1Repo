@@ -1,4 +1,7 @@
-package com.facturacion.factura.domain.model;
+package com.facturacion.factura.internal.domain.service;
+
+import com.facturacion.factura.internal.domain.model.Factura;
+import com.facturacion.factura.internal.domain.model.LineaFactura;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

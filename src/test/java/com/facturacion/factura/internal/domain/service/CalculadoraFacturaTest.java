@@ -1,5 +1,7 @@
-package com.facturacion.factura.domain.model;
+package com.facturacion.factura.internal.domain.service;
 
+import com.facturacion.factura.internal.domain.model.Factura;
+import com.facturacion.factura.internal.domain.model.LineaFactura;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

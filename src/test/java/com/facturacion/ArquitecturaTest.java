@@ -33,7 +33,7 @@ class ArquitecturaTest {
 
     @ArchTest
     static final ArchRule dominioIndependienteDeFrameworks = noClasses()
-            .that().resideInAPackage("..domain..")
+            .that().resideInAnyPackage("..internal.domain..", "com.facturacion.*.domain..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "org.springframework..",
                     "jakarta.persistence..",
@@ -43,7 +43,7 @@ class ArquitecturaTest {
                     "..persistence..",
                     "..controller..",
                     "..apln..",
-                    "..service..",
+                    "com.facturacion.*.service..",
                     "..config..",
                     "..api..")
             .allowEmptyShould(true);

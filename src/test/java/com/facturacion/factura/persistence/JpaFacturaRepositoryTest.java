@@ -1,7 +1,7 @@
 package com.facturacion.factura.persistence;
 
-import com.facturacion.factura.domain.model.Factura;
-import com.facturacion.factura.domain.model.LineaFactura;
+import com.facturacion.factura.internal.domain.model.Factura;
+import com.facturacion.factura.internal.domain.model.LineaFactura;
 import com.facturacion.factura.persistence.dao.FacturaDao;
 import com.facturacion.factura.persistence.entity.FacturaEntity;
 import com.facturacion.factura.persistence.entity.LineaFacturaEntity;

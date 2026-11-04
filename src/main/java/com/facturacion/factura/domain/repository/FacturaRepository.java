@@ -1,6 +1,6 @@
 package com.facturacion.factura.domain.repository;
 
-import com.facturacion.factura.domain.model.Factura;
+import com.facturacion.factura.internal.domain.model.Factura;
 
 import java.util.List;
 import java.util.Optional;
