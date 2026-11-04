@@ -39,7 +39,7 @@ class ReglaContratoEntreModulosTest {
             "ConsumidorDelDominioDeFactura, com.facturacion.factura.internal.domain.model.Factura",
             "ConsumidorDeUnCasoDeUsoDeFactura, com.facturacion.factura.apln.CrearFactura",
             "ControladorConsumidorDelContratoDeFactura, com.facturacion.factura.api.dto.FacturaDto",
-            "PersistenciaConsumidoraDeEntidadesDeFactura, com.facturacion.factura.persistence.entity.FacturaEntity",
+            "PersistenciaConsumidoraDeEntidadesDeFactura, com.facturacion.factura.internal.persistence.entity.FacturaEntity",
             "DominioConsumidorDelContratoDeFactura, com.facturacion.factura.api.dto.FacturaDto"})
     void rechazaLosAccesosDeOtroModuloFueraDelContratoApiDeFactura(String origen, String destino) {
         JavaClasses clases = clase(origen);

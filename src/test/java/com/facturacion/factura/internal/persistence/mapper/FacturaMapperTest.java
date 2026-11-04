@@ -1,10 +1,10 @@
-package com.facturacion.factura.persistence.mapper;
+package com.facturacion.factura.internal.persistence.mapper;
 
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.exception.FacturaInvalidaException;
 import com.facturacion.factura.internal.domain.model.LineaFactura;
-import com.facturacion.factura.persistence.entity.FacturaEntity;
-import com.facturacion.factura.persistence.entity.LineaFacturaEntity;
+import com.facturacion.factura.internal.persistence.entity.FacturaEntity;
+import com.facturacion.factura.internal.persistence.entity.LineaFacturaEntity;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

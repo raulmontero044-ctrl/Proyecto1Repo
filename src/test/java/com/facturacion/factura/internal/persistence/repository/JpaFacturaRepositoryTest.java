@@ -1,11 +1,11 @@
-package com.facturacion.factura.persistence;
+package com.facturacion.factura.internal.persistence.repository;
 
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.model.LineaFactura;
-import com.facturacion.factura.persistence.dao.FacturaDao;
-import com.facturacion.factura.persistence.entity.FacturaEntity;
-import com.facturacion.factura.persistence.entity.LineaFacturaEntity;
-import com.facturacion.factura.persistence.mapper.FacturaMapper;
+import com.facturacion.factura.internal.persistence.dao.FacturaDao;
+import com.facturacion.factura.internal.persistence.entity.FacturaEntity;
+import com.facturacion.factura.internal.persistence.entity.LineaFacturaEntity;
+import com.facturacion.factura.internal.persistence.mapper.FacturaMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 

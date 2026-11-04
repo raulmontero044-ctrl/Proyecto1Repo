@@ -51,25 +51,32 @@ class ArquitecturaTest {
     @ArchTest
     static final ArchRule entidadesSoloEnPersistencia = classes()
             .that().areAnnotatedWith(Entity.class)
-            .should().resideInAPackage("..persistence.entity..")
+            .should().resideInAPackage("..internal.persistence.entity..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule persistenciaNoUsadaFueraDePersistencia = noClasses()
-            .that().resideOutsideOfPackage("..persistence..")
-            .should().dependOnClassesThat().resideInAPackage("..persistence..")
+            .that().resideOutsideOfPackage("..internal.persistence..")
+            .should().dependOnClassesThat().resideInAPackage("..internal.persistence..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule persistenciaSoloDependeDelDominio = noClasses()
-            .that().resideInAPackage("..persistence..")
-            .should().dependOnClassesThat().resideInAnyPackage("..apln..", "..controller..", "..service..", "..api..")
+            .that().resideInAPackage("..internal.persistence..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "..apln..",
+                    "..internal.application..",
+                    "..controller..",
+                    "com.facturacion.*.service..",
+                    "..api..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule daoSoloUsadoPorImplementacionesDeRepository = classes()
-            .that().resideInAPackage("..persistence.dao..")
-            .should().onlyBeAccessed().byClassesThat().resideInAnyPackage("..persistence", "..persistence.dao..")
+            .that().resideInAPackage("..internal.persistence.dao..")
+            .should().onlyBeAccessed().byClassesThat().resideInAnyPackage(
+                    "..internal.persistence.repository..",
+                    "..internal.persistence.dao..")
             .allowEmptyShould(true);
 
     @ArchTest

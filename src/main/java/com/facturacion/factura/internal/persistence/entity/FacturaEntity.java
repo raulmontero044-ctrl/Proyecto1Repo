@@ -1,4 +1,4 @@
-package com.facturacion.factura.persistence.entity;
+package com.facturacion.factura.internal.persistence.entity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

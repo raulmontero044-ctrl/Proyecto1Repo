@@ -1,6 +1,6 @@
-package com.facturacion.factura.persistence.dao;
+package com.facturacion.factura.internal.persistence.dao;
 
-import com.facturacion.factura.persistence.entity.FacturaEntity;
+import com.facturacion.factura.internal.persistence.entity.FacturaEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
