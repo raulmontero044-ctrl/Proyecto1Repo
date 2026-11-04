@@ -97,7 +97,7 @@ Normas, criterios, ejemplos breves y checklist de DTO. Ningún archivo se crea n
 
 ### 6. Ubicación por etapa
 
-6.1. Etapas 1 y 2: según la convención existente, todos los DTO del módulo (contrato e HTTP) DEBEN ubicarse en `<modulo>.api.dto` (hoy `com.facturacion.factura.api.dto`). En la Etapa 1 sin módulos, los DTO HTTP van en `controller/dto` según `/k-back`.
+6.1. Etapas 1 y 2: todos los DTO (contrato e HTTP) DEBEN ubicarse en `api.dto`: `<raiz>.api.dto` en la Etapa 1 y `<raiz>.<modulo>.api.dto` en la Etapa 2 (hoy `com.facturacion.factura.api.dto`), de modo que el paso de la Etapa 1 a la 2 solo añade el prefijo de módulo.
 
 6.2. Etapa 3: los DTO de contrato entre módulos (`FacturaDto`, `LineaFacturaDto`, `NuevaFacturaDto`, `NuevaLineaFacturaDto`) DEBEN ubicarse en `<modulo>.api.facade.dto`; los DTO HTTP (`CrearFacturaRequest`, `LineaFacturaRequest` y los de respuesta HTTP) en `<modulo>.api.http.dto`.
 

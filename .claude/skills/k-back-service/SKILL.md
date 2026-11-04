@@ -41,7 +41,7 @@ Normas, criterios, ejemplos breves y checklist de la capa de aplicación. Ningú
 
 ### 1. Ubicación
 
-1.1. Los casos de uso DEBEN ubicarse en la capa de aplicación de la etapa vigente según la tabla de `/k-back`: `<modulo>.apln` en las Etapas 1 y 2 (hoy `com.facturacion.factura.apln`) y `<modulo>.internal.application` en la Etapa 3.
+1.1. Los casos de uso DEBEN ubicarse en la capa de aplicación de la etapa vigente según la tabla de `/k-back`: `<raiz>.apln` (Etapa 1) / `<raiz>.<modulo>.apln` (Etapa 2, hoy `com.facturacion.factura.apln`) y `<raiz>.<modulo>.internal.application` (Etapa 3).
 
 1.2. El paquete `service` (Etapas 1 y 2) SOLO PUEDE existir si hay un servicio interno justificado (sección 7). Hoy no existe en `factura` y NO DEBE crearse vacío.
 
@@ -110,17 +110,17 @@ public FacturaDto ejecutar(NuevaFacturaDto nuevaFactura) {
 
 7.2. NO DEBEN crearse servicios que solo deleguen en un Repository o en otro caso de uso.
 
-7.3. Un servicio interno DEBE ubicarse en `<modulo>.service` (Etapas 1 y 2) o en `<modulo>.internal.application` (Etapa 3) y NO DEBE ser accesible desde otros módulos.
+7.3. Un servicio interno DEBE ubicarse en `<raiz>.service` (Etapa 1) / `<raiz>.<modulo>.service` (Etapa 2) o en `<raiz>.<modulo>.internal.application` (Etapa 3) y NO DEBE ser accesible desde otros módulos.
 
 ### 8. Implementación de la facade (Etapa 3)
 
-8.1. En la Etapa 3 la interfaz `<Modulo>Facade` de `api.facade` (contrato definido por `/k-back-module`) DEBE implementarse en `<modulo>.internal.application`, con el nombre que fije `/k-back-module` y, en su defecto, `<Modulo>FacadeImpl`.
+8.1. En la Etapa 3 la interfaz `<Modulo>Facade` de `api.facade` (contrato definido por `/k-back-module`) DEBE implementarse en `<modulo>.internal.application` con el nombre `<Modulo>FacadeImpl` (p. ej. `FacturaFacadeImpl`). La facade es solo para otros módulos: el controlador del propio módulo delega en los casos de uso, no en ella (`/k-back-controller`).
 
 8.2. La implementación DEBE recibir y devolver solo DTO de `api.facade.dto` o tipos Java estándar y DEBE apoyarse en los casos de uso del módulo; NO DEBE duplicar su lógica.
 
 8.3. Si un método de la facade solo invoca un caso de uso, la transacción la marca el caso de uso; si coordina varios, el método de la facade DEBE ser el límite transaccional.
 
-8.4. En las Etapas 1 y 2 NO DEBE crearse una facade: los casos de uso de `apln` y los DTO de `api.dto` son el punto de entrada existente.
+8.4. En las Etapas 1 y 2 NO DEBE crearse una facade. Si otro módulo necesita operaciones, el punto de entrada es una interfaz pública en `<modulo>.api` implementada en `apln`, solo con consumidor real (`/k-back-module` sección 5.3); otro módulo NO DEBE invocar directamente los casos de uso de `apln`.
 
 8.5. Para usar otro módulo, la capa de aplicación DEBE depender solo de su contrato público (`api` en la Etapa 2, `api.facade` en la Etapa 3); los límites son de `/k-back-module`.
 

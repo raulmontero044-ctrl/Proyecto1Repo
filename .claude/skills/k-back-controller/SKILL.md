@@ -38,7 +38,7 @@ Normas, criterios, ejemplos breves y checklist de la capa HTTP. Ningún archivo 
 
 ### 1. Ubicación
 
-1.1. Según la tabla de `/k-back`: en las Etapas 1 y 2 el controlador y su manejador de excepciones DEBEN estar en `<modulo>.controller` (hoy `com.facturacion.factura.controller.FacturaController` y `FacturaExceptionHandler`); en la Etapa 3, en `<modulo>.api.http`, con sus DTO en `<modulo>.api.http.dto`.
+1.1. Según la tabla de `/k-back`: el controlador y su manejador de excepciones DEBEN estar en `<raiz>.controller` (Etapa 1) / `<raiz>.<modulo>.controller` (Etapa 2, hoy `com.facturacion.factura.controller.FacturaController` y `FacturaExceptionHandler`); en la Etapa 3, en `<raiz>.<modulo>.api.http`, con sus DTO en `<raiz>.<modulo>.api.http.dto`.
 
 1.2. El nombre DEBE ser `<Agregado>Controller` y `<Agregado>ExceptionHandler`.
 
@@ -48,7 +48,7 @@ Normas, criterios, ejemplos breves y checklist de la capa HTTP. Ningún archivo 
 
 2.2. El controlador NO DEBE contener reglas de negocio, cálculos, transacciones ni acceso a Repository, DAO, entidades o servicios internos.
 
-2.3. Cada endpoint DEBE delegar en un único caso de uso del propio módulo (`crearFactura.ejecutar(...)`, `obtenerFactura.ejecutar(id)`), inyectado por constructor.
+2.3. Cada endpoint DEBE delegar en un único caso de uso del propio módulo (`crearFactura.ejecutar(...)`, `obtenerFactura.ejecutar(id)`), inyectado por constructor. En la Etapa 3 el controlador NO DEBE delegar en la facade de su propio módulo: delega en los casos de uso de `internal.application`.
 
 2.4. La conversión HTTP → DTO de aplicación PUEDE hacerse en un método privado estático del controlador, como `aNuevaFactura(CrearFacturaRequest)`, sin lógica de negocio. Las reglas del mapeo son de `/k-back-dto`.
 
