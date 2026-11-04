@@ -224,6 +224,12 @@ class ArquitecturaTest {
             .allowEmptyShould(true);
 
     @ArchTest
+    static final ArchRule appNoDependeDelAdaptadorHttp = noClasses()
+            .that().resideInAPackage(RAIZ + COMPOSICION + "..")
+            .should().dependOnClassesThat().resideInAPackage("..api.http..")
+            .allowEmptyShould(true);
+
+    @ArchTest
     static final ArchRule facadeSoloExponeElContrato = classes()
             .that().resideInAPackage("..api.facade..")
             .and().doNotHaveSimpleName(PACKAGE_INFO)
