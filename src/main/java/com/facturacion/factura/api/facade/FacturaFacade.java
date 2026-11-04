@@ -1,0 +1,17 @@
+package com.facturacion.factura.api.facade;
+
+import com.facturacion.factura.api.facade.dto.FacturaDto;
+import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
+
+import java.util.List;
+
+public interface FacturaFacade {
+
+    FacturaDto crear(NuevaFacturaDto nuevaFactura);
+
+    FacturaDto obtener(Long id);
+
+    List<FacturaDto> listar();
+
+    void eliminar(Long id);
+}

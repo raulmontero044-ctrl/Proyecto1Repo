@@ -29,11 +29,12 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 class ArquitecturaTest {
 
     private static final String RAIZ = "com.facturacion.";
-    private static final String CONFIGURACION_TRANSVERSAL = "config";
+    private static final String COMPOSICION = "app";
+    private static final String PACKAGE_INFO = "package-info";
 
     @ArchTest
     static final ArchRule dominioIndependienteDeFrameworks = noClasses()
-            .that().resideInAPackage("..domain..")
+            .that().resideInAPackage("..internal.domain..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "org.springframework..",
                     "jakarta.persistence..",
@@ -41,77 +42,92 @@ class ArquitecturaTest {
                     "jakarta.validation..",
                     "com.fasterxml.jackson..",
                     "..persistence..",
-                    "..controller..",
-                    "..apln..",
-                    "..service..",
+                    "..internal.application..",
                     "..config..",
+                    RAIZ + COMPOSICION + "..",
                     "..api..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule entidadesSoloEnPersistencia = classes()
             .that().areAnnotatedWith(Entity.class)
-            .should().resideInAPackage("..persistence.entity..")
+            .should().resideInAPackage("..internal.persistence.entity..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule persistenciaNoUsadaFueraDePersistencia = noClasses()
-            .that().resideOutsideOfPackage("..persistence..")
-            .should().dependOnClassesThat().resideInAPackage("..persistence..")
+            .that().resideOutsideOfPackage("..internal.persistence..")
+            .should().dependOnClassesThat().resideInAPackage("..internal.persistence..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule persistenciaSoloDependeDelDominio = noClasses()
-            .that().resideInAPackage("..persistence..")
-            .should().dependOnClassesThat().resideInAnyPackage("..apln..", "..controller..", "..service..", "..api..")
+            .that().resideInAPackage("..internal.persistence..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "..internal.application..",
+                    "..api..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule daoSoloUsadoPorImplementacionesDeRepository = classes()
-            .that().resideInAPackage("..persistence.dao..")
-            .should().onlyBeAccessed().byClassesThat().resideInAnyPackage("..persistence", "..persistence.dao..")
+            .that().resideInAPackage("..internal.persistence.dao..")
+            .should().onlyBeAccessed().byClassesThat().resideInAnyPackage(
+                    "..internal.persistence.repository..",
+                    "..internal.persistence.dao..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule dtoSonRecords = classes()
-            .that().resideInAPackage("..api.dto..")
+            .that().resideInAnyPackage("..api.facade.dto..", "..api.http.dto..")
+            .and().doNotHaveSimpleName(PACKAGE_INFO)
             .should().beRecords()
             .allowEmptyShould(true);
 
     @ArchTest
-    static final ArchRule dtoSoloDependenDeJavaValidacionYOtrosDto = classes()
-            .that().resideInAPackage("..api.dto..")
-            .should().onlyDependOnClassesThat().resideInAnyPackage("java..", "jakarta.validation..", "..api.dto..")
+    static final ArchRule dtoDeContratoSoloDependenDeJavaYOtrosDtoDeContrato = classes()
+            .that().resideInAPackage("..api.facade.dto..")
+            .and().doNotHaveSimpleName(PACKAGE_INFO)
+            .should().onlyDependOnClassesThat().resideInAnyPackage("java..", "..api.facade.dto..")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule dtoHttpSoloDependenDeJavaValidacionYOtrosDtoHttp = classes()
+            .that().resideInAPackage("..api.http.dto..")
+            .should().onlyDependOnClassesThat().resideInAnyPackage("java..", "jakarta.validation..", "..api.http.dto..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule controladoresSinRepositoryNiServiceInterno = noClasses()
-            .that().resideInAPackage("..controller..")
-            .should().dependOnClassesThat().resideInAnyPackage("..domain.repository..", "..service..")
+            .that().resideInAPackage("..api.http..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "..internal.domain.repository..",
+                    "..internal.domain.service..",
+                    "..internal.persistence..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule controladoresSoloUsanExcepcionesDelDominio = noClasses()
-            .that().resideInAPackage("..controller..")
-            .should().dependOnClassesThat(resideInAPackage("..domain..").and(not(assignableTo(RuntimeException.class))))
+            .that().resideInAPackage("..api.http..")
+            .should().dependOnClassesThat(
+                    resideInAPackage("..internal.domain..").and(not(assignableTo(RuntimeException.class))))
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule aplicacionSinControladores = noClasses()
-            .that().resideInAPackage("..apln..")
-            .should().dependOnClassesThat().resideInAPackage("..controller..")
+            .that().resideInAPackage("..internal.application..")
+            .should().dependOnClassesThat().resideInAPackage("..api.http..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule transaccionesSoloEnAplicacion = noClasses()
-            .that().resideOutsideOfPackage("..apln..")
+            .that().resideOutsideOfPackage("..internal.application..")
             .should().dependOnClassesThat().resideInAPackage("org.springframework.transaction..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule casosDeUsoTransaccionales = methods()
             .that().arePublic()
-            .and().areDeclaredInClassesThat().resideInAPackage("..apln..")
+            .and().areDeclaredInClassesThat().resideInAPackage("..internal.application..")
             .and().areDeclaredInClassesThat().areAnnotatedWith(Service.class)
             .should().beAnnotatedWith(Transactional.class)
             .allowEmptyShould(true);
@@ -119,12 +135,13 @@ class ArquitecturaTest {
     @ArchTest
     static final ArchRule casosDeUsoSinModelosNiEntidadesEnSuFirma = methods()
             .that().arePublic()
-            .and().areDeclaredInClassesThat().resideInAPackage("..apln..")
+            .and().areDeclaredInClassesThat().resideInAPackage("..internal.application..")
             .and().areDeclaredInClassesThat().arePublic()
-            .should().notHaveRawReturnType(resideInAnyPackage("..domain..", "..persistence.."))
+            .should().notHaveRawReturnType(resideInAnyPackage("..internal.domain..", "..internal.persistence.."))
             .andShould().notHaveRawParameterTypes(describe(
                     "algún parámetro de dominio o persistencia",
-                    tipos -> tipos.stream().anyMatch(resideInAnyPackage("..domain..", "..persistence..")::test)))
+                    tipos -> tipos.stream()
+                            .anyMatch(resideInAnyPackage("..internal.domain..", "..internal.persistence..")::test)))
             .allowEmptyShould(true);
 
     @ArchTest
@@ -134,13 +151,13 @@ class ArquitecturaTest {
             .allowEmptyShould(true);
 
     @ArchTest
-    static final ArchRule modulosSoloUsanElContratoApiDeOtrosDesdeAplicacion = classes()
+    static final ArchRule modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion = classes()
             .that().resideInAPackage("com.facturacion.*..")
-            .should(accederAOtrosModulosSoloDesdeAplicacionYPorSuApi())
+            .should(accederAOtrosModulosSoloDesdeAplicacionYPorSuFacade())
             .allowEmptyShould(true);
 
-    private static ArchCondition<JavaClass> accederAOtrosModulosSoloDesdeAplicacionYPorSuApi() {
-        return new ArchCondition<>("acceder a otros módulos solo desde apln o service y solo a su api, sin DTO HTTP") {
+    private static ArchCondition<JavaClass> accederAOtrosModulosSoloDesdeAplicacionYPorSuFacade() {
+        return new ArchCondition<>("acceder a otros módulos solo desde internal.application y solo a su api.facade") {
             @Override
             public void check(JavaClass origen, ConditionEvents eventos) {
                 Optional<String> moduloOrigen = modulo(origen);
@@ -153,9 +170,8 @@ class ArquitecturaTest {
                     if (moduloDestino.isEmpty() || moduloDestino.equals(moduloOrigen)) {
                         continue;
                     }
-                    boolean permitida = estaEnCapa(origen, moduloOrigen.get(), "apln", "service")
-                            && estaEnCapa(destino, moduloDestino.get(), "api")
-                            && !destino.getSimpleName().endsWith("Request");
+                    boolean permitida = estaEnCapa(origen, moduloOrigen.get(), "internal.application")
+                            && estaEnCapa(destino, moduloDestino.get(), "api.facade");
                     if (!permitida) {
                         eventos.add(SimpleConditionEvent.violated(dependencia, dependencia.getDescription()));
                     }
@@ -164,13 +180,76 @@ class ArquitecturaTest {
         };
     }
 
+    @ArchTest
+    static final ArchRule internalNoAccesibleDesdeOtrosModulos = classes()
+            .that().resideInAPackage("com.facturacion..")
+            .should(noAccederAlInternalDeOtroModulo())
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule ningunModuloDependeDeApp = noClasses()
+            .that().resideInAPackage("com.facturacion..")
+            .and().resideOutsideOfPackage(RAIZ + COMPOSICION + "..")
+            .should().dependOnClassesThat().resideInAPackage(RAIZ + COMPOSICION + "..")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule facadeSoloExponeElContrato = classes()
+            .that().resideInAPackage("..api.facade..")
+            .and().doNotHaveSimpleName(PACKAGE_INFO)
+            .should().onlyDependOnClassesThat().resideInAnyPackage("java..", "..api.facade..")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule apiNoExponeTiposInternos = methods()
+            .that().arePublic()
+            .and().areDeclaredInClassesThat().resideInAPackage("..api..")
+            .should().notHaveRawReturnType(resideInAPackage("..internal.."))
+            .andShould().notHaveRawParameterTypes(describe(
+                    "algún parámetro de modelo, repositorio, aplicación o persistencia interna",
+                    tipos -> tipos.stream().anyMatch(resideInAnyPackage(
+                            "..internal.domain.model..",
+                            "..internal.domain.service..",
+                            "..internal.domain.repository..",
+                            "..internal.application..",
+                            "..internal.persistence..")::test)))
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule controladoresNoDeleganEnLaFacade = noClasses()
+            .that().resideInAPackage("..api.http..")
+            .should().dependOnClassesThat().resideInAPackage("..api.facade")
+            .allowEmptyShould(true);
+
+    private static ArchCondition<JavaClass> noAccederAlInternalDeOtroModulo() {
+        return new ArchCondition<>("no acceder a internal de un módulo distinto del propio") {
+            @Override
+            public void check(JavaClass origen, ConditionEvents eventos) {
+                Optional<String> moduloOrigen = nombreDeModulo(origen);
+                for (Dependency dependencia : origen.getDirectDependenciesFromSelf()) {
+                    JavaClass destino = dependencia.getTargetClass().getBaseComponentType();
+                    Optional<String> moduloDestino = nombreDeModulo(destino);
+                    if (moduloDestino.isEmpty() || moduloDestino.equals(moduloOrigen)) {
+                        continue;
+                    }
+                    if (estaEnCapa(destino, moduloDestino.get(), "internal")) {
+                        eventos.add(SimpleConditionEvent.violated(dependencia, dependencia.getDescription()));
+                    }
+                }
+            }
+        };
+    }
+
     private static Optional<String> modulo(JavaClass clase) {
+        return nombreDeModulo(clase).filter(modulo -> !modulo.equals(COMPOSICION));
+    }
+
+    private static Optional<String> nombreDeModulo(JavaClass clase) {
         String paquete = clase.getPackageName();
         if (!paquete.startsWith(RAIZ)) {
             return Optional.empty();
         }
-        String modulo = paquete.substring(RAIZ.length()).split("\\.")[0];
-        return modulo.equals(CONFIGURACION_TRANSVERSAL) ? Optional.empty() : Optional.of(modulo);
+        return Optional.of(paquete.substring(RAIZ.length()).split("\\.")[0]);
     }
 
     private static boolean estaEnCapa(JavaClass clase, String modulo, String... capas) {
