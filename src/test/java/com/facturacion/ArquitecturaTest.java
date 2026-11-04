@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.tngtech.archunit.base.DescribedPredicate.describe;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
@@ -69,6 +72,12 @@ class ArquitecturaTest {
     static final ArchRule controladoresSinRepositoryNiServiceInterno = noClasses()
             .that().resideInAPackage("..controller..")
             .should().dependOnClassesThat().resideInAnyPackage("..domain.repository..", "..service..")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule controladoresSoloUsanExcepcionesDelDominio = noClasses()
+            .that().resideInAPackage("..controller..")
+            .should().dependOnClassesThat(resideInAPackage("..domain..").and(not(assignableTo(RuntimeException.class))))
             .allowEmptyShould(true);
 
     @ArchTest

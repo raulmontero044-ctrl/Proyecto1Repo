@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -109,6 +110,8 @@ class FacturaControllerTest {
 
         mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON).content(lineaInvalida))
                 .andExpect(status().isBadRequest());
+
+        verify(crearFactura, never()).ejecutar(any());
     }
 
     private static String peticion(
@@ -211,6 +214,9 @@ class FacturaControllerTest {
     void idNoNumericoDevuelve400() throws Exception {
         mockMvc.perform(get("/api/facturas/abc")).andExpect(status().isBadRequest());
         mockMvc.perform(delete("/api/facturas/abc")).andExpect(status().isBadRequest());
+
+        verify(obtenerFactura, never()).ejecutar(any());
+        verify(eliminarFactura, never()).ejecutar(any());
     }
 
     @Test
@@ -219,6 +225,8 @@ class FacturaControllerTest {
 
         mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON).content(PETICION_VALIDA))
                 .andExpect(status().isConflict())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.detail").value("Ya existe una factura con el número F-001"));
     }
 
@@ -227,7 +235,10 @@ class FacturaControllerTest {
         when(crearFactura.ejecutar(any())).thenThrow(new FacturaInvalidaException("inválida"));
 
         mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON).content(PETICION_VALIDA))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").value("inválida"));
     }
 
     @Test
@@ -244,7 +255,11 @@ class FacturaControllerTest {
     void facturaInexistenteDevuelve404() throws Exception {
         when(obtenerFactura.ejecutar(99L)).thenThrow(new FacturaNoEncontradaException(99L));
 
-        mockMvc.perform(get("/api/facturas/99")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/facturas/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value("No existe la factura con id 99"));
     }
 
     @Test
@@ -267,6 +282,9 @@ class FacturaControllerTest {
     void eliminarInexistenteDevuelve404() throws Exception {
         doThrow(new FacturaNoEncontradaException(99L)).when(eliminarFactura).ejecutar(99L);
 
-        mockMvc.perform(delete("/api/facturas/99")).andExpect(status().isNotFound());
+        mockMvc.perform(delete("/api/facturas/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("No existe la factura con id 99"));
     }
 }
