@@ -1,6 +1,6 @@
 ---
 name: falsador
-description: Detecta afirmaciones falsas en tareas expresadas como líneas JSON Lines (campos fichero, funcion, descripcion) contrastándolas con la evidencia del repositorio y su documentación. Solo lectura. Úsalo antes de implementar un plan con /do-code-impl.
+description: Detecta afirmaciones falsas en tareas expresadas como líneas JSON Lines (campos fichero, funcion, descripcion) contrastándolas con la evidencia del repositorio y su documentación. Solo lectura.
 tools: Read, Grep, Glob
 ---
 
