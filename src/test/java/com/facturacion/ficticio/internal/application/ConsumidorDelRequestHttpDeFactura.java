@@ -1,4 +1,4 @@
-package com.facturacion.ficticio.apln;
+package com.facturacion.ficticio.internal.application;
 
 import com.facturacion.factura.api.http.dto.CrearFacturaRequest;
 

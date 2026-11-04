@@ -42,8 +42,7 @@ class ArquitecturaTest {
                     "com.fasterxml.jackson..",
                     "..persistence..",
                     "..controller..",
-                    "..apln..",
-                    "com.facturacion.*.service..",
+                    "..internal.application..",
                     "..config..",
                     "..api..")
             .allowEmptyShould(true);
@@ -64,10 +63,8 @@ class ArquitecturaTest {
     static final ArchRule persistenciaSoloDependeDelDominio = noClasses()
             .that().resideInAPackage("..internal.persistence..")
             .should().dependOnClassesThat().resideInAnyPackage(
-                    "..apln..",
                     "..internal.application..",
                     "..controller..",
-                    "com.facturacion.*.service..",
                     "..api..")
             .allowEmptyShould(true);
 
@@ -111,20 +108,20 @@ class ArquitecturaTest {
 
     @ArchTest
     static final ArchRule aplicacionSinControladores = noClasses()
-            .that().resideInAPackage("..apln..")
+            .that().resideInAPackage("..internal.application..")
             .should().dependOnClassesThat().resideInAPackage("..controller..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule transaccionesSoloEnAplicacion = noClasses()
-            .that().resideOutsideOfPackage("..apln..")
+            .that().resideOutsideOfPackage("..internal.application..")
             .should().dependOnClassesThat().resideInAPackage("org.springframework.transaction..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule casosDeUsoTransaccionales = methods()
             .that().arePublic()
-            .and().areDeclaredInClassesThat().resideInAPackage("..apln..")
+            .and().areDeclaredInClassesThat().resideInAPackage("..internal.application..")
             .and().areDeclaredInClassesThat().areAnnotatedWith(Service.class)
             .should().beAnnotatedWith(Transactional.class)
             .allowEmptyShould(true);
@@ -132,12 +129,13 @@ class ArquitecturaTest {
     @ArchTest
     static final ArchRule casosDeUsoSinModelosNiEntidadesEnSuFirma = methods()
             .that().arePublic()
-            .and().areDeclaredInClassesThat().resideInAPackage("..apln..")
+            .and().areDeclaredInClassesThat().resideInAPackage("..internal.application..")
             .and().areDeclaredInClassesThat().arePublic()
-            .should().notHaveRawReturnType(resideInAnyPackage("..domain..", "..persistence.."))
+            .should().notHaveRawReturnType(resideInAnyPackage("..internal.domain..", "..internal.persistence.."))
             .andShould().notHaveRawParameterTypes(describe(
                     "algún parámetro de dominio o persistencia",
-                    tipos -> tipos.stream().anyMatch(resideInAnyPackage("..domain..", "..persistence..")::test)))
+                    tipos -> tipos.stream()
+                            .anyMatch(resideInAnyPackage("..internal.domain..", "..internal.persistence..")::test)))
             .allowEmptyShould(true);
 
     @ArchTest
@@ -147,13 +145,13 @@ class ArquitecturaTest {
             .allowEmptyShould(true);
 
     @ArchTest
-    static final ArchRule modulosSoloUsanElContratoApiDeOtrosDesdeAplicacion = classes()
+    static final ArchRule modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion = classes()
             .that().resideInAPackage("com.facturacion.*..")
-            .should(accederAOtrosModulosSoloDesdeAplicacionYPorSuApi())
+            .should(accederAOtrosModulosSoloDesdeAplicacionYPorSuFacade())
             .allowEmptyShould(true);
 
-    private static ArchCondition<JavaClass> accederAOtrosModulosSoloDesdeAplicacionYPorSuApi() {
-        return new ArchCondition<>("acceder a otros módulos solo desde apln o service y solo a su api.facade") {
+    private static ArchCondition<JavaClass> accederAOtrosModulosSoloDesdeAplicacionYPorSuFacade() {
+        return new ArchCondition<>("acceder a otros módulos solo desde internal.application y solo a su api.facade") {
             @Override
             public void check(JavaClass origen, ConditionEvents eventos) {
                 Optional<String> moduloOrigen = modulo(origen);
@@ -166,7 +164,7 @@ class ArquitecturaTest {
                     if (moduloDestino.isEmpty() || moduloDestino.equals(moduloOrigen)) {
                         continue;
                     }
-                    boolean permitida = estaEnCapa(origen, moduloOrigen.get(), "apln", "service")
+                    boolean permitida = estaEnCapa(origen, moduloOrigen.get(), "internal.application")
                             && estaEnCapa(destino, moduloDestino.get(), "api.facade");
                     if (!permitida) {
                         eventos.add(SimpleConditionEvent.violated(dependencia, dependencia.getDescription()));

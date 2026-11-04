@@ -1,4 +1,4 @@
-package com.facturacion.factura.apln;
+package com.facturacion.factura.internal.application;
 
 import com.facturacion.factura.api.facade.dto.FacturaDto;
 import com.facturacion.factura.internal.domain.exception.FacturaNoEncontradaException;

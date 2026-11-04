@@ -1,4 +1,4 @@
-package com.facturacion.factura.apln;
+package com.facturacion.factura.internal.application;
 
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.repository.FacturaRepository;

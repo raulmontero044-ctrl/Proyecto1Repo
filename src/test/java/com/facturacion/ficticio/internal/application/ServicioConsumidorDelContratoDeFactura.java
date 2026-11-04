@@ -1,4 +1,4 @@
-package com.facturacion.ficticio.service;
+package com.facturacion.ficticio.internal.application;
 
 import com.facturacion.factura.api.facade.dto.FacturaDto;
 

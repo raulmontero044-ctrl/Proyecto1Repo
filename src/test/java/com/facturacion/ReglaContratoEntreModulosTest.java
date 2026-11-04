@@ -29,7 +29,7 @@ class ReglaContratoEntreModulosTest {
     void aceptaQueLaAplicacionDeOtroModuloUseLosDtoDeContratoDeFactura(String origen) {
         JavaClasses clases = clase(origen);
 
-        assertThatCode(() -> ArquitecturaTest.modulosSoloUsanElContratoApiDeOtrosDesdeAplicacion.check(clases))
+        assertThatCode(() -> ArquitecturaTest.modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion.check(clases))
                 .doesNotThrowAnyException();
     }
 
@@ -37,14 +37,14 @@ class ReglaContratoEntreModulosTest {
     @CsvSource({
             "ConsumidorDelRequestHttpDeFactura, com.facturacion.factura.api.http.dto.CrearFacturaRequest",
             "ConsumidorDelDominioDeFactura, com.facturacion.factura.internal.domain.model.Factura",
-            "ConsumidorDeUnCasoDeUsoDeFactura, com.facturacion.factura.apln.CrearFactura",
+            "ConsumidorDeUnCasoDeUsoDeFactura, com.facturacion.factura.internal.application.CrearFactura",
             "ControladorConsumidorDelContratoDeFactura, com.facturacion.factura.api.facade.dto.FacturaDto",
             "PersistenciaConsumidoraDeEntidadesDeFactura, com.facturacion.factura.internal.persistence.entity.FacturaEntity",
             "DominioConsumidorDelContratoDeFactura, com.facturacion.factura.api.facade.dto.FacturaDto"})
     void rechazaLosAccesosDeOtroModuloFueraDelContratoApiDeFactura(String origen, String destino) {
         JavaClasses clases = clase(origen);
 
-        assertThatThrownBy(() -> ArquitecturaTest.modulosSoloUsanElContratoApiDeOtrosDesdeAplicacion.check(clases))
+        assertThatThrownBy(() -> ArquitecturaTest.modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion.check(clases))
                 .isInstanceOf(AssertionError.class)
                 .hasMessageContaining(origen)
                 .hasMessageContaining(destino);
@@ -55,7 +55,7 @@ class ReglaContratoEntreModulosTest {
         JavaClasses clases = new ClassFileImporter().importPackages("com.facturacion.factura.controller");
 
         assertThat(clases).isNotEmpty();
-        assertThatCode(() -> ArquitecturaTest.modulosSoloUsanElContratoApiDeOtrosDesdeAplicacion.check(clases))
+        assertThatCode(() -> ArquitecturaTest.modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion.check(clases))
                 .doesNotThrowAnyException();
     }
 }
