@@ -25,7 +25,6 @@ class ReglaContratoEntreModulosTest {
     @ParameterizedTest
     @CsvSource({
             "ConsumidorDelContratoDeFactura",
-            "ServicioConsumidorDelContratoDeFactura",
             "ConsumidorDeLaFacadeDeFactura"})
     void aceptaQueLaAplicacionDeOtroModuloUseLosDtoDeContratoDeFactura(String origen) {
         JavaClasses clases = clase(origen);
@@ -41,6 +40,7 @@ class ReglaContratoEntreModulosTest {
             "ConsumidorDelDominioDeFactura, com.facturacion.factura.internal.domain.model.Factura",
             "ConsumidorDeUnCasoDeUsoDeFactura, com.facturacion.factura.internal.application.CrearFactura",
             "ControladorConsumidorDelContratoDeFactura, com.facturacion.factura.api.facade.dto.FacturaDto",
+            "ServicioConsumidorDelContratoDeFactura, com.facturacion.factura.api.facade.dto.FacturaDto",
             "PersistenciaConsumidoraDeEntidadesDeFactura, com.facturacion.factura.internal.persistence.entity.FacturaEntity",
             "DominioConsumidorDelContratoDeFactura, com.facturacion.factura.api.facade.dto.FacturaDto"})
     void rechazaLosAccesosDeOtroModuloFueraDelContratoApiDeFactura(String origen, String destino) {
@@ -94,6 +94,24 @@ class ReglaContratoEntreModulosTest {
 
         assertThat(clases).isNotEmpty();
         assertThatCode(() -> ArquitecturaTest.internalNoAccesibleDesdeOtrosModulos.check(clases))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void rechazaQueUnControladorDelegueEnUnaFacade() {
+        JavaClasses clases = clase("ControladorConsumidorDeLaFacadeDeFactura");
+
+        assertThatThrownBy(() -> ArquitecturaTest.controladoresNoDeleganEnLaFacade.check(clases))
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("ControladorConsumidorDeLaFacadeDeFactura")
+                .hasMessageContaining("com.facturacion.factura.api.facade.FacturaFacade");
+    }
+
+    @Test
+    void aceptaQueUnControladorUseLosDtoDeLaFacade() {
+        JavaClasses clases = clase("ControladorConsumidorDelContratoDeFactura");
+
+        assertThatCode(() -> ArquitecturaTest.controladoresNoDeleganEnLaFacade.check(clases))
                 .doesNotThrowAnyException();
     }
 
