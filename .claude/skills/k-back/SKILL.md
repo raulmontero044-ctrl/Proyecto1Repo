@@ -146,7 +146,7 @@ Ejemplo real en Etapa 3 (módulo `factura`):
 | `api.facade` | `FacturaFacade` |
 | `api.facade.dto` | `NuevaFacturaDto`, `NuevaLineaFacturaDto`, `FacturaDto`, `LineaFacturaDto` |
 | `api.http.controllers` | `FacturaController` |
-| `api.http.handlers` | `FacturaExceptionHandler` |
+| `api.http.handlers` | `FacturaNoEncontradaExceptionHandler` (404), `NumeroFacturaDuplicadoExceptionHandler` (409), `FacturaInvalidaExceptionHandler` (400) |
 | `api.http.dto` | `CrearFacturaRequest`, `LineaFacturaRequest`, `FacturaResponse`, `LineaFacturaResponse` |
 | `internal.application` | casos de uso `CrearFactura`, `ObtenerFactura`, `ListarFacturas` y `EliminarFactura`; `FacturaFacadeImpl`, `FacturaDtoConverter` |
 | `internal.domain.model` | `Factura`, `LineaFactura` |

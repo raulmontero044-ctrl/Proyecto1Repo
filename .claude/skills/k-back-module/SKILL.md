@@ -53,15 +53,15 @@ Normas, criterios, ejemplos breves y un checklist de límites de módulo. Ningú
 
 1.4. Un módulo nuevo DEBE estar justificado por requisitos. Si un requisito cabe en un módulo existente sin romper su cohesión, DEBE implementarse en él. NO DEBEN inventarse módulos.
 
-1.5. Estado real de Facturación: un único módulo, `com.facturacion.factura`, en Etapa 2. Los datos del cliente (`clienteNombre`, `clienteNif`) son hoy atributos propios de la factura; NO existe un módulo `cliente` ni requisito que lo pida.
+1.5. Estado real de Facturación: un único módulo de negocio, `com.facturacion.factura`, en Etapa 3, junto a la raíz de composición `com.facturacion.app`. Su contrato público es `FacturaFacade`, con cuatro operaciones que delegan en los casos de uso `CrearFactura`, `ObtenerFactura`, `ListarFacturas` y `EliminarFactura`. Hoy ningún otro módulo la consume. Los datos del cliente (`clienteNombre`, `clienteNif`) son hoy atributos propios de la factura; NO existe un módulo `cliente` ni requisito que lo pida.
 
 ### 2. Estructura interna por etapa
 
 2.1. La organización de paquetes de cada módulo DEBE seguir la tabla canónica de `/k-back` (sección 2). Esta skill no la redefine.
 
-2.2. Etapa 2 (estado actual): el módulo vive en `<raiz>.<modulo>` con `api/dto`, `apln`, `controller`, `domain/{model,repository}` y `persistence/{dao,entity,mapper}`. Su contrato público es el paquete `<modulo>.api`.
+2.2. Etapa 2 (estructura anterior de Facturación): el módulo vive en `<raiz>.<modulo>` con `api/dto`, `apln`, `controller`, `domain/{model,repository}` y `persistence/{dao,entity,mapper}`. Su contrato público es el paquete `<modulo>.api`.
 
-2.3. Etapa 3: el módulo se divide en `api` (lo que el exterior puede ver) e `internal` (todo lo demás), con `package-info.java` en la raíz del módulo (sección 9).
+2.3. Etapa 3 (estado actual): el módulo se divide en `api` (lo que el exterior puede ver) e `internal` (todo lo demás), con `package-info.java` en la raíz del módulo (sección 9). En `factura`, `api` contiene `facade` (+`dto`) y `http` (`controllers`, `handlers`, `dto`), e `internal` contiene `application`, `domain/{model,service,exception,repository}` y `persistence/{entity,dao,mapper,repository}`.
 
 2.4. Todos los módulos de una aplicación DEBEN estar en la misma etapa. Un módulo nuevo DEBE crearse en la etapa actual del proyecto; NUNCA se retrocede de etapa.
 
@@ -87,7 +87,14 @@ Normas, criterios, ejemplos breves y un checklist de límites de módulo. Ningú
 
 4.4. Las dependencias DEBEN formar un grafo dirigido acíclico. NO DEBEN existir ciclos entre módulos, ni directos (A → B → A) ni transitivos (A → B → C → A).
 
-4.5. `ArquitecturaTest.modulosSinCiclos` (slices `com.facturacion.(*)..`) ya comprueba los ciclos entre paquetes de primer nivel; DEBE seguir pasando.
+4.5. Varias comprobaciones ya cubren estas reglas y DEBEN seguir pasando:
+- `ArquitecturaTest.modulosSinCiclos` (slices `com.facturacion.(*)..`): ciclos entre paquetes de primer nivel;
+- `modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion`: secciones 4.1 y 4.2;
+- `internalNoAccesibleDesdeOtrosModulos`: sección 6.5;
+- `ningunModuloDependeDeApp`: sección 8.1;
+- `ModulosTest` (Spring Modulith `verify()`).
+
+Con un solo módulo de negocio, las reglas entre módulos se demuestran con clases ficticias en `ReglaContratoEntreModulosTest` (`/k-back-testing` sección 4.5).
 
 Ejemplo hipotético (no existe requisito): si se creara un módulo `cliente` y la creación de facturas necesitara validar el cliente, la dependencia permitida sería `factura.apln` (o `factura.internal.application`) → `cliente.api...ClienteFacade`, y `cliente` NO DEBERÍA depender de `factura` en ningún caso.
 
@@ -97,19 +104,30 @@ Ejemplo hipotético (no existe requisito): si se creara un módulo `cliente` y l
 
 5.2. El contrato público NO DEBE exponer modelos de dominio, entidades de persistencia, excepciones internas ni tipos de Spring Data. Sus firmas DEBEN usar solo DTO del propio contrato y tipos Java estándar.
 
-5.3. Etapa 2: el contrato público es `<modulo>.api`. Si otro módulo necesita operaciones de `factura`, el punto de entrada PUEDE ser una interfaz pública en `com.facturacion.factura.api` implementada en `factura.apln`, con DTO de `factura.api.dto`. Mientras ningún otro módulo lo necesite, NO DEBE crearse (antiabstracción, `/k-back` sección 13). Hoy no existe.
+5.3. Etapa 2: el contrato público es `<modulo>.api`. Si otro módulo necesita operaciones de `factura`, el punto de entrada PUEDE ser una interfaz pública en `com.facturacion.factura.api` implementada en `factura.apln`, con DTO de `factura.api.dto`. Mientras ningún otro módulo lo necesite, NO DEBE crearse (antiabstracción, `/k-back` sección 13). En Facturación nunca llegó a crearse en Etapa 2; el contrato actual es la facade de la Etapa 3 (sección 6).
 
 5.4. Los DTO HTTP de `api.dto` en Etapa 2 (`CrearFacturaRequest`, `LineaFacturaRequest`) NO DEBEN usarse como contrato entre módulos aunque compartan paquete; entre módulos se usan los DTO de caso de uso y salida (`NuevaFacturaDto`, `FacturaDto`).
 
 ### 6. API pública en Etapa 3
 
-6.1. El contrato entre módulos DEBE ser una interfaz `<Modulo>Facade` en `<modulo>.api.facade`, con sus DTO `record` en `<modulo>.api.facade.dto`. Ejemplo real de destino: `com.facturacion.factura.api.facade.FacturaFacade` y `com.facturacion.factura.api.facade.dto.FacturaDto`.
+6.1. El contrato entre módulos DEBE ser una interfaz `<Modulo>Facade` en `<modulo>.api.facade`, con sus DTO `record` en `<modulo>.api.facade.dto`. Ejemplo real: `com.facturacion.factura.api.facade.FacturaFacade`, con los DTO `NuevaFacturaDto`, `NuevaLineaFacturaDto`, `FacturaDto` y `LineaFacturaDto` en `com.facturacion.factura.api.facade.dto`.
 
 6.2. La facade es una de las interfaces con única implementación permitidas (`/k-back` 13.2). Su implementación DEBE llamarse `<Modulo>FacadeImpl` y ubicarse en `<modulo>.internal.application` (p. ej. `com.facturacion.factura.internal.application.FacturaFacadeImpl`), DEBE delegar en los casos de uso o coordinarlos, y el límite transaccional es el de esa capa (`/k-back-service`).
 
 6.3. La facade DEBE exponer solo las operaciones que otros módulos necesitan según los requisitos; NO DEBE replicar todos los casos de uso por defecto. En la Etapa 3 la facade también DEBE crearse cuando la especificación de arquitectura del usuario la exija, con las operaciones que esta enumere (o confirmadas por el usuario).
 
-6.4. `<modulo>.api.http` (controlador, manejador de excepciones y `api.http.dto`) es el adaptador HTTP del módulo. NO es contrato entre módulos: ningún otro módulo DEBE depender de `api.http` ni de `api.http.dto`.
+Caso real aprobado por el usuario: `FacturaFacade` expone los cuatro casos de uso del módulo. NO DEBE señalarse como incumplimiento de esta norma.
+
+| Operación de `FacturaFacade` | Caso de uso en el que delega |
+|---|---|
+| `FacturaDto crear(NuevaFacturaDto)` | `CrearFactura` |
+| `FacturaDto obtener(Long)` | `ObtenerFactura` |
+| `List<FacturaDto> listar()` | `ListarFacturas` |
+| `void eliminar(Long)` | `EliminarFactura` |
+
+`FacturaFacadeImpl` no declara `@Transactional`, porque cada operación invoca un solo caso de uso y la transacción la marca ese caso de uso (`/k-back-service` 8.3).
+
+6.4. `<modulo>.api.http` (controlador en `api.http.controllers`, un handler por excepción de dominio en `api.http.handlers` y `api.http.dto`) es el adaptador HTTP del módulo. NO es contrato entre módulos: ningún otro módulo DEBE depender de `api.http` ni de `api.http.dto`.
 
 6.5. Ningún módulo DEBE acceder a `<otro>.internal..` bajo ningún concepto, ni siquiera para tipos «inofensivos» como enumerados o constantes. Si un tipo interno es necesario fuera, DEBE exponerse como DTO del contrato.
 
@@ -143,11 +161,11 @@ Ejemplo hipotético (no existe requisito): si se creara un módulo `cliente` y l
 
 9.1. En Etapa 3 cada módulo DEBE tener `package-info.java` en su paquete raíz. Por la política de comentarios (`/k-back` sección 12) NO DEBE contener JavaDoc ni comentarios: solo anotaciones y la declaración `package`.
 
-9.2. Mecanismo recomendado: Spring Modulith.
+9.2. Mecanismo adoptado: Spring Modulith.
 
-- Compatibilidad comprobada en Maven Central (`org.springframework.modulith`, 2026-11): la línea 1.4.x es la de Spring Boot 3.5 (1.4.14 se publica contra Spring Boot 3.5.16, Spring Framework 6.2.x y ArchUnit 1.4.2); la línea 2.x requiere Spring Boot 4 y NO DEBE usarse con el Spring Boot 3.5.6 del proyecto. Versión recomendada: la última 1.4.x (1.4.14 a fecha de redacción); DEBE revalidarse en Maven Central al añadirla.
-- Dependencias necesarias: `spring-modulith-bom` importado en `dependencyManagement`, `spring-modulith-api` (o `spring-modulith-starter-core`) para las anotaciones del código principal y `spring-modulith-starter-test` en `test`. Modulith arrastra ArchUnit 1.4.2 y el `pom.xml` fija `archunit.version` 1.4.1: la alineación DEBE revisarse e informarse.
-- Añadir Spring Modulith es una decisión de la Etapa 3 que DEBE informarse (`/k-back` 14.6).
+- Facturación ya lo usa. El `pom.xml` fija `spring-modulith.version` 1.4.14 y `archunit.version` 1.4.2, alineada con la que arrastra Modulith. Importa `spring-modulith-bom` en `dependencyManagement` y usa `spring-modulith-api` para las anotaciones del código principal y `spring-modulith-starter-test` en `test`.
+- Compatibilidad comprobada en Maven Central (`org.springframework.modulith`, 2026-11): la línea 1.4.x es la de Spring Boot 3.5 (1.4.14 se publica contra Spring Boot 3.5.16, Spring Framework 6.2.x y ArchUnit 1.4.2). La línea 2.x requiere Spring Boot 4 y NO DEBE usarse con el Spring Boot 3.5.6 del proyecto.
+- Subir de versión Spring Modulith o ArchUnit DEBE revalidarse en Maven Central, mantener alineadas las dos versiones e informarse (`/k-back` 14.6).
 
 9.3. Declaración del módulo en `<modulo>/package-info.java`, con `displayName` y `allowedDependencies` explícitos. Ejemplo real (el módulo `factura` no depende de ningún otro):
 
@@ -174,9 +192,18 @@ package com.facturacion.factura.api.facade.dto;
 
 9.5. Ejemplo hipotético (módulo `cliente` inexistente, sin requisito): si `factura` pasara a depender de `cliente`, su declaración sería `allowedDependencies = {"cliente :: facade", "cliente :: facade-dto"}`.
 
-9.6. `app/package-info.java` PUEDE declararse con `@ApplicationModule`, con `displayName` y `allowedDependencies` explícito (sección 9.3); sus dependencias hacia contratos públicos se declaran igual que en cualquier módulo.
+9.6. `app/package-info.java` PUEDE declararse con `@ApplicationModule`, con `displayName` y `allowedDependencies` explícito (sección 9.3); sus dependencias hacia contratos públicos se declaran igual que en cualquier módulo. Ejemplo real (`app` solo contiene su `package-info.java` y no depende de ningún módulo):
 
-9.7. Verificación: `ApplicationModules.of(FacturacionApplication.class).verify()` comprueba ciclos, acceso a tipos no expuestos y dependencias no declaradas. Cómo y dónde se escribe ese test es de `/k-back-testing`.
+```java
+@org.springframework.modulith.ApplicationModule(
+        displayName = "Composición de la aplicación",
+        allowedDependencies = {})
+package com.facturacion.app;
+```
+
+Si `app` empieza a cablear la facade de un módulo, DEBE declararlo en el mismo cambio (p. ej. `allowedDependencies = {"factura :: facade", "factura :: facade-dto"}`). Si no, ArchUnit lo acepta pero `ModulosTest` falla.
+
+9.7. Verificación: `ApplicationModules.of(FacturacionApplication.class).verify()` comprueba ciclos, acceso a tipos no expuestos y dependencias no declaradas. En Facturación lo ejecuta `ModulosTest`, que también comprueba que los módulos detectados son exactamente `app` y `factura`, y que `factura` solo expone `facade` y `facade-dto`. Cómo y dónde se escriben esos tests es de `/k-back-testing` (sección 5).
 
 9.8. Alternativa sin Spring Modulith (si no se aprueba la dependencia o resultara incompatible): `package-info.java` solo con la declaración `package <raiz>.<modulo>;`, sin anotaciones de framework ni comentarios, como marcador de la raíz del módulo; los límites se verifican con reglas ArchUnit equivalentes (ningún acceso a `..internal..` de otro módulo, solo `api.facade` como dependencia entre módulos, sin ciclos), definidas en `/k-back-testing`. NO DEBEN crearse anotaciones propias para sustituir a Modulith sin requisito.
 

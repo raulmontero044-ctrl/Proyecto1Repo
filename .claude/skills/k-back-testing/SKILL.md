@@ -43,12 +43,13 @@ Normas, criterios y checklists aplicables. Ningún archivo se crea ni se modific
 
 1.1. Facturación está en la Etapa 3 (`/k-back` sección 2). Herramientas disponibles (ver `pom.xml`): `spring-boot-starter-test` (JUnit 5 Jupiter incluido `junit-jupiter-params`, Mockito, AssertJ, Spring Test/MockMvc, Hamcrest, JSONPath), `archunit-junit5` 1.4.2 y `spring-modulith-starter-test` (BOM `spring-modulith-bom` 1.4.14). NO hay H2, Testcontainers ni plugin Failsafe.
 
-1.2. Tests existentes (118 ejecuciones, todas en verde con `./mvnw -B verify`). Los paquetes son relativos a `com.facturacion`:
+1.2. Tests existentes (124 ejecuciones, todas en verde con `./mvnw -B verify`). Los paquetes son relativos a `com.facturacion`:
 
 | Test | Ejecuciones | Tipo | Capa |
 |---|---|---|---|
-| `ArquitecturaTest` | 21 | ArchUnit, 21 reglas (sección 4.2) | Arquitectura |
+| `ArquitecturaTest` | 22 | ArchUnit, 22 reglas (sección 4.2) | Arquitectura |
 | `ReglaContratoEntreModulosTest` | 23 | ArchUnit sobre clases ficticias (sección 4.5) | Arquitectura entre módulos |
+| `ReglaHandlersSeparadosTest` | 5 | ArchUnit sobre handlers ficticios y sobre los reales (sección 4.5) | Arquitectura HTTP |
 | `ModulosTest` | 3 | Spring Modulith (sección 5) | Módulos |
 | `factura.internal.domain.model.FacturaTest` | 12 | Unitario puro | Dominio (invariantes) |
 | `factura.internal.domain.service.CalculadoraFacturaTest` | 8 | Unitario puro | Dominio (servicio puro) |
@@ -114,7 +115,7 @@ Normas, criterios y checklists aplicables. Ningún archivo se crea ni se modific
 
 #### 3.4. Controller (`api.http.controllers` y `api.http.handlers`; `controller` en las Etapas 1 y 2)
 
-- `@WebMvcTest(<Agregado>Controller.class)` con `MockMvc` y casos de uso como `@MockitoBean` (en Facturación, los cuatro casos de uso), en el paquete espejo `api.http.controllers`. El manejador de `api.http.handlers` se carga en el mismo test, porque `@WebMvcTest` incluye los `@RestControllerAdvice`; NO DEBE crearse un test aparte para él.
+- `@WebMvcTest(<Agregado>Controller.class)` con `MockMvc` y casos de uso como `@MockitoBean` (en Facturación, los cuatro casos de uso), en el paquete espejo `api.http.controllers`. Los handlers de `api.http.handlers` (uno por excepción de dominio) se cargan en el mismo test, porque `@WebMvcTest` incluye los `@RestControllerAdvice`. NO DEBE crearse un test aparte para cada handler: la traducción de cada excepción a su `ProblemDetail` se prueba en el test del controlador.
 - El JSON completo de cada respuesta PUEDE fijarse en un test propio (convención `FacturaControllerJsonTest`), y la serialización de un DTO HTTP aislado con `@JsonTest` (convención `FacturaResponseTest`).
 - Por endpoint: verbo y ruta, código de éxito (`201` con `Location`, `200`, `204`), cuerpo JSON relevante y traslado exacto de la petición al caso de uso (`verify(casoDeUso).ejecutar(dtoEsperado)`).
 - Errores: cada excepción de dominio traducida a su código con `ProblemDetail` (comprobar `$.detail` cuando el mensaje sea parte del contrato); `400` por cuerpo mal formado, ausente, tipos incorrectos en la ruta (`/api/facturas/abc`) y validación fallida.
@@ -128,7 +129,7 @@ Normas, criterios y checklists aplicables. Ningún archivo se crea ni se modific
 
 #### 3.6. Módulos y arquitectura
 
-- Reglas de capas y límites con ArchUnit en `ArquitecturaTest` (sección 4), casos positivos y negativos de las reglas entre módulos en `ReglaContratoEntreModulosTest` (sección 4.5) y Spring Modulith en `ModulosTest` (sección 5).
+- Reglas de capas y límites con ArchUnit en `ArquitecturaTest` (sección 4), casos positivos y negativos de las reglas entre módulos y de handlers en `ReglaContratoEntreModulosTest` y `ReglaHandlersSeparadosTest` (sección 4.5) y Spring Modulith en `ModulosTest` (sección 5).
 - Contratos públicos (facade de Etapa 3): se prueban como casos de uso, a través de su interfaz pública (sección 3.3).
 
 #### 3.7. Integración (`@SpringBootTest`)
@@ -156,6 +157,7 @@ Normas, criterios y checklists aplicables. Ningún archivo se crea ni se modific
 | `controladoresSinRepositoryNiServiceInterno` | `..api.http..` no depende de `..internal.domain.repository..`, `..internal.domain.service..` ni `..internal.persistence..` |
 | `controladoresSoloUsanExcepcionesDelDominio` | de `..internal.domain..`, `..api.http..` solo usa excepciones (`RuntimeException`) |
 | `controladoresNoDeleganEnLaFacade` | `..api.http..` no depende de `..api.facade` (sí de sus DTO) |
+| `cadaHandlerTraduceUnaSolaExcepcion` | cada clase de `..api.http.handlers..` termina en `ExceptionHandler`, es `@RestControllerAdvice` y declara un único método `@ExceptionHandler` con una sola excepción |
 | `aplicacionSinControladores` | `..internal.application..` no depende de `..api.http..` |
 | `transaccionesSoloEnAplicacion` | nada fuera de `..internal.application..` usa `org.springframework.transaction..` |
 | `casosDeUsoTransaccionales` | los métodos públicos de los `@Service` de `..internal.application..` (los cuatro casos de uso) son `@Transactional` |
@@ -187,6 +189,10 @@ Los patrones `..api.http..` incluyen los subpaquetes `api.http.controllers` y `a
 - Cada regla DEBE tener al menos un caso negativo, que comprueba que se lanza `AssertionError` y que el mensaje nombra el origen y el destino, y un caso positivo con el acceso legítimo.
 - Al reubicar paquetes DEBE comprobarse que cada clase ficticia sigue en la capa que su nombre indica. Si se mueve, el caso puede dejar de probar lo que dice (p. ej. `ServicioConsumidorDelContratoDeFactura` DEBE quedarse en `ficticio.service`, fuera de `internal.application`).
 - `ArquitecturaTest` excluye estas clases con `ImportOption.DoNotIncludeTests`, y `ModulosTest` no las ve como módulos.
+
+Con la misma técnica, `ReglaHandlersSeparadosTest` prueba `cadaHandlerTraduceUnaSolaExcepcion`:
+- usa handlers ficticios de `com.facturacion.ficticio.api.http.handlers`: uno válido (`UnaExcepcionExceptionHandler`) y tres que la regla debe rechazar (`DosMetodosExceptionHandler`, `ExcepcionesAgrupadasExceptionHandler` y `SinAnotacionExceptionHandler`);
+- comprueba además que los tres handlers reales de `factura` la cumplen.
 
 ### 5. Spring Modulith (Etapa 3)
 
@@ -220,7 +226,7 @@ Un módulo nuevo DEBE añadirse a la lista esperada de `detectaComoModulosSoloAp
 | Una clase de test | `./mvnw -B test -Dtest=FacturaControllerTest` | igual con `mvnw.cmd` |
 | Un método | `./mvnw -B test -Dtest='CasosDeUsoFacturaTest#rechazaNumeroDuplicado'` | igual con `mvnw.cmd` |
 | Varias clases | `./mvnw -B test -Dtest='FacturaTest,CalculadoraFacturaTest'` | igual con `mvnw.cmd` |
-| Solo arquitectura | `./mvnw -B test -Dtest='ArquitecturaTest,ReglaContratoEntreModulosTest,ModulosTest'` | igual con `mvnw.cmd` |
+| Solo arquitectura | `./mvnw -B test -Dtest='ArquitecturaTest,Regla*Test,ModulosTest'` | igual con `mvnw.cmd` |
 
 7.1. Los informes de Surefire quedan en `target/surefire-reports/`; ante un fallo DEBE leerse el informe y citarse la salida real.
 
@@ -252,7 +258,7 @@ Esta sección define QUÉ compone el paso "Verifica" de cada una de las 10 itera
 |---|---|---|
 | V1 | Compilación: `./mvnw -B -q compile` y `./mvnw -B -q test-compile` | Sin errores |
 | V2 | Tests rápidos afectados: `-Dtest=` con las clases de test de los paquetes tocados | Todos en verde |
-| V3 | Arquitectura: `./mvnw -B test -Dtest='ArquitecturaTest,ReglaContratoEntreModulosTest,ModulosTest'`. Si la iteración ha movido o renombrado paquetes, comprobar además dos cosas. Primero, que cada patrón de paquete de las reglas (`..internal.application..`, `..api.http..`, `..internal.persistence.entity..`, etc.) sigue coincidiendo con algún paquete real; con `allowEmptyShould(true)`, una regla cuyo `that()` ya no selecciona clases pasa en verde sin comprobar nada. Segundo, que las clases ficticias siguen en la capa que su nombre indica (sección 4.5) | Todas las reglas en verde, ninguna relajada, ninguna vacía y cada caso ficticio en su capa |
+| V3 | Arquitectura: `./mvnw -B test -Dtest='ArquitecturaTest,Regla*Test,ModulosTest'`. Si la iteración ha movido o renombrado paquetes, comprobar además dos cosas. Primero, que cada patrón de paquete de las reglas (`..internal.application..`, `..api.http..`, `..internal.persistence.entity..`, etc.) sigue coincidiendo con algún paquete real; con `allowEmptyShould(true)`, una regla cuyo `that()` ya no selecciona clases pasa en verde sin comprobar nada. Segundo, que las clases ficticias siguen en la capa que su nombre indica (sección 4.5) | Todas las reglas en verde, ninguna relajada, ninguna vacía y cada caso ficticio en su capa |
 | V4 | Revisión de reglas: el cambio cumple `/k-back` (etapa, dependencias, nombres, inyección, antiabstracción) y la skill de cada capa tocada (`/k-back-domain`, `/k-back-repository`, `/k-back-persistence`, `/k-back-service`, `/k-back-controller`, `/k-back-dto`, `/k-back-module`) | Sin incumplimientos o incumplimientos informados |
 | V5 | Tests del cambio: los casos positivos, negativos y límite exigidos por las secciones 3 y 6 existen y cumplen la sección 8 | Sin carencias, o carencias informadas |
 | V6 | Comentarios: búsqueda de `//`, `/*` y `/**` en los `.java` de aplicación y de test añadidos o modificados (comando abajo), revisando a mano los falsos positivos como URLs en cadenas | Ningún comentario nuevo |
@@ -273,7 +279,7 @@ En la última iteración, o antes de dar por terminada la tarea, DEBE ejecutarse
 - [ ] Cada caso de uso (`CrearFactura`, `ObtenerFactura`, `ListarFacturas`, `EliminarFactura` y los que se añadan) tiene sus casos en el test de casos de uso y, si la facade lo expone, en `<Modulo>FacadeImplTest`.
 - [ ] Hay casos positivos, negativos y límite para cada regla, validación y código HTTP afectados.
 - [ ] Ningún test se ha desactivado, borrado ni debilitado; el número de tests no ha disminuido sin justificación.
-- [ ] `ArquitecturaTest`, `ReglaContratoEntreModulosTest` y `ModulosTest` están adaptados a la etapa actual y ninguna regla se ha relajado.
+- [ ] `ArquitecturaTest`, `ReglaContratoEntreModulosTest`, `ReglaHandlersSeparadosTest` y `ModulosTest` están adaptados a la etapa actual y ninguna regla se ha relajado.
 - [ ] No se han añadido dependencias de test (Testcontainers, H2) sin informarlo.
 - [ ] Las verificaciones V1-V7 se han ejecutado y su resultado real está informado.
 - [ ] La suite completa se ha ejecutado al final con su resultado real.
