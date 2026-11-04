@@ -133,5 +133,20 @@ class ReglaContratoEntreModulosTest {
                 .doesNotThrowAnyException();
         assertThatCode(() -> ArquitecturaTest.modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion.check(clases))
                 .doesNotThrowAnyException();
+        assertThatCode(() -> ArquitecturaTest.appNoDependeDelAdaptadorHttp.check(clases))
+                .doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "ComposicionConsumidoraDelControladorDeFactura, com.facturacion.factura.api.http.controllers.FacturaController",
+            "ComposicionConsumidoraDelRequestHttpDeFactura, com.facturacion.factura.api.http.dto.CrearFacturaRequest"})
+    void rechazaQueAppDependaDelAdaptadorHttpDeFactura(String origen, String destino) {
+        JavaClasses clases = clase(origen);
+
+        assertThatThrownBy(() -> ArquitecturaTest.appNoDependeDelAdaptadorHttp.check(clases))
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining(origen)
+                .hasMessageContaining(destino);
     }
 }

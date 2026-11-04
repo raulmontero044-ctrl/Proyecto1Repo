@@ -43,12 +43,12 @@ Normas, criterios y checklists aplicables. Ningún archivo se crea ni se modific
 
 1.1. Facturación está en la Etapa 3 (`/k-back` sección 2). Herramientas disponibles (ver `pom.xml`): `spring-boot-starter-test` (JUnit 5 Jupiter incluido `junit-jupiter-params`, Mockito, AssertJ, Spring Test/MockMvc, Hamcrest, JSONPath), `archunit-junit5` 1.4.2 y `spring-modulith-starter-test` (BOM `spring-modulith-bom` 1.4.14). NO hay H2, Testcontainers ni plugin Failsafe.
 
-1.2. Tests existentes (124 ejecuciones, todas en verde con `./mvnw -B verify`). Los paquetes son relativos a `com.facturacion`:
+1.2. Tests existentes (127 ejecuciones, todas en verde con `./mvnw -B verify`). Los paquetes son relativos a `com.facturacion`:
 
 | Test | Ejecuciones | Tipo | Capa |
 |---|---|---|---|
-| `ArquitecturaTest` | 22 | ArchUnit, 22 reglas (sección 4.2) | Arquitectura |
-| `ReglaContratoEntreModulosTest` | 23 | ArchUnit sobre clases ficticias (sección 4.5) | Arquitectura entre módulos |
+| `ArquitecturaTest` | 23 | ArchUnit, 23 reglas (sección 4.2) | Arquitectura |
+| `ReglaContratoEntreModulosTest` | 25 | ArchUnit sobre clases ficticias (sección 4.5) | Arquitectura entre módulos |
 | `ReglaHandlersSeparadosTest` | 5 | ArchUnit sobre handlers ficticios y sobre los reales (sección 4.5) | Arquitectura HTTP |
 | `ModulosTest` | 3 | Spring Modulith (sección 5) | Módulos |
 | `factura.internal.domain.model.FacturaTest` | 12 | Unitario puro | Dominio (invariantes) |
@@ -168,6 +168,7 @@ Normas, criterios y checklists aplicables. Ningún archivo se crea ni se modific
 | `modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion` | una clase de un módulo solo depende de otro módulo desde `internal.application` y solo de su `api.facade` (`app` queda excluido como origen) |
 | `internalNoAccesibleDesdeOtrosModulos` | nadie fuera de un módulo, ni siquiera `app`, depende de su `internal` |
 | `ningunModuloDependeDeApp` | nada fuera de `<raiz>.app..` depende de `<raiz>.app..` |
+| `appNoDependeDelAdaptadorHttp` | `<raiz>.app..` no depende de `..api.http..` (controladores, handlers ni DTO HTTP); sí puede usar `api.facade` |
 
 Los patrones `..api.http..` incluyen los subpaquetes `api.http.controllers` y `api.http.handlers`.
 
@@ -184,7 +185,7 @@ Los patrones `..api.http..` incluyen los subpaquetes `api.http.controllers` y `a
 
 4.4. Una regla ArchUnit NO DEBE eliminarse, relajarse ni llenarse de excepciones para que el código pase; si el código la incumple, se corrige el código o se informa la incompatibilidad.
 
-4.5. Reglas entre módulos: con un solo módulo de negocio, las reglas `modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion`, `internalNoAccesibleDesdeOtrosModulos`, `ningunModuloDependeDeApp` y `controladoresNoDeleganEnLaFacade` no encuentran ningún caso real en `src/main` y solo pueden pasar. Por eso `ReglaContratoEntreModulosTest` las ejecuta con `ClassFileImporter` sobre clases ficticias de test:
+4.5. Reglas entre módulos: con un solo módulo de negocio, las reglas `modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion`, `internalNoAccesibleDesdeOtrosModulos`, `ningunModuloDependeDeApp`, `appNoDependeDelAdaptadorHttp` y `controladoresNoDeleganEnLaFacade` no encuentran ningún caso real en `src/main` y solo pueden pasar. Por eso `ReglaContratoEntreModulosTest` las ejecuta con `ClassFileImporter` sobre clases ficticias de test:
 - Las clases ficticias son `record` package-private de una línea que dependen del tipo que se quiere probar. Están en `com.facturacion.ficticio.<capa>` (otro módulo ficticio) y en `com.facturacion.app.ficticio` (la raíz de composición).
 - Cada regla DEBE tener al menos un caso negativo, que comprueba que se lanza `AssertionError` y que el mensaje nombra el origen y el destino, y un caso positivo con el acceso legítimo.
 - Al reubicar paquetes DEBE comprobarse que cada clase ficticia sigue en la capa que su nombre indica. Si se mueve, el caso puede dejar de probar lo que dice (p. ej. `ServicioConsumidorDelContratoDeFactura` DEBE quedarse en `ficticio.service`, fuera de `internal.application`).

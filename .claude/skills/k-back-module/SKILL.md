@@ -92,6 +92,7 @@ Normas, criterios, ejemplos breves y un checklist de límites de módulo. Ningú
 - `modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion`: secciones 4.1 y 4.2;
 - `internalNoAccesibleDesdeOtrosModulos`: sección 6.5;
 - `ningunModuloDependeDeApp`: sección 8.1;
+- `appNoDependeDelAdaptadorHttp`: sección 6.4 para `app`, que `modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion` excluye como origen;
 - `ModulosTest` (Spring Modulith `verify()`).
 
 Con un solo módulo de negocio, las reglas entre módulos se demuestran con clases ficticias en `ReglaContratoEntreModulosTest` (`/k-back-testing` sección 4.5).
