@@ -2,6 +2,7 @@
 name: do-code-repair
 description: Detecta y repara conflictos de integración, incompatibilidades y errores introducidos por varios agentes que han trabajado simultáneamente en el proyecto. Úsala cuando dos o más agentes hayan terminado en ramas feature distintas y haya que dejar develop estable (sin conflictos Git, errores de compilación, incumplimientos arquitectónicos ni tests fallidos). No desarrolla funcionalidades nuevas.
 argument-hint: "[ramas o agentes a reparar (opcional; si se omite se descubren con Git)]"
+disable-model-invocation: true
 ---
 
 # /do-code-repair
@@ -9,12 +10,17 @@ argument-hint: "[ramas o agentes a reparar (opcional; si se omite se descubren c
 ## 0. Mecanismos de invocación
 
 - Esta skill DEBE ejecutarse en el hilo principal de la conversación, no en un subagente, porque necesita la herramienta `Agent` para lanzar subagentes.
-- "Lanza un subagente" significa usar la herramienta `Agent`. Los subagentes que modifiquen archivos DEBEN lanzarse con `isolation: "worktree"` y trabajar sobre la rama `feature/repair-conflicts` (o una rama `feature/repair-<descripcion>` derivada de ella cuando trabajen en paralelo sobre archivos distintos).
+- "Lanza un subagente" significa usar la herramienta `Agent`. Los subagentes que modifiquen archivos DEBEN lanzarse con `isolation: "worktree"` y trabajar sobre la rama de reparación `feature/repair-<descripcion>` (por defecto `feature/repair-conflicts`). Su nombre DEBE comprobarse único en local y en el remoto según `.claude/skills/do-code-impl/procedimiento-comun.md` sección 4.1; si ya existe, se elige otra descripción y se informa.
+- Las Fases 2 a 5 las DEBE hacer un único subagente reparador, al que se continúa con `SendMessage` entre fases. Si se usan varios subagentes sucesivos, cada uno DEBE hacer commit y push de la rama de reparación y terminar con `git switch --detach` antes de devolver el control, para que el siguiente worktree pueda desprotegerla.
+- El procedimiento común de las ejecutoras (`.claude/skills/do-code-impl/procedimiento-comun.md`) se aplica en lo que esta skill referencia: iteraciones (sección 2), integración (sección 4.5) y prohibiciones Git (sección 4.6).
 - Las skills de conocimiento se consultan con la herramienta `Skill` o leyendo su `SKILL.md` en `.claude/skills/<nombre>/`. Si una skill de la sección 4 no existe, se informa y se continúa con las disponibles.
-- `$ARGUMENTS` PUEDE indicar ramas o agentes concretos; si está vacío, las ramas se descubren con Git (Fase 1).
 - Si la herramienta `Agent` no está disponible, informa de la limitación y detente. No simules subagentes ni afirmes haberlos lanzado.
 
-## 1. Objetivo
+## Entradas
+
+- `$ARGUMENTS` PUEDE indicar ramas o agentes concretos; si está vacío, las ramas se descubren con Git (Fase 1).
+
+## 1. Propósito
 
 Esta skill se ejecuta cuando dos o más agentes han terminado sus respectivas tareas y es necesario garantizar que todos sus cambios funcionan correctamente juntos.
 
@@ -38,7 +44,7 @@ Debe contemplar:
 
 **No debe desarrollar funcionalidades nuevas ni introducir cambios arquitectónicos que no sean necesarios para reparar los problemas detectados.**
 
-## 2. Condiciones de ejecución
+## 2. Cuándo usarla (condiciones de ejecución)
 
 Esta skill solamente debe ejecutarse cuando:
 
@@ -76,8 +82,8 @@ Entrega un informe de los cambios y posibles incompatibilidades.
 
 **Tarea: preparar una integración segura.**
 
-- Lanza un subagente.
-- Crea una rama `feature/repair-conflicts` desde el último `develop`.
+- Lanza el subagente reparador (sección 0), que continuará en las Fases 3 a 5.
+- Prepara la rama de reparación `feature/repair-<descripcion>` desde el último `origin/develop`, con nombre único comprobado en local y remoto, según `.claude/skills/do-code-impl/procedimiento-comun.md` sección 4.1.
 - Integra en ella las ramas feature pendientes, respetando sus dependencias.
 - Si las transformaciones arquitectónicas son secuenciales, respeta su orden.
 - No modifiques directamente `develop`.
@@ -91,7 +97,7 @@ Si aparecen conflictos de Git, identifica el origen de cada cambio antes de reso
 
 **Tarea: analizar la compatibilidad de las implementaciones.**
 
-- Lanza un subagente especializado en análisis de código.
+- Continúa el subagente reparador con `SendMessage`, en su papel de analizador de código (si se lanza otro subagente, se aplica la sección 0).
 - Examina los archivos modificados.
 - Busca incompatibilidades entre las implementaciones.
 - Comprueba las referencias entre clases.
@@ -117,48 +123,23 @@ Genera un informe de incidencias antes de modificar el código.
 
 ### Fase 4. Reparación iterativa
 
-Se realizarán exactamente 10 iteraciones siguiendo el procedimiento:
+El subagente reparador realiza exactamente 10 iteraciones Programa → Verifica → Arregla según `.claude/skills/do-code-impl/procedimiento-comun.md` sección 2.2, con las verificaciones V1-V7 de `/k-back-testing` («Verificaciones por iteración») en el paso Verifica. Cada unidad de trabajo es una incidencia (o grupo coherente de incidencias) del informe de la Fase 3.
 
-**1. Programa**
+Reglas propias de la reparación:
 
-- Lanza un subagente.
-- Selecciona una unidad de trabajo conflictiva.
-- Realiza las modificaciones necesarias para resolverla.
-- Respeta las responsabilidades originales de cada componente.
-
-**2. Verifica**
-
-- Comprueba que el cambio es correcto.
-- Ejecuta compilación cuando corresponda.
-- Comprueba las dependencias.
-- Comprueba las interfaces.
-- Comprueba que no se han introducido nuevos errores.
-
-**3. Arregla**
-
-- Lanza un subagente si la reparación puede delegarse.
-- Corrige los problemas detectados.
-- Repite las comprobaciones necesarias.
-
-Repite el procedimiento hasta completar las 10 iteraciones.
-
-Reglas:
-
-- Cada iteración debe representar un avance real.
-- No se permite introducir modificaciones artificiales.
-- No se deben eliminar funcionalidades para conseguir que compile.
-- No se deben desactivar tests para ocultar errores.
+- Se respetan las responsabilidades originales de cada componente.
+- No se deben eliminar funcionalidades para conseguir que compile ni desactivar tests para ocultar errores (`/k-back-testing` sección 8).
 - No se deben utilizar soluciones temporales que comprometan la arquitectura.
 - No se deben duplicar clases para evitar resolver incompatibilidades.
 - Se deben preservar las decisiones arquitectónicas establecidas por las skills de conocimiento.
 
-Si no quedan incidencias, las iteraciones restantes deberán utilizarse para revisar y verificar distintas áreas de integración, sin introducir cambios innecesarios.
+Si no quedan incidencias suficientes para 10 iteraciones, se aplica el procedimiento común sección 2.1.4: se informa y no se introducen cambios artificiales.
 
 ### Fase 5. Tests finales
 
 Una vez completadas las diez iteraciones:
 
-- Lanza un subagente especializado en testing.
+- Continúa el subagente reparador con `SendMessage`, en su papel de tester (si se lanza otro subagente, se aplica la sección 0).
 - Ejecuta la compilación completa.
 - Ejecuta todos los tests unitarios.
 - Ejecuta los tests de integración.
@@ -192,33 +173,13 @@ Si detecta incumplimientos, deberán repararse antes de continuar.
 
 **Tarea: finalizar la integración.**
 
-- Lanza un subagente.
-- Comprueba que todos los cambios están committeados en `feature/repair-conflicts`.
+- Comprueba que todos los cambios están commiteados en la rama de reparación, con commits según el procedimiento común sección 4.3.
 - Comprueba que las verificaciones han terminado correctamente.
-- Crea commits descriptivos cuando sea necesario.
-- Publica la rama:
+- Publica la rama con `git push -u origin feature/repair-<descripcion>` (procedimiento común, sección 4.4).
+- Lanza el subagente integrador, que integra la rama de reparación en `develop` según el procedimiento común sección 4.5: actualización desde el remoto con fetch y `merge --ff-only`, `merge --no-ff`, verificación global antes de publicar, parada ante conflictos inseguros, `git push origin develop` y actualización del `develop` local.
+- Se aplican las prohibiciones del procedimiento común sección 4.6 (sin `push --force`, sin `git pull`, sin borrar ramas de los agentes).
 
-```bash
-git push -u origin feature/repair-conflicts
-```
-
-- Actualiza `develop` mediante `git fetch`.
-- Comprueba que no han aparecido cambios nuevos que invaliden la integración.
-- Integra `feature/repair-conflicts` en `develop`.
-- Ejecuta los tests finales sobre `develop`.
-- Publica los cambios:
-
-```bash
-git push origin develop
-```
-
-No se utilizará `git push --force`.
-
-Si aparecen nuevos conflictos durante la integración, deberán resolverse antes de publicar.
-
-No se eliminarán automáticamente las ramas originales de los agentes.
-
-## 4. Skills que debe consultar
+## 4. Skills relacionadas (skills que debe consultar)
 
 La skill deberá utilizar las siguientes skills cuando estén disponibles:
 
@@ -282,6 +243,8 @@ Está prohibido:
 - Introducir nuevas funcionalidades ajenas a la reparación.
 - Dar por finalizada la tarea sin verificar el resultado integrado.
 
+Se aplican además las prohibiciones de `.claude/skills/do-code-impl/procedimiento-comun.md` sección 4.6.
+
 Si no puede resolver un problema sin modificar decisiones arquitectónicas importantes, deberá detenerse y solicitar autorización.
 
 ## 7. Resultado esperado
@@ -293,12 +256,23 @@ Al finalizar, deberá entregar un informe con:
 3. Incompatibilidades de código detectadas.
 4. Reparaciones realizadas.
 5. Archivos modificados.
-6. Commits creados.
+6. Commits creados, por rama (hash corto y mensaje).
 7. Resultado de compilación.
 8. Resultado de tests unitarios.
 9. Resultado de tests de integración.
 10. Resultado de tests de arquitectura.
 11. Resultado de la integración.
-12. Estado de publicación de `develop`.
+12. Estado de publicación de `develop`, con confirmación de que el `develop` local y `origin/develop` tienen el mismo hash (o motivo por el que el local no se pudo actualizar).
+13. Registro de las 10 iteraciones (procedimiento común, sección 2.3).
 
 **Criterio de éxito:** todos los cambios de los agentes deben convivir correctamente, el proyecto debe compilar, los tests deben pasar y la arquitectura debe respetar las reglas establecidas.
+
+## Comprobaciones antes de finalizar
+
+- [ ] Las ramas se han descubierto con Git y ninguna ya integrada se ha vuelto a integrar.
+- [ ] La rama de reparación tiene nombre único, comprobado en local y remoto, y está publicada.
+- [ ] Las 10 iteraciones están registradas con V1-V7, o se ha informado de que no había incidencias suficientes.
+- [ ] No se han eliminado funcionalidades, desactivado tests ni añadido funcionalidades ajenas a la reparación.
+- [ ] La suite completa, `ArquitecturaTest` y `ModulosTest` (si existe) están en verde sobre el resultado integrado.
+- [ ] La integración en `develop` se ha hecho según el procedimiento común sección 4.5, sin incumplir la sección 4.6.
+- [ ] El `develop` local y `origin/develop` coinciden, o se ha informado del motivo.
