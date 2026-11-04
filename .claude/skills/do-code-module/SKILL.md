@@ -82,6 +82,8 @@ Cada responsabilidad se resuelve con la norma de la skill indicada. Lo que no ap
 | 10 | Integración | Escaneo por `@SpringBootApplication` sin escaneos extra; `allowedDependencies` de los módulos consumidores; reglas de `ArquitecturaTest` que lo cubran | Igual sin Modulith | `/k-back-module` §8, `/k-back-testing` |
 | 11 | Comprobación de dependencias | `ArquitecturaTest` + `ModulosTest` (`verify()`), sin ciclos ni accesos a `internal` | `ArquitecturaTest` (`modulosSinCiclos`) | `/k-back-module`, `/k-back-testing` |
 
+Esta tabla es un resumen para ordenar el trabajo: si discrepa de la tabla canónica de `/k-back` (sección 2) o de la skill propietaria, prevalecen estas.
+
 La numeración de la migración se obtiene listando `src/main/resources/db/migration` (hoy existe solo `V1__crear_facturas.sql`). Las columnas y restricciones salen solo de los requisitos.
 
 ### 3. Planificar las 10 unidades (Fase A)

@@ -33,15 +33,19 @@ Procedimiento: `.claude/skills/do-code-impl/procedimiento-comun.md`.
 
 Skills de conocimiento que DEBEN leerse (`.claude/skills/<nombre>/SKILL.md`) y pasarse a los subagentes:
 
-| Skill | Para qué |
-|---|---|
-| `/k-back` | Tabla canónica de la Etapa 2, reglas de evolución, dependencias entre capas |
-| `/k-back-module` | Identificación de módulos, límites, contrato `api`, dependencias y ciclos |
-| `/k-back-dto` | Ubicación de DTO en `<modulo>.api.dto` y DTO de contrato frente a HTTP |
-| `/k-back-service` | Punto de entrada en `apln` y uso de otros módulos desde aplicación |
-| `/k-back-controller` | Ubicación del controlador por módulo |
-| `/k-back-domain`, `/k-back-repository`, `/k-back-persistence` | Reubicación de dominio, contratos y persistencia sin cambiar su comportamiento |
-| `/k-back-testing` | V1-V7, paquete espejo de los tests, `modulosSinCiclos` |
+| Skill | Carácter | Para qué |
+|---|---|---|
+| `/k-back` | Obligatoria | Tabla canónica de la Etapa 2, reglas de evolución, dependencias entre capas |
+| `/k-back-module` | Obligatoria | Identificación de módulos, límites, contrato `api`, dependencias y ciclos |
+| `/k-back-dto` | Obligatoria | Ubicación de DTO en `<modulo>.api.dto` y DTO de contrato frente a HTTP |
+| `/k-back-service` | Obligatoria | Punto de entrada en `apln` y uso de otros módulos desde aplicación |
+| `/k-back-domain` | Obligatoria | Reubicación del dominio sin cambiar su comportamiento |
+| `/k-back-testing` | Obligatoria | V1-V7, paquete espejo de los tests, `modulosSinCiclos` |
+| `/k-back-controller` | Complementaria | Ubicación del controlador por módulo |
+| `/k-back-repository` | Complementaria | Reubicación de las interfaces Repository |
+| `/k-back-persistence` | Complementaria | Reubicación de entidades, DAO, mappers e implementaciones |
+
+Las complementarias amplían la lista obligatoria de la especificación (sección 4.2) y DEBEN leerse cuando la unidad toque su capa (V4 de `/k-back-testing`).
 
 Anterior: `/do-code-basic`. Siguiente: `/do-code-architecture`.
 

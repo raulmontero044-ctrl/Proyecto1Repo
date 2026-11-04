@@ -46,7 +46,9 @@ Esta skill se ejecuta en el hilo principal, en modo coordinador (procedimiento c
 
 1.2. Detecta la etapa actual del proyecto inspeccionando los paquetes reales (`/k-back` sección 2) y anótala.
 
-1.3. Si el plan es ambiguo o le falta información imprescindible (campos, reglas, endpoints, módulos), DEBE preguntarse al usuario antes de lanzar ningún subagente. NO DEBEN inventarse requisitos.
+1.3. Registra la línea base global sobre `origin/develop` en un subagente sin cambios: `./mvnw -B test` con número total de tests, clases de test y resultado. Si no está en verde, DEBE informarse con la salida real y detenerse. Esta línea base es la referencia de la verificación final (sección 6.2).
+
+1.4. Si el plan es ambiguo o le falta información imprescindible (campos, reglas, endpoints, módulos), DEBE preguntarse al usuario antes de lanzar ningún subagente. NO DEBEN inventarse requisitos.
 
 ### 2. Identificar tareas y dependencias
 
@@ -95,7 +97,7 @@ Las ejecutoras tienen `disable-model-invocation: true`, así que NO DEBEN invoca
 
 6.1. Cada tarea del plan tiene su rama publicada, integrada en `develop` y sus criterios de aceptación cubiertos.
 
-6.2. Verificación final sobre `origin/develop` en un subagente con worktree, sin cambios: `git fetch origin`, `git switch --detach origin/develop`, `./mvnw -B verify` (incluye `ArquitecturaTest` y `ModulosTest` si existe) y comprobación de que el número de tests no ha bajado respecto al inicio.
+6.2. Verificación final sobre `origin/develop` en un subagente con worktree, sin cambios: `git fetch origin`, `git switch --detach origin/develop`, `./mvnw -B verify` (incluye `ArquitecturaTest` y `ModulosTest` si existe) y comprobación de que el número de tests no ha bajado respecto a la línea base global de la sección 1.3.
 
 6.3. Si la verificación final falla, se trata como una tarea nueva de corrección (o `/do-code-repair`) y se repiten las secciones 4 a 6.
 

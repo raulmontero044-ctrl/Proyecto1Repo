@@ -80,7 +80,7 @@ Planifica y registra las 10 unidades según el procedimiento común (sección 2.
 9. Controladores y manejador de excepciones en `controller`, delegando en `apln`.
 10. `ArquitecturaTest` con las reglas de la Etapa 1 y limpieza final.
 
-**Modo auditoría (Facturación, Etapa 2)** — una unidad por área auditada; cada una revisa contra su skill, corrige las violaciones encontradas y añade o ajusta el test que la cubra:
+**Modo auditoría (Facturación, Etapa 2)** — una unidad por área auditada; cada una revisa contra su skill, corrige las violaciones encontradas y añade, o adapta sin debilitar (`/k-back-testing` sección 8), el test que la cubra:
 
 1. Dominio puro en `factura.domain.model` (`Factura`, `LineaFactura`, `CalculadoraFactura`, excepciones).
 2. Invariantes en el modelo y no en controladores, DAO ni mappers.

@@ -62,7 +62,7 @@ Determina el modo (procedimiento común, sección 1) y prepara la rama (p. ej. `
 - Etapa 2 → **modo transformación**. Facturación está en Etapa 2.
 - Etapa 3 → **modo auditoría**: se revisa cada fila de la sección 2 y cada regla de la sección 4 y se corrigen las desviaciones.
 
-Antes de mover nada, anota el número de tests actual (51 en 6 clases en Facturación) y el JSON de las respuestas que cubre `FacturaControllerTest`, para comprobar al final que se preservan.
+Antes de mover nada, anota el número de tests medido en la línea base (procedimiento común, sección 2.1.1; 51 en 6 clases a 2026-11-04) y el JSON de las respuestas que cubre `FacturaControllerTest`, para comprobar al final que se preservan.
 
 ### 2. Mapa de Facturación: clase actual → destino
 
@@ -74,7 +74,7 @@ Prefijo común: `com.facturacion.factura`.
 | `apln.FacturaDtoConverter` | `internal.application.FacturaDtoConverter` | |
 | — | `api.facade.FacturaFacade` | Nueva (sección 3) |
 | — | `internal.application.FacturaFacadeImpl` | Nueva, decisión D1 |
-| `controller.FacturaController` | `api.http.FacturaController` | Convierte `api.http.dto` ↔ `api.facade.dto` (D2) |
+| `controller.FacturaController` | `api.http.FacturaController` | Sigue delegando en los casos de uso de `internal.application`, no en la facade; convierte `api.http.dto` ↔ `api.facade.dto` (D2, sección 3.4) |
 | `controller.FacturaExceptionHandler` | `api.http.FacturaExceptionHandler` | Mismos códigos y `ProblemDetail` |
 | `api.dto.CrearFacturaRequest`, `api.dto.LineaFacturaRequest` | `api.http.dto.*` | Conservan Bean Validation |
 | `api.dto.FacturaDto`, `api.dto.LineaFacturaDto`, `api.dto.NuevaFacturaDto`, `api.dto.NuevaLineaFacturaDto` | `api.facade.dto.*` | Contrato de casos de uso y facade |
@@ -99,7 +99,7 @@ Tests (paquete espejo, `/k-back-testing`):
 | `factura.domain.model.CalculadoraFacturaTest` | `factura.internal.domain.service.CalculadoraFacturaTest` |
 | `factura.persistence.mapper.FacturaMapperTest` | `factura.internal.persistence.mapper.FacturaMapperTest` |
 | `factura.apln.CasosDeUsoFacturaTest`, `factura.apln.FacturaRepositoryEnMemoria` | `factura.internal.application.*` |
-| `factura.controller.FacturaControllerTest` | `factura.api.http.FacturaControllerTest` (mismas aserciones de JSON y códigos) |
+| `factura.controller.FacturaControllerTest` | `factura.api.http.FacturaControllerTest`: solo cambian el paquete y los imports; casos, mocks de casos de uso y aserciones de JSON y códigos idénticos |
 | `com.facturacion.ArquitecturaTest` | Mismo paquete, reglas adaptadas y ampliadas (sección 4) |
 | — | `com.facturacion.ModulosTest` (nuevo) y test de `FacturaFacadeImpl` en `factura.internal.application` |
 
@@ -115,28 +115,35 @@ Para cualquier otro módulo existente se construye un mapa equivalente aplicando
 
 3.3. **Spring Modulith.** Añadir a `pom.xml` la línea 1.4.x compatible con Spring Boot 3.5 (versión revalidada en Maven Central al ejecutar), con las dependencias que indica `/k-back-module` sección 9.2, y alinear `archunit.version` con la versión de ArchUnit que arrastra Modulith (hoy `pom.xml` fija 1.4.1). Si resulta incompatible, se aplica la alternativa sin Modulith de `/k-back-module` sección 9.8. Ambas situaciones DEBEN informarse (`/k-back` sección 14.6).
 
-3.4. **`FacturaResponse` / `LineaFacturaResponse`** (D3): el JSON HTTP DEBE ser idéntico al actual; `FacturaControllerTest` DEBE pasar sin cambiar sus aserciones de JSON.
+3.4. **Controlador, casos de uso y DTO** (D2, D3). Decisión mínima y coherente que DEBE documentarse:
+
+- `FacturaController` (`api.http`) sigue delegando en los casos de uso de `internal.application`, como hoy. La facade es solo el contrato para otros módulos; el controlador NO la usa.
+- Los casos de uso reciben y devuelven DTO de `api.facade.dto` (`NuevaFacturaDto`, `FacturaDto`), que es donde quedan los DTO de contrato (`/k-back-dto` sección 6.3). Por eso el controlador depende de `api.facade.dto` del propio módulo (D2): convierte `CrearFacturaRequest` → `NuevaFacturaDto` y `FacturaDto` → `FacturaResponse` con métodos privados estáticos, como hace hoy `aNuevaFactura`. No se crea un tercer juego de DTO.
+- `FacturaResponse` / `LineaFacturaResponse` (D3): mismos campos y nombres que `FacturaDto` / `LineaFacturaDto`, de modo que el JSON HTTP es idéntico al actual.
+- `FacturaControllerTest` solo cambia paquete e imports: sigue simulando los casos de uso con `@MockitoBean` y sus aserciones de JSON y códigos no cambian. Si alguna aserción tuviera que cambiar, el JSON no se ha preservado y DEBE corregirse el código, no el test.
 
 ### 4. Tests de arquitectura
 
 4.1. `ArquitecturaTest`: adaptar las 6 reglas existentes a los paquetes de la Etapa 3 sin perder ninguna restricción, y añadir las reglas de `internal` no accesible desde otros módulos y de ningún módulo dependiendo de `app`, todo según `/k-back-testing` sección 4.3. Ninguna regla se relaja.
 
-4.2. `ModulosTest`: verificación de módulos con Spring Modulith según `/k-back-testing` sección 5.
+4.2. Las reglas usan `allowEmptyShould(true)`, así que una regla cuyo paquete ya no existe pasa sin comprobar nada. Por eso cada unidad que reubica una capa DEBE adaptar, EN LA MISMA UNIDAD, las reglas de `ArquitecturaTest` que nombran esa capa (p. ej. al mover `controller` a `api.http`, la regla `controladoresSinRepositoryNiServiceInterno`), y V3 DEBE comprobar que ninguna regla ha quedado vacía tras mover paquetes (regla de V3 de `/k-back-testing`). La unidad 10 queda solo para las reglas nuevas y `ModulosTest`.
+
+4.3. `ModulosTest`: verificación de módulos con Spring Modulith según `/k-back-testing` sección 5.
 
 ### 5. Planificar las 10 unidades (Fase A)
 
 Registra las 10 unidades según el procedimiento común (sección 2.1). Unidades para Facturación, en este orden:
 
 1. Línea base: número de tests, JSON de respuestas y mapa de la sección 2 registrados; Spring Modulith y alineación de ArchUnit en `pom.xml` (sección 3.3).
-2. Dominio: `Factura`, `LineaFactura` → `internal.domain.model`; excepciones → `internal.domain.exception`; `CalculadoraFactura` → `internal.domain.service`; con sus tests.
+2. Dominio: `Factura`, `LineaFactura` → `internal.domain.model`; excepciones → `internal.domain.exception`; `CalculadoraFactura` → `internal.domain.service`; con sus tests y la regla `dominioIndependienteDeFrameworks` apuntando ya a `..internal.domain..`.
 3. `FacturaRepository` → `internal.domain.repository` y `FacturaRepositoryEnMemoria` adaptado.
-4. Persistencia → `internal.persistence.{entity,dao,mapper,repository}` con `FacturaMapperTest`; comprobación del mapeo frente a `V1__crear_facturas.sql`.
+4. Persistencia → `internal.persistence.{entity,dao,mapper,repository}` con `FacturaMapperTest` y las reglas `entidadesSoloEnPersistencia` y `persistenciaNoUsadaFueraDePersistencia` adaptadas y no vacías. La comprobación del mapeo frente a `V1__crear_facturas.sql` es manual (revisión de `@Table`/`@Column` contra la migración), porque `ddl-auto: validate` no se ejecuta en los tests; PUEDE completarse arrancando la aplicación con `docker compose up mariadb` si Docker está disponible y, si no, la carencia DEBE informarse.
 5. DTO de contrato → `api.facade.dto`; DTO HTTP de entrada → `api.http.dto`.
-6. Casos de uso y `FacturaDtoConverter` → `internal.application` con `CasosDeUsoFacturaTest`.
+6. Casos de uso y `FacturaDtoConverter` → `internal.application` con `CasosDeUsoFacturaTest`, y las reglas que nombran `..apln..` (`aplicacionSinControladores`, `dominioIndependienteDeFrameworks`) adaptadas a `..internal.application..`.
 7. `FacturaFacade` en `api.facade` y `FacturaFacadeImpl` en `internal.application` (sección 3.1).
-8. `FacturaController` y `FacturaExceptionHandler` → `api.http`; `FacturaResponse` y `LineaFacturaResponse`; `FacturaControllerTest` movido y en verde sin cambiar aserciones.
+8. `FacturaController` y `FacturaExceptionHandler` → `api.http`; `FacturaResponse` y `LineaFacturaResponse`; `FacturaControllerTest` movido (solo paquete e imports) y en verde; las reglas que nombran `..controller..` (`controladoresSinRepositoryNiServiceInterno`, `aplicacionSinControladores`, `dominioIndependienteDeFrameworks`) adaptadas a `..api.http..`.
 9. `package-info.java` de `factura`, `api.facade`, `api.facade.dto` y `app` (secciones 3.2 y 3.3).
-10. `ArquitecturaTest` adaptado y ampliado, `ModulosTest`, eliminación de los paquetes antiguos vacíos y suite completa.
+10. Reglas nuevas de `ArquitecturaTest` (`internal` no accesible desde otros módulos, ningún módulo depende de `app`), `ModulosTest`, comprobación de que no quedan paquetes antiguos y suite completa. Las reglas existentes ya se adaptaron en las unidades 2, 4, 6 y 8 (sección 4.2).
 
 En modo auditoría, cada unidad revisa el área equivalente; si no da trabajo real para 10, se informa (procedimiento común, sección 2.1.4).
 
@@ -168,6 +175,7 @@ Informe final según el procedimiento común (sección 6), añadiendo:
 - [ ] `package-info.java` sin comentarios según `/k-back-module`; `app` decidido e informado.
 - [ ] Spring Modulith y alineación de ArchUnit informados (o alternativa sin Modulith informada).
 - [ ] `V1__crear_facturas.sql` intacta y mapeo de entidades sin cambios.
-- [ ] `ArquitecturaTest` sin reglas relajadas y ampliado; `ModulosTest` en verde.
+- [ ] `ArquitecturaTest` sin reglas relajadas ni vacías tras mover paquetes, adaptado en la misma unidad que cada capa y ampliado; `ModulosTest` en verde.
+- [ ] `FacturaController` delega en los casos de uso, no en la facade; `FacturaControllerTest` solo ha cambiado paquete e imports.
 - [ ] Ningún test perdido; suite completa en verde con su salida real.
 - [ ] Las 10 iteraciones y la Fase B registradas; commits con `Co-Authored-By`, push e integración hechos o entregados al coordinador.
