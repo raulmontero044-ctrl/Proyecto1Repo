@@ -60,7 +60,7 @@ Determina el modo (procedimiento común, sección 1) y prepara la rama `feature/
 
 1.2. Valida con `/k-back-module` sección 1 que es un módulo nuevo y no una ampliación de uno existente; si cabe en uno existente, DEBE informarse y proponerse ampliar ese módulo.
 
-1.3. Detecta la etapa actual inspeccionando los paquetes (`/k-back` sección 2). El módulo se crea en esa etapa; si los módulos existentes no están todos en la misma etapa, DEBE informarse antes de seguir. En Facturación: Etapa 2 hoy; Etapa 3 tras `/do-code-architecture`.
+1.3. Detecta la etapa actual inspeccionando los paquetes (`/k-back` sección 2). El módulo se crea en esa etapa; si los módulos existentes no están todos en la misma etapa, DEBE informarse antes de seguir. Si el proyecto está en Etapa 1, DEBE informarse y proponerse antes `/do-code-modular`. En Facturación: Etapa 2 hoy; Etapa 3 tras `/do-code-architecture`.
 
 1.4. Comprueba el grafo de dependencias con el módulo nuevo; una dependencia mutua se informa como incompatibilidad (`/k-back-module` sección 7) y se espera decisión.
 

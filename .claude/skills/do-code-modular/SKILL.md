@@ -93,7 +93,7 @@ Registra las 10 unidades según el procedimiento común (sección 2.1).
 2. Paquetes de `factura` frente a la tabla de la Etapa 2.
 3. `factura.api.dto` como contrato: solo `record`, sin dominio ni entidades.
 4. Ningún acceso desde fuera de `factura` a sus clases internas.
-5. Propiedad exclusiva de la tablas `factura` y `linea_factura` (migración `V1__crear_facturas.sql`) y de sus entidades.
+5. Propiedad exclusiva de las tablas `factura` y `linea_factura` (migración `V1__crear_facturas.sql`) y de sus entidades.
 6. Ausencia de punto de entrada público sin consumidor.
 7. Dependencias entre módulos y ciclos (`modulosSinCiclos`).
 8. Configuración transversal frente a `factura.config` (hoy no existe ninguna; no se crea).

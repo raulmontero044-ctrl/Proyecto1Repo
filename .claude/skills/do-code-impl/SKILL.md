@@ -46,7 +46,7 @@ Esta skill se ejecuta en el hilo principal, en modo coordinador (procedimiento c
 
 1.2. Detecta la etapa actual del proyecto inspeccionando los paquetes reales (`/k-back` sección 2) y anótala.
 
-1.3. Registra la línea base global sobre `origin/develop` en un subagente sin cambios: `./mvnw -B test` con número total de tests, clases de test y resultado. Si no está en verde, DEBE informarse con la salida real y detenerse. Esta línea base es la referencia de la verificación final (sección 6.2).
+1.3. Registra la línea base global en un subagente con `isolation: "worktree"`, sin cambios, que ejecuta `git fetch origin`, `git switch --detach origin/develop` y `./mvnw -B test`, con número total de tests, clases de test y resultado. Si no está en verde, DEBE informarse con la salida real y detenerse. Esta línea base es la referencia de la verificación final (sección 6.2).
 
 1.4. Si el plan es ambiguo o le falta información imprescindible (campos, reglas, endpoints, módulos), DEBE preguntarse al usuario antes de lanzar ningún subagente. NO DEBEN inventarse requisitos.
 
@@ -91,7 +91,7 @@ Las ejecutoras tienen `disable-model-invocation: true`, así que NO DEBEN invoca
 
 5.2. Al terminar cada oleada, lanza el subagente integrador (procedimiento común, sección 4.5) con las ramas de la oleada en orden de dependencias.
 
-5.3. Si varios agentes han trabajado en paralelo y la integración se detiene por conflictos o la verificación global falla tras integrar, PUEDE usarse como paso opcional `/do-code-repair`: se ejecuta en el hilo principal leyendo y siguiendo `.claude/skills/do-code-repair/SKILL.md` (o lo invoca el usuario). Tras la reparación se retoma la integración pendiente.
+5.3. Si varios agentes han trabajado en paralelo y la integración se detiene por conflictos o la verificación global falla tras integrar, PUEDE usarse como paso opcional `/do-code-repair`: se ejecuta en el hilo principal leyendo y siguiendo `.claude/skills/do-code-repair/SKILL.md` (o lo invoca el usuario). Tras la reparación, se comprueba qué ramas quedaron integradas a través de la rama de reparación y solo se integran las restantes.
 
 ### 6. Comprobar que todo está terminado
 
