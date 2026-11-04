@@ -30,6 +30,7 @@ class ArquitecturaTest {
 
     private static final String RAIZ = "com.facturacion.";
     private static final String CONFIGURACION_TRANSVERSAL = "config";
+    private static final String PACKAGE_INFO = "package-info";
 
     @ArchTest
     static final ArchRule dominioIndependienteDeFrameworks = noClasses()
@@ -77,12 +78,14 @@ class ArquitecturaTest {
     @ArchTest
     static final ArchRule dtoSonRecords = classes()
             .that().resideInAnyPackage("..api.facade.dto..", "..api.http.dto..")
+            .and().doNotHaveSimpleName(PACKAGE_INFO)
             .should().beRecords()
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule dtoDeContratoSoloDependenDeJavaYOtrosDtoDeContrato = classes()
             .that().resideInAPackage("..api.facade.dto..")
+            .and().doNotHaveSimpleName(PACKAGE_INFO)
             .should().onlyDependOnClassesThat().resideInAnyPackage("java..", "..api.facade.dto..")
             .allowEmptyShould(true);
 
