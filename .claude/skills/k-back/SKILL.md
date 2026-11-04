@@ -46,9 +46,9 @@ Cada norma vive en una sola skill. Esta tabla DEBE consultarse antes de añadir 
 
 ### 1. Stack y estilo arquitectónico
 
-1.1. El backend es Java 21 con Spring Boot 3.5 y Maven mediante el wrapper `./mvnw` (ver `pom.xml`). Dependencias actuales: `spring-boot-starter-web`, `spring-boot-starter-validation`, `spring-boot-starter-data-jpa`, Flyway con MariaDB y, en test, `spring-boot-starter-test` y `archunit-junit5`.
+1.1. El backend es Java 21 con Spring Boot 3.5 y Maven mediante el wrapper `./mvnw` (ver `pom.xml`). Dependencias actuales: `spring-boot-starter-web`, `spring-boot-starter-validation`, `spring-boot-starter-data-jpa`, Flyway con MariaDB, `spring-modulith-api` (BOM `spring-modulith-bom` 1.4.14) y, en test, `spring-boot-starter-test`, `archunit-junit5` 1.4.2 y `spring-modulith-starter-test`.
 
-1.2. El paquete raíz es `com.facturacion` y la clase de arranque `com.facturacion.FacturacionApplication`. El único módulo de negocio actual es `factura`. En cualquier otro proyecto `<raiz>` y `<modulo>` DEBEN obtenerse del código real; NO DEBEN inventarse.
+1.2. El paquete raíz es `com.facturacion` y la clase de arranque `com.facturacion.FacturacionApplication`. El único módulo de negocio actual es `factura`; `com.facturacion.app` es la raíz de composición y también la declara Spring Modulith como módulo. En cualquier otro proyecto `<raiz>` y `<modulo>` DEBEN obtenerse del código real; NO DEBEN inventarse.
 
 1.3. El backend es un monolito modular: una única aplicación desplegable compuesta por módulos de negocio. Cada módulo DEBE encapsular sus responsabilidades y exponer a los demás solo su contrato público (detalle en `/k-back-module`).
 
@@ -63,8 +63,8 @@ Marcadores: `<raiz>` paquete raíz real; `<modulo>` módulo real.
 | Etapa | Descripción | Capa de aplicación | Configuración transversal |
 |---|---|---|---|
 | 1 | Arquitectura básica en capas, sin módulos | `apln` | `<raiz>.config` |
-| 2 | Monolito modular (estructura actual de Facturación) | `<modulo>.apln` | `<raiz>.config` |
-| 3 | Arquitectura modular definitiva con `api` / `internal` | `<modulo>.internal.application` | `<raiz>.app` |
+| 2 | Monolito modular | `<modulo>.apln` | `<raiz>.config` |
+| 3 | Arquitectura modular definitiva con `api` / `internal` (estructura actual de Facturación) | `<modulo>.internal.application` | `<raiz>.app` |
 
 El nombre `apln` es la convención existente del repositorio en las Etapas 1 y 2 y NO DEBE renombrarse en ellas. En la Etapa 3 la capa de aplicación DEBE llamarse `internal.application`.
 
@@ -87,7 +87,7 @@ El nombre `apln` es la convención existente del repositorio en las Etapas 1 y 2
     └── mapper/
 ```
 
-#### Etapa 2 — Monolito modular (estructura actual de Facturación)
+#### Etapa 2 — Monolito modular
 
 ```text
 <raiz>/
@@ -105,7 +105,7 @@ El nombre `apln` es la convención existente del repositorio en las Etapas 1 y 2
 
 Comunicación entre módulos: solo a través de `<modulo>.api` (DTO de `api.dto` y puntos de entrada públicos expuestos en `api`).
 
-Ejemplo real en Etapa 2: `com.facturacion.factura.apln.CrearFactura`, `com.facturacion.factura.controller.FacturaController`, `com.facturacion.factura.domain.repository.FacturaRepository`, `com.facturacion.factura.persistence.JpaFacturaRepository`, `com.facturacion.factura.persistence.dao.FacturaDao`, `com.facturacion.factura.api.dto.FacturaDto`. El paquete global `com.facturacion.config` todavía no existe y solo DEBE crearse cuando haya configuración transversal que lo justifique.
+Ejemplo de Etapa 2 (estructura anterior de Facturación, ya migrada a la Etapa 3): `com.facturacion.factura.apln.CrearFactura`, `com.facturacion.factura.controller.FacturaController`, `com.facturacion.factura.domain.repository.FacturaRepository`, `com.facturacion.factura.persistence.JpaFacturaRepository`, `com.facturacion.factura.persistence.dao.FacturaDao`, `com.facturacion.factura.api.dto.FacturaDto`.
 
 #### Etapa 3 — Arquitectura modular definitiva
 
@@ -137,11 +137,38 @@ Ejemplo real en Etapa 2: `com.facturacion.factura.apln.CrearFactura`, `com.factu
             └── repository/              implementaciones de Repository
 ```
 
-Reglas de dependencia de la Etapa 3: otros módulos solo usan `<modulo>.api.facade` (y su `dto`); `internal.domain` no depende de Spring/JPA ni de otras capas; las entidades JPA no salen de `internal.persistence`; `app` puede referenciar cualquier módulo para cableado, pero ningún módulo depende de `app` salvo configuración genérica; está prohibido el acceso a `internal` de otro módulo; sin ciclos. `api.http` depende de `internal.application`, `api.http.dto`, `api.facade.dto` e `internal.domain.exception` del propio módulo (esta última solo para traducir a HTTP); NO DEBE depender de `internal.domain.repository`, `internal.persistence` ni de `api` de otro módulo. El controlador delega en los casos de uso, no en la facade. El mecanismo de `package-info.java` (Spring Modulith o ArchUnit) es propiedad de `/k-back-module`. Añadir Spring Modulith es una decisión de la Etapa 3 que DEBE informarse.
+Reglas de dependencia de la Etapa 3: otros módulos solo usan `<modulo>.api.facade` (y su `dto`); `internal.domain` no depende de Spring/JPA ni de otras capas; las entidades JPA no salen de `internal.persistence`; `app` puede referenciar cualquier módulo para cableado, pero ningún módulo depende de `app` salvo configuración genérica; está prohibido el acceso a `internal` de otro módulo; sin ciclos. `api.http` depende de `internal.application`, `api.http.dto`, `api.facade.dto` e `internal.domain.exception` del propio módulo (esta última solo para traducir a HTTP); NO DEBE depender de `internal.domain.repository`, `internal.persistence` ni de `api` de otro módulo. El controlador delega en los casos de uso, no en la facade. El mecanismo de `package-info.java` (Spring Modulith o ArchUnit) es propiedad de `/k-back-module`. Facturación ya ha adoptado Spring Modulith: `factura` y `app` llevan `@ApplicationModule`, y `api.facade` y `api.facade.dto` son sus interfaces con nombre (`facade` y `facade-dto`).
+
+Ejemplo real en Etapa 3 (módulo `factura`):
+
+| Paquete | Clases |
+|---|---|
+| `api.facade` | `FacturaFacade` |
+| `api.facade.dto` | `NuevaFacturaDto`, `NuevaLineaFacturaDto`, `FacturaDto`, `LineaFacturaDto` |
+| `api.http.controllers` | `FacturaController` |
+| `api.http.handlers` | `FacturaNoEncontradaExceptionHandler` (404), `NumeroFacturaDuplicadoExceptionHandler` (409), `FacturaInvalidaExceptionHandler` (400) |
+| `api.http.dto` | `CrearFacturaRequest`, `LineaFacturaRequest`, `FacturaResponse`, `LineaFacturaResponse` |
+| `internal.application` | casos de uso `CrearFactura`, `ObtenerFactura`, `ListarFacturas` y `EliminarFactura`; `FacturaFacadeImpl`, `FacturaDtoConverter` |
+| `internal.domain.model` | `Factura`, `LineaFactura` |
+| `internal.domain.service` | `CalculadoraFactura` |
+| `internal.domain.exception` | `FacturaInvalidaException`, `FacturaNoEncontradaException`, `NumeroFacturaDuplicadoException` |
+| `internal.domain.repository` | `FacturaRepository` |
+| `internal.persistence` | `entity.FacturaEntity`, `entity.LineaFacturaEntity`, `dao.FacturaDao`, `mapper.FacturaMapper`, `repository.JpaFacturaRepository` |
+
+Casos de uso de Facturación:
+
+| Caso de uso | Operación | Transacción | Endpoint | Operación de `FacturaFacade` |
+|---|---|---|---|---|
+| `CrearFactura` | Crea una factura a partir de `NuevaFacturaDto`; el dominio rechaza las invariantes incumplidas (`FacturaInvalidaException`) y el caso de uso un `numero` duplicado (`NumeroFacturaDuplicadoException`) | `@Transactional` | `POST /api/facturas` → `201` con `Location`, `400` o `409` | `crear(NuevaFacturaDto)` |
+| `ObtenerFactura` | Devuelve una factura por id o lanza `FacturaNoEncontradaException` | `@Transactional(readOnly = true)` | `GET /api/facturas/{id}` → `200` o `404` | `obtener(Long)` |
+| `ListarFacturas` | Devuelve todas las facturas | `@Transactional(readOnly = true)` | `GET /api/facturas` → `200` | `listar()` |
+| `EliminarFactura` | Elimina una factura por id o lanza `FacturaNoEncontradaException` | `@Transactional` | `DELETE /api/facturas/{id}` → `204` o `404` | `eliminar(Long)` |
+
+`CrearFactura`, `ObtenerFactura` y `ListarFacturas` devuelven `FacturaDto`, cuyos totales calcula `FacturaDtoConverter` mediante `CalculadoraFactura`. `FacturaController` delega en los cuatro casos de uso. `FacturaFacadeImpl` expone las mismas cuatro operaciones a otros módulos y delega cada una en un único caso de uso, sin `@Transactional` propio. Que la facade exponga los cuatro casos de uso lo aprobó el usuario y NO DEBE señalarse como incumplimiento de `/k-back-module` 6.3.
 
 #### Reglas de evolución
 
-- La etapa actual DEBE detectarse inspeccionando los paquetes reales. Facturación está hoy en Etapa 2.
+- La etapa actual DEBE detectarse inspeccionando los paquetes reales. Facturación está hoy en Etapa 3.
 - NUNCA se retrocede de etapa. En un proyecto en Etapa 2 o 3 NO DEBEN desmontarse módulos: se auditan y corrigen los principios de separación de capas dentro de la estructura existente, y se informa.
 - Las funcionalidades, endpoints, reglas de negocio y tests existentes DEBEN preservarse en toda transformación.
 - La estructura es de referencia, no una plantilla: solo DEBEN existir los paquetes que contengan clases necesarias.
@@ -310,7 +337,7 @@ api/dto     → (solo tipos Java estándar, anotaciones de validación y otros D
 
 15.1. Tras cambios en código DEBEN ejecutarse la compilación y las pruebas del repositorio con el wrapper: `./mvnw test` (o `./mvnw verify`). En Windows sin shell POSIX, `mvnw.cmd test`.
 
-15.2. Las pruebas de arquitectura (`ArquitecturaTest` con ArchUnit y, si se adopta, Spring Modulith verify) DEBEN ejecutarse y pasar.
+15.2. Las pruebas de arquitectura DEBEN ejecutarse y pasar: `ArquitecturaTest` (ArchUnit), `ReglaContratoEntreModulosTest` (casos positivos y negativos de las reglas entre módulos) y `ModulosTest` (Spring Modulith verify).
 
 15.3. Si una verificación no está disponible o falla, DEBE informarse con su salida real; NO DEBE afirmarse que el código cumple sin haberlo verificado.
 
