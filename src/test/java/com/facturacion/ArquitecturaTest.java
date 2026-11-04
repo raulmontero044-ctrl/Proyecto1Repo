@@ -41,7 +41,6 @@ class ArquitecturaTest {
                     "jakarta.validation..",
                     "com.fasterxml.jackson..",
                     "..persistence..",
-                    "..controller..",
                     "..internal.application..",
                     "..config..",
                     "..api..")
@@ -64,7 +63,6 @@ class ArquitecturaTest {
             .that().resideInAPackage("..internal.persistence..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "..internal.application..",
-                    "..controller..",
                     "..api..")
             .allowEmptyShould(true);
 
@@ -96,20 +94,24 @@ class ArquitecturaTest {
 
     @ArchTest
     static final ArchRule controladoresSinRepositoryNiServiceInterno = noClasses()
-            .that().resideInAPackage("..controller..")
-            .should().dependOnClassesThat().resideInAnyPackage("..domain.repository..", "..service..")
+            .that().resideInAPackage("..api.http..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "..internal.domain.repository..",
+                    "..internal.domain.service..",
+                    "..internal.persistence..")
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule controladoresSoloUsanExcepcionesDelDominio = noClasses()
-            .that().resideInAPackage("..controller..")
-            .should().dependOnClassesThat(resideInAPackage("..domain..").and(not(assignableTo(RuntimeException.class))))
+            .that().resideInAPackage("..api.http..")
+            .should().dependOnClassesThat(
+                    resideInAPackage("..internal.domain..").and(not(assignableTo(RuntimeException.class))))
             .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule aplicacionSinControladores = noClasses()
             .that().resideInAPackage("..internal.application..")
-            .should().dependOnClassesThat().resideInAPackage("..controller..")
+            .should().dependOnClassesThat().resideInAPackage("..api.http..")
             .allowEmptyShould(true);
 
     @ArchTest

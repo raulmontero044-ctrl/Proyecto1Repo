@@ -1,9 +1,11 @@
-package com.facturacion.factura.controller;
+package com.facturacion.factura.api.http;
 
-import com.facturacion.factura.api.http.dto.CrearFacturaRequest;
 import com.facturacion.factura.api.facade.dto.FacturaDto;
 import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
 import com.facturacion.factura.api.facade.dto.NuevaLineaFacturaDto;
+import com.facturacion.factura.api.http.dto.CrearFacturaRequest;
+import com.facturacion.factura.api.http.dto.FacturaResponse;
+import com.facturacion.factura.api.http.dto.LineaFacturaResponse;
 import com.facturacion.factura.internal.application.CrearFactura;
 import com.facturacion.factura.internal.application.EliminarFactura;
 import com.facturacion.factura.internal.application.ListarFacturas;
@@ -43,23 +45,23 @@ public class FacturaController {
     }
 
     @PostMapping
-    public ResponseEntity<FacturaDto> crear(@Valid @RequestBody CrearFacturaRequest request) {
+    public ResponseEntity<FacturaResponse> crear(@Valid @RequestBody CrearFacturaRequest request) {
         FacturaDto creada = crearFactura.ejecutar(aNuevaFactura(request));
         URI ubicacion = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(creada.id())
                 .toUri();
-        return ResponseEntity.created(ubicacion).body(creada);
+        return ResponseEntity.created(ubicacion).body(aRespuesta(creada));
     }
 
     @GetMapping("/{id}")
-    public FacturaDto obtener(@PathVariable Long id) {
-        return obtenerFactura.ejecutar(id);
+    public FacturaResponse obtener(@PathVariable Long id) {
+        return aRespuesta(obtenerFactura.ejecutar(id));
     }
 
     @GetMapping
-    public List<FacturaDto> listar() {
-        return listarFacturas.ejecutar();
+    public List<FacturaResponse> listar() {
+        return listarFacturas.ejecutar().stream().map(FacturaController::aRespuesta).toList();
     }
 
     @DeleteMapping("/{id}")
@@ -79,5 +81,26 @@ public class FacturaController {
                 request.clienteNif(),
                 request.porcentajeIva(),
                 lineas);
+    }
+
+    private static FacturaResponse aRespuesta(FacturaDto factura) {
+        List<LineaFacturaResponse> lineas = factura.lineas().stream()
+                .map(linea -> new LineaFacturaResponse(
+                        linea.concepto(),
+                        linea.cantidad(),
+                        linea.precioUnitario(),
+                        linea.importe()))
+                .toList();
+        return new FacturaResponse(
+                factura.id(),
+                factura.numero(),
+                factura.fecha(),
+                factura.clienteNombre(),
+                factura.clienteNif(),
+                factura.porcentajeIva(),
+                lineas,
+                factura.base(),
+                factura.cuotaIva(),
+                factura.total());
     }
 }

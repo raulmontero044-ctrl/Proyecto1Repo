@@ -52,7 +52,7 @@ class ReglaContratoEntreModulosTest {
 
     @Test
     void lasClasesDelPropioModuloFacturaNoSeConsideranAccesosEntreModulos() {
-        JavaClasses clases = new ClassFileImporter().importPackages("com.facturacion.factura.controller");
+        JavaClasses clases = new ClassFileImporter().importPackages("com.facturacion.factura.api.http");
 
         assertThat(clases).isNotEmpty();
         assertThatCode(() -> ArquitecturaTest.modulosSoloUsanLaFacadeDeOtrosDesdeAplicacion.check(clases))

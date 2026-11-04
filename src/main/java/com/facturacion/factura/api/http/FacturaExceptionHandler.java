@@ -1,4 +1,4 @@
-package com.facturacion.factura.controller;
+package com.facturacion.factura.api.http;
 
 import com.facturacion.factura.internal.domain.exception.FacturaInvalidaException;
 import com.facturacion.factura.internal.domain.exception.FacturaNoEncontradaException;
