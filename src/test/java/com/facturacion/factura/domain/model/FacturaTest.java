@@ -64,6 +64,59 @@ class FacturaTest {
     }
 
     @Test
+    void rechazaNumeroYClienteNulosYNifEnBlanco() {
+        List<LineaFactura> lineas = List.of(linea("1", "1"));
+
+        assertThatThrownBy(() -> Factura.nueva(null, FECHA, "Cliente", "NIF", BigDecimal.TEN, lineas))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El número de factura es obligatorio");
+        assertThatThrownBy(() -> Factura.nueva("F-1", FECHA, null, "NIF", BigDecimal.TEN, lineas))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El nombre del cliente es obligatorio");
+        assertThatThrownBy(() -> Factura.nueva("F-1", FECHA, "Cliente", "  ", BigDecimal.TEN, lineas))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El NIF del cliente es obligatorio");
+    }
+
+    @Test
+    void informaElMotivoDeCadaInvarianteIncumplida() {
+        List<LineaFactura> conNula = new ArrayList<>();
+        conNula.add(null);
+
+        assertThatThrownBy(() -> Factura.nueva("F-1", null, "Cliente", "NIF", BigDecimal.TEN, List.of(linea("1", "1"))))
+                .hasMessage("La fecha de la factura es obligatoria");
+        assertThatThrownBy(() -> factura("-0.01", List.of(linea("1", "1"))))
+                .hasMessage("El porcentaje de IVA no puede ser negativo");
+        assertThatThrownBy(() -> factura("21", List.of()))
+                .hasMessage("La factura debe tener al menos una línea");
+        assertThatThrownBy(() -> factura("21", conNula))
+                .hasMessage("La factura no puede contener líneas vacías");
+        assertThatThrownBy(() -> new LineaFactura("", BigDecimal.ONE, BigDecimal.ONE))
+                .hasMessage("El concepto de la línea es obligatorio");
+        assertThatThrownBy(() -> linea("0", "1"))
+                .hasMessage("La cantidad de la línea debe ser mayor que cero");
+        assertThatThrownBy(() -> linea("1", "-0.01"))
+                .hasMessage("El precio unitario de la línea no puede ser negativo");
+    }
+
+    @Test
+    void rechazaCantidadNegativa() {
+        assertThatThrownBy(() -> linea("-1", "1")).isInstanceOf(FacturaInvalidaException.class);
+    }
+
+    @Test
+    void aceptaValoresEnElLimiteDeLasInvariantes() {
+        LineaFactura linea = linea("0.001", "0");
+
+        Factura factura = factura("0", List.of(linea));
+
+        assertThat(factura.porcentajeIva()).isEqualByComparingTo("0");
+        assertThat(factura.lineas()).containsExactly(linea);
+        assertThat(linea.cantidad()).isEqualByComparingTo("0.001");
+        assertThat(linea.precioUnitario()).isEqualByComparingTo("0");
+    }
+
+    @Test
     void rechazaIvaNegativo() {
         assertThatThrownBy(() -> factura("-1", List.of(linea("1", "1"))))
                 .isInstanceOf(FacturaInvalidaException.class);
