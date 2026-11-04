@@ -134,7 +134,7 @@ public record LineaFactura(String concepto, BigDecimal cantidad, BigDecimal prec
 
 6.4. Los mensajes NO DEBEN incluir datos sensibles (p. ej. el NIF del cliente).
 
-6.5. Las excepciones de dominio NO DEBEN contener códigos HTTP ni anotaciones web. Solo el controlador del propio módulo PUEDE importarlas para traducirlas a HTTP (ver `/k-back-controller`); otros módulos NO DEBEN usarlas.
+6.5. Las excepciones de dominio NO DEBEN contener códigos HTTP ni anotaciones web. Fuera del dominio y de la capa de aplicación del propio módulo, solo el adaptador HTTP del propio módulo PUEDE importarlas, para traducirlas a HTTP (ver `/k-back-controller`); otros módulos NO DEBEN usarlas.
 
 ## Comprobaciones antes de finalizar
 

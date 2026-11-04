@@ -108,7 +108,7 @@ Optional<FacturaEntity> findWithLineasById(Long id);
 
 ### 7. Mappers
 
-7.1. Nombre `<Agregado>Mapper`, `@Component` en `persistence.mapper`, conversión manual con métodos `aEntidad(modelo)` y `aDominio(entidad)`. Ejemplo real: `FacturaMapper`.
+7.1. Nombre `<Agregado>Mapper`, `@Component` en `<raiz>.persistence.mapper` (Etapa 1) / `<raiz>.<modulo>.persistence.mapper` (Etapa 2) / `<raiz>.<modulo>.internal.persistence.mapper` (Etapa 3), conversión manual con métodos `aEntidad(modelo)` y `aDominio(entidad)`. Ejemplo real: `FacturaMapper`.
 
 7.2. Un mapper por agregado: convierte la raíz y sus partes (`FacturaMapper` convierte también las líneas). NO DEBEN crearse mappers separados para partes internas sin necesidad.
 

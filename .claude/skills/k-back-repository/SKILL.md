@@ -38,7 +38,7 @@ Normas, criterios, ejemplos breves y checklist aplicables a las interfaces Repos
 
 ### 1. Ubicación y nombre
 
-1.1. Las interfaces Repository DEBEN declararse en el dominio del propio módulo según la tabla de `/k-back`: `<modulo>.domain.repository` en Etapas 1 y 2, `<modulo>.internal.domain.repository` en Etapa 3. Ejemplo real: `com.facturacion.factura.domain.repository.FacturaRepository`.
+1.1. Las interfaces Repository DEBEN declararse en el dominio según la tabla de `/k-back`: `<raiz>.domain.repository` (Etapa 1) / `<raiz>.<modulo>.domain.repository` (Etapa 2) / `<raiz>.<modulo>.internal.domain.repository` (Etapa 3). Ejemplo real: `com.facturacion.factura.domain.repository.FacturaRepository`.
 
 1.2. El nombre DEBE ser `<Agregado>Repository`. Habrá una interfaz por agregado raíz; NO DEBEN crearse Repository para partes internas de un agregado. Ejemplo real: no existe `LineaFacturaRepository`; las líneas se guardan y recuperan siempre con su `Factura`.
 
