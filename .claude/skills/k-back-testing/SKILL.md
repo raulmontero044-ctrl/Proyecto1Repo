@@ -198,6 +198,10 @@ class ModulosTest {
 
 7.2. Los `WARN` de `DefaultHandlerExceptionResolver` en la salida de `FacturaControllerTest` son esperados (peticiones inválidas a propósito) y no indican fallo. El aviso de carga dinámica del agente de Mockito/Byte Buddy tampoco.
 
+7.3. Un patrón `-Dtest` que no coincide con ningún test hace fallar Surefire (`No tests matching pattern "..." were executed!`), por ejemplo al verificar un paquete que aún no tiene tests o tras renombrar o mover una clase de test. Ese `BUILD FAILURE` no es un fallo de tests: DEBE corregirse el patrón o, si es legítimo que no haya coincidencias, añadirse `-Dsurefire.failIfNoSpecifiedTests=false`. Esa opción NO DEBE usarse para ocultar tests que deberían existir o ejecutarse.
+
+7.4. El repositorio no tiene herramientas de análisis estático (Checkstyle, PMD, SpotBugs, Error Prone) en `pom.xml`. El «análisis estático» del paso Verifica lo cubren de forma manual V4 (revisión de reglas) y V6 (búsqueda de comentarios), junto con los errores del compilador en V1. Añadir una herramienta de análisis estático es añadir una dependencia o plugin al build y DEBE informarse según `/k-back`.
+
 ### 8. Criterios de tests válidos
 
 8.1. NO DEBEN crearse tests vacíos, sin aserciones o que solo comprueben que no se lanza excepción cuando el requisito exige un resultado.
@@ -220,7 +224,7 @@ Esta sección define QUÉ compone el paso "Verifica" de cada una de las 10 itera
 |---|---|---|
 | V1 | Compilación: `./mvnw -B -q compile` y `./mvnw -B -q test-compile` | Sin errores |
 | V2 | Tests rápidos afectados: `-Dtest=` con las clases de test de los paquetes tocados | Todos en verde |
-| V3 | Arquitectura: `./mvnw -B test -Dtest=ArquitecturaTest` (y `ModulosTest` si existe) | Todas las reglas en verde, ninguna relajada |
+| V3 | Arquitectura: `./mvnw -B test -Dtest=ArquitecturaTest` (y `ModulosTest` si existe). Si la iteración ha movido o renombrado paquetes, comprobar además que cada patrón de paquete de las reglas (`..apln..`, `..controller..`, `..persistence.entity..`, etc.) sigue coincidiendo con algún paquete real; con `allowEmptyShould(true)`, una regla cuyo `that()` ya no selecciona clases pasa en verde sin comprobar nada | Todas las reglas en verde, ninguna relajada y ninguna vacía |
 | V4 | Revisión de reglas: el cambio cumple `/k-back` (etapa, dependencias, nombres, inyección, antiabstracción) y la skill de cada capa tocada (`/k-back-domain`, `/k-back-repository`, `/k-back-persistence`, `/k-back-service`, `/k-back-controller`, `/k-back-dto`, `/k-back-module`) | Sin incumplimientos o incumplimientos informados |
 | V5 | Tests del cambio: los casos positivos, negativos y límite exigidos por las secciones 3 y 6 existen y cumplen la sección 8 | Sin carencias, o carencias informadas |
 | V6 | Comentarios: búsqueda de `//`, `/*` y `/**` en los `.java` añadidos o modificados (comando abajo), revisando a mano los falsos positivos como URLs en cadenas | Ningún comentario nuevo |
