@@ -1,4 +1,4 @@
-package com.facturacion.factura.api.http;
+package com.facturacion.factura.api.http.controllers;
 
 import com.facturacion.factura.api.facade.dto.FacturaDto;
 import com.facturacion.factura.api.facade.dto.LineaFacturaDto;
