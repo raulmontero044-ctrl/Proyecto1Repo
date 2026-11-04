@@ -1,6 +1,7 @@
 ---
 name: k-back
 description: Normas generales del backend Java/Spring Boot de Facturación - modelo de etapas y organización de paquetes (tabla canónica), dependencias entre capas, convenciones de nombres, inyección de dependencias, errores, validación, SOLID, Clean Code, seguridad, logging, comentarios, antiabstracción, preservación del código existente y verificación. Úsala antes de diseñar, implementar o revisar cualquier código backend; las skills /k-back-* de capa la complementan. No modifica código.
+argument-hint: "[tema o duda concreta, opcional]"
 ---
 
 # /k-back
@@ -73,8 +74,8 @@ El nombre `apln` es la convención existente del repositorio en las Etapas 1 y 2
 <raiz>/
 ├── <App>Application.java
 ├── config/
+├── api/dto/             DTO record de casos de uso y HTTP
 ├── controller/          controladores y manejador de excepciones HTTP
-│   └── dto/             DTO record HTTP
 ├── apln/                casos de uso, límite transaccional
 ├── service/             (solo si está justificado)
 ├── domain/
@@ -134,7 +135,7 @@ Ejemplo real en Etapa 2: `com.facturacion.factura.apln.CrearFactura`, `com.factu
             └── repository/              implementaciones de Repository
 ```
 
-Reglas de dependencia de la Etapa 3: otros módulos solo usan `<modulo>.api.facade` (y su `dto`); `api.http` depende de `internal.application` del propio módulo y de `api.http.dto`; `internal.domain` no depende de Spring/JPA ni de otras capas; las entidades JPA no salen de `internal.persistence`; `app` puede referenciar cualquier módulo para cableado, pero ningún módulo depende de `app` salvo configuración genérica; está prohibido el acceso a `internal` de otro módulo; sin ciclos. El mecanismo de `package-info.java` (Spring Modulith o ArchUnit) es propiedad de `/k-back-module`. Añadir Spring Modulith es una decisión de la Etapa 3 que DEBE informarse.
+Reglas de dependencia de la Etapa 3: otros módulos solo usan `<modulo>.api.facade` (y su `dto`); `internal.domain` no depende de Spring/JPA ni de otras capas; las entidades JPA no salen de `internal.persistence`; `app` puede referenciar cualquier módulo para cableado, pero ningún módulo depende de `app` salvo configuración genérica; está prohibido el acceso a `internal` de otro módulo; sin ciclos. `api.http` depende de `internal.application`, `api.http.dto`, `api.facade.dto` e `internal.domain.exception` del propio módulo (esta última solo para traducir a HTTP); NO DEBE depender de `internal.domain.repository`, `internal.persistence` ni de `api` de otro módulo. El controlador delega en los casos de uso, no en la facade. El mecanismo de `package-info.java` (Spring Modulith o ArchUnit) es propiedad de `/k-back-module`. Añadir Spring Modulith es una decisión de la Etapa 3 que DEBE informarse.
 
 #### Reglas de evolución
 
@@ -269,7 +270,7 @@ api/dto     → (solo tipos Java estándar, anotaciones de validación y otros D
 
 ### 12. Política de comentarios
 
-12.1. El código Java de aplicación generado o modificado NO DEBE contener comentarios de ningún tipo: ni de línea (`//`), ni de bloque (`/* */`), ni JavaDoc (`/** */`), salvo que una herramienta lo requiera.
+12.1. El código Java generado o modificado, de aplicación y de test, NO DEBE contener comentarios de ningún tipo: ni de línea (`//`), ni de bloque (`/* */`), ni JavaDoc (`/** */`), salvo que una herramienta lo requiera.
 
 12.2. Los comentarios existentes en código no tocado por la tarea DEBEN preservarse.
 
@@ -321,7 +322,7 @@ api/dto     → (solo tipos Java estándar, anotaciones de validación y otros D
 - [ ] Los nombres siguen las convenciones existentes de la sección 4.
 - [ ] La inyección es por constructor con campos `final`.
 - [ ] No hay secretos, `System.out` ni datos sensibles en logs o respuestas.
-- [ ] No hay comentarios en el código generado.
+- [ ] No hay comentarios en el código generado, de aplicación ni de test.
 - [ ] No hay abstracciones, clases ni dependencias sin requisito que las justifique.
 - [ ] Las decisiones no derivadas de los requisitos están informadas.
 - [ ] La compilación, las pruebas y `ArquitecturaTest` se han ejecutado y su resultado real está informado.
