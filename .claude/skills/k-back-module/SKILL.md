@@ -105,9 +105,9 @@ Ejemplo hipotético (no existe requisito): si se creara un módulo `cliente` y l
 
 6.1. El contrato entre módulos DEBE ser una interfaz `<Modulo>Facade` en `<modulo>.api.facade`, con sus DTO `record` en `<modulo>.api.facade.dto`. Ejemplo real de destino: `com.facturacion.factura.api.facade.FacturaFacade` y `com.facturacion.factura.api.facade.dto.FacturaDto`.
 
-6.2. La facade es una de las interfaces con única implementación permitidas (`/k-back` 13.2). Su implementación DEBE ubicarse en `<modulo>.internal.application` (p. ej. `com.facturacion.factura.internal.application.FacturaFacadeImpl`; el nombre definitivo DEBE fijarse e informarse al crearla, porque hoy no existe convención), DEBE delegar en los casos de uso o coordinarlos, y el límite transaccional es el de esa capa (`/k-back-service`).
+6.2. La facade es una de las interfaces con única implementación permitidas (`/k-back` 13.2). Su implementación DEBE llamarse `<Modulo>FacadeImpl` y ubicarse en `<modulo>.internal.application` (p. ej. `com.facturacion.factura.internal.application.FacturaFacadeImpl`), DEBE delegar en los casos de uso o coordinarlos, y el límite transaccional es el de esa capa (`/k-back-service`).
 
-6.3. La facade DEBE exponer solo las operaciones que otros módulos necesitan según los requisitos; NO DEBE replicar todos los casos de uso por defecto.
+6.3. La facade DEBE exponer solo las operaciones que otros módulos necesitan según los requisitos; NO DEBE replicar todos los casos de uso por defecto. En la Etapa 3 la facade también DEBE crearse cuando la especificación de arquitectura del usuario la exija, con las operaciones que esta enumere (o confirmadas por el usuario).
 
 6.4. `<modulo>.api.http` (controlador, manejador de excepciones y `api.http.dto`) es el adaptador HTTP del módulo. NO es contrato entre módulos: ningún otro módulo DEBE depender de `api.http` ni de `api.http.dto`.
 
@@ -174,7 +174,7 @@ package com.facturacion.factura.api.facade.dto;
 
 9.5. Ejemplo hipotético (módulo `cliente` inexistente, sin requisito): si `factura` pasara a depender de `cliente`, su declaración sería `allowedDependencies = {"cliente :: facade", "cliente :: facade-dto"}`.
 
-9.6. `app/package-info.java` PUEDE declararse con `@ApplicationModule(displayName = ...)` para nombrarlo; sus dependencias hacia contratos públicos se declaran igual que en cualquier módulo.
+9.6. `app/package-info.java` PUEDE declararse con `@ApplicationModule`, con `displayName` y `allowedDependencies` explícito (sección 9.3); sus dependencias hacia contratos públicos se declaran igual que en cualquier módulo.
 
 9.7. Verificación: `ApplicationModules.of(FacturacionApplication.class).verify()` comprueba ciclos, acceso a tipos no expuestos y dependencias no declaradas. Cómo y dónde se escribe ese test es de `/k-back-testing`.
 
@@ -190,7 +190,7 @@ package com.facturacion.factura.api.facade.dto;
 - [ ] Las dependencias entre módulos salen solo de la capa de aplicación o `service`, están justificadas e informadas.
 - [ ] No hay ciclos directos ni transitivos; `ArquitecturaTest.modulosSinCiclos` pasa.
 - [ ] Toda dependencia mutua se ha informado como incompatibilidad con opciones, sin resolverla con accesos internos.
-- [ ] No se ha creado una facade ni un punto de entrada público sin un consumidor real.
+- [ ] No se ha creado una facade ni un punto de entrada público sin un consumidor real ni requisito explícito.
 - [ ] En Etapa 3: `package-info.java` en cada módulo, sin comentarios; `allowedDependencies` coincide con las dependencias reales; `@NamedInterface` solo en `api.facade` y `api.facade.dto`.
 - [ ] Si se usa Spring Modulith: versión 1.4.x revalidada, dependencia informada y `verify()` ejecutado; si no, reglas ArchUnit equivalentes ejecutadas.
 - [ ] Un módulo nuevo está bajo `com.facturacion`, sin escaneos adicionales injustificados y con migraciones Flyway en la numeración global.
