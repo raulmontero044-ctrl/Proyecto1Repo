@@ -2,6 +2,7 @@ package com.facturacion;
 
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -12,7 +13,10 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import jakarta.persistence.Entity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.tngtech.archunit.base.DescribedPredicate.describe;
@@ -111,6 +115,32 @@ class ArquitecturaTest {
             .should().dependOnClassesThat(
                     resideInAPackage("..internal.domain..").and(not(assignableTo(RuntimeException.class))))
             .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule cadaHandlerTraduceUnaSolaExcepcion = classes()
+            .that().resideInAPackage("..api.http.handlers..")
+            .and().doNotHaveSimpleName(PACKAGE_INFO)
+            .should().haveSimpleNameEndingWith("ExceptionHandler")
+            .andShould().beAnnotatedWith(RestControllerAdvice.class)
+            .andShould(declararUnSoloExceptionHandlerConUnaSolaExcepcion())
+            .allowEmptyShould(true);
+
+    private static ArchCondition<JavaClass> declararUnSoloExceptionHandlerConUnaSolaExcepcion() {
+        return new ArchCondition<>("declarar un solo método @ExceptionHandler que traduzca una sola excepción") {
+            @Override
+            public void check(JavaClass handler, ConditionEvents eventos) {
+                List<JavaMethod> metodos = handler.getMethods().stream()
+                        .filter(metodo -> metodo.isAnnotatedWith(ExceptionHandler.class))
+                        .toList();
+                boolean unaSola = metodos.size() == 1
+                        && metodos.get(0).getAnnotationOfType(ExceptionHandler.class).value().length == 1;
+                if (!unaSola) {
+                    eventos.add(SimpleConditionEvent.violated(handler,
+                            handler.getName() + " no traduce exactamente una excepción en un único método @ExceptionHandler"));
+                }
+            }
+        };
+    }
 
     @ArchTest
     static final ArchRule aplicacionSinControladores = noClasses()
