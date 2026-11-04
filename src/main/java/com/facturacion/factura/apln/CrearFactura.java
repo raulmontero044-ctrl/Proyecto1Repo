@@ -4,7 +4,7 @@ import com.facturacion.factura.api.dto.FacturaDto;
 import com.facturacion.factura.api.dto.NuevaFacturaDto;
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.exception.NumeroFacturaDuplicadoException;
-import com.facturacion.factura.domain.repository.FacturaRepository;
+import com.facturacion.factura.internal.domain.repository.FacturaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

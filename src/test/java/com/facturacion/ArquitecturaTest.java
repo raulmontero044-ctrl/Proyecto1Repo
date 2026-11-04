@@ -33,7 +33,7 @@ class ArquitecturaTest {
 
     @ArchTest
     static final ArchRule dominioIndependienteDeFrameworks = noClasses()
-            .that().resideInAnyPackage("..internal.domain..", "com.facturacion.*.domain..")
+            .that().resideInAPackage("..internal.domain..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "org.springframework..",
                     "jakarta.persistence..",

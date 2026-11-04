@@ -1,7 +1,7 @@
 package com.facturacion.factura.persistence;
 
 import com.facturacion.factura.internal.domain.model.Factura;
-import com.facturacion.factura.domain.repository.FacturaRepository;
+import com.facturacion.factura.internal.domain.repository.FacturaRepository;
 import com.facturacion.factura.persistence.dao.FacturaDao;
 import com.facturacion.factura.persistence.mapper.FacturaMapper;
 import org.springframework.stereotype.Repository;

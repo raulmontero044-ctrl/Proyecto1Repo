@@ -1,7 +1,7 @@
 package com.facturacion.factura.apln;
 
 import com.facturacion.factura.internal.domain.model.Factura;
-import com.facturacion.factura.domain.repository.FacturaRepository;
+import com.facturacion.factura.internal.domain.repository.FacturaRepository;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
