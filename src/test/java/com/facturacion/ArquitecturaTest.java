@@ -49,6 +49,18 @@ class ArquitecturaTest {
             .allowEmptyShould(true);
 
     @ArchTest
+    static final ArchRule dtoSonRecords = classes()
+            .that().resideInAPackage("..api.dto..")
+            .should().beRecords()
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule dtoSoloDependenDeJavaValidacionYOtrosDto = classes()
+            .that().resideInAPackage("..api.dto..")
+            .should().onlyDependOnClassesThat().resideInAnyPackage("java..", "jakarta.validation..", "..api.dto..")
+            .allowEmptyShould(true);
+
+    @ArchTest
     static final ArchRule controladoresSinRepositoryNiServiceInterno = noClasses()
             .that().resideInAPackage("..controller..")
             .should().dependOnClassesThat().resideInAnyPackage("..domain.repository..", "..service..")
