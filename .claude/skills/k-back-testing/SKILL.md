@@ -68,7 +68,7 @@ Normas, criterios y checklists aplicables. Ningún archivo se crea ni se modific
 
 2.4. Clases y métodos de test DEBEN ser package-private (sin `public`), como en los tests existentes.
 
-2.5. Estructura preparar / actuar / comprobar separada por líneas en blanco, sin comentarios. El código de test sigue la política de comentarios de `/k-back`.
+2.5. Estructura preparar / actuar / comprobar separada por líneas en blanco, sin comentarios: la política de comentarios de `/k-back` aplica explícitamente al código de test.
 
 2.6. Datos de prueba mediante métodos factoría `private static` en la propia clase (`nueva(...)`, `factura(...)`, `linea(...)`) y bloques de texto para JSON. NO DEBEN crearse utilidades o builders de test compartidos sin que al menos dos clases de test los usen.
 
@@ -143,12 +143,12 @@ Normas, criterios y checklists aplicables. Ningún archivo se crea ni se modific
 | `aplicacionSinControladores` | `..apln..` no depende de `..controller..` |
 | `modulosSinCiclos` | slices `com.facturacion.(*)..` sin ciclos |
 
-4.3. Etapa 3: al reubicar paquetes según la tabla canónica de `/k-back`, `ArquitecturaTest` DEBE adaptarse a los nuevos nombres sin perder ninguna restricción: dominio en `..internal.domain..` sin Spring/JPA, `@Entity` en `..internal.persistence.entity..`, `..api.http..` sin dependencias de `..internal.domain.repository..` ni `..internal.persistence..`, `..apln..` sustituido por `..internal.application..`, y además prohibido el acceso a `internal` de otro módulo y ningún módulo dependiendo de `<raiz>.app`. Ejemplo breve:
+4.3. Etapa 3: al reubicar paquetes según la tabla canónica de `/k-back`, `ArquitecturaTest` DEBE adaptarse a los nuevos nombres sin perder ninguna restricción: dominio en `..internal.domain..` sin Spring/JPA, `@Entity` en `..internal.persistence.entity..`, `..api.http..` sin dependencias de `..internal.domain.repository..` ni `..internal.persistence..`, `..apln..` sustituido por `..internal.application..`, y además prohibido el acceso a `internal` de un módulo desde cualquier paquete ajeno a él, incluido `<raiz>.app` (`/k-back-module` sección 8.2), y ningún módulo dependiendo de `<raiz>.app`. Ejemplo breve:
 
 ```java
 @ArchTest
 static final ArchRule internalDeFacturaNoAccesibleDesdeOtrosModulos = noClasses()
-        .that().resideOutsideOfPackages("com.facturacion.factura..", "com.facturacion.app..")
+        .that().resideOutsideOfPackage("com.facturacion.factura..")
         .should().dependOnClassesThat().resideInAPackage("com.facturacion.factura.internal..")
         .allowEmptyShould(true);
 ```
@@ -227,7 +227,7 @@ Esta sección define QUÉ compone el paso "Verifica" de cada una de las 10 itera
 | V3 | Arquitectura: `./mvnw -B test -Dtest=ArquitecturaTest` (y `ModulosTest` si existe). Si la iteración ha movido o renombrado paquetes, comprobar además que cada patrón de paquete de las reglas (`..apln..`, `..controller..`, `..persistence.entity..`, etc.) sigue coincidiendo con algún paquete real; con `allowEmptyShould(true)`, una regla cuyo `that()` ya no selecciona clases pasa en verde sin comprobar nada | Todas las reglas en verde, ninguna relajada y ninguna vacía |
 | V4 | Revisión de reglas: el cambio cumple `/k-back` (etapa, dependencias, nombres, inyección, antiabstracción) y la skill de cada capa tocada (`/k-back-domain`, `/k-back-repository`, `/k-back-persistence`, `/k-back-service`, `/k-back-controller`, `/k-back-dto`, `/k-back-module`) | Sin incumplimientos o incumplimientos informados |
 | V5 | Tests del cambio: los casos positivos, negativos y límite exigidos por las secciones 3 y 6 existen y cumplen la sección 8 | Sin carencias, o carencias informadas |
-| V6 | Comentarios: búsqueda de `//`, `/*` y `/**` en los `.java` añadidos o modificados (comando abajo), revisando a mano los falsos positivos como URLs en cadenas | Ningún comentario nuevo |
+| V6 | Comentarios: búsqueda de `//`, `/*` y `/**` en los `.java` de aplicación y de test añadidos o modificados (comando abajo), revisando a mano los falsos positivos como URLs en cadenas | Ningún comentario nuevo |
 | V7 | `git diff` revisado: solo archivos de la tarea, sin código ajeno reescrito, sin temporales, secretos ni configuración local, sin tests eliminados ni debilitados | Diff limpio |
 
 Búsqueda de V6, donde `<base>` es la rama o commit de partida de la tarea:
