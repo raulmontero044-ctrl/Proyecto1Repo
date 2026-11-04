@@ -120,7 +120,7 @@ Ejemplo real en Etapa 2: `com.facturacion.factura.apln.CrearFactura`, `com.factu
     │   │   └── dto/                     DTO record de contrato
     │   └── http/
     │       ├── controllers/             <Modulo>Controller
-    │       ├── handlers/                <Modulo>ExceptionHandler
+    │       ├── handlers/                un <Excepcion>Handler por excepción de dominio
     │       └── dto/                     DTO record HTTP
     └── internal/
         ├── application/                 casos de uso + implementación de la facade; límite transaccional
@@ -188,7 +188,7 @@ api/dto     → (solo tipos Java estándar, anotaciones de validación y otros D
 |---|---|---|
 | Caso de uso | Verbo + sustantivo, método `ejecutar` | `CrearFactura.ejecutar(NuevaFacturaDto)` |
 | Controlador | `<Agregado>Controller` | `FacturaController` |
-| Manejador HTTP | `<Agregado>ExceptionHandler` | `FacturaExceptionHandler` |
+| Manejador HTTP | `<Agregado>ExceptionHandler` en las Etapas 1 y 2; en la Etapa 3, un `<Excepcion>Handler` por excepción de dominio | `FacturaNoEncontradaExceptionHandler` |
 | Interfaz Repository | `<Agregado>Repository` | `FacturaRepository` |
 | Implementación Repository | `<Tecnología><Agregado>Repository` | `JpaFacturaRepository` |
 | DAO | `<Agregado>Dao` | `FacturaDao` |
@@ -218,7 +218,7 @@ api/dto     → (solo tipos Java estándar, anotaciones de validación y otros D
 
 6.2. Las excepciones NO DEBEN silenciarse ni capturarse para devolver `null`. Solo se capturan para traducirlas, añadir contexto o recuperarse de verdad.
 
-6.3. La traducción a HTTP DEBE hacerse en el adaptador HTTP del propio módulo, con `ProblemDetail` como en `FacturaExceptionHandler` (detalle en `/k-back-controller`).
+6.3. La traducción a HTTP DEBE hacerse en el adaptador HTTP del propio módulo, con `ProblemDetail` como en los handlers de `factura.api.http.handlers` (detalle en `/k-back-controller`).
 
 6.4. Las respuestas de error NO DEBEN exponer trazas, SQL, nombres de clases internas ni datos sensibles.
 

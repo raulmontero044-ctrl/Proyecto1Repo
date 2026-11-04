@@ -38,9 +38,9 @@ Normas, criterios, ejemplos breves y checklist de la capa HTTP. Ningún archivo 
 
 ### 1. Ubicación
 
-1.1. Según la tabla de `/k-back`: el controlador y su manejador de excepciones DEBEN estar en `<raiz>.controller` (Etapa 1) / `<raiz>.<modulo>.controller` (Etapa 2, hoy `com.facturacion.factura.controller.FacturaController` y `FacturaExceptionHandler`); en la Etapa 3, el controlador en `<raiz>.<modulo>.api.http.controllers` y el manejador en `<raiz>.<modulo>.api.http.handlers` (hoy `com.facturacion.factura.api.http.controllers.FacturaController` y `com.facturacion.factura.api.http.handlers.FacturaExceptionHandler`), con sus DTO en `<raiz>.<modulo>.api.http.dto`. Como el manejador referencia al controlador desde otro paquete en `assignableTypes`, el controlador DEBE ser `public`.
+1.1. Según la tabla de `/k-back`: el controlador y su manejador de excepciones DEBEN estar en `<raiz>.controller` (Etapa 1) / `<raiz>.<modulo>.controller` (Etapa 2, hoy `com.facturacion.factura.controller.FacturaController` y `FacturaExceptionHandler`); en la Etapa 3, el controlador en `<raiz>.<modulo>.api.http.controllers` y los handlers de excepciones en `<raiz>.<modulo>.api.http.handlers` (hoy `com.facturacion.factura.api.http.controllers.FacturaController` y, en `handlers`, `FacturaNoEncontradaExceptionHandler`, `NumeroFacturaDuplicadoExceptionHandler` y `FacturaInvalidaExceptionHandler`), con sus DTO en `<raiz>.<modulo>.api.http.dto`. Como los handlers referencian al controlador desde otro paquete en `assignableTypes`, el controlador DEBE ser `public`.
 
-1.2. El nombre DEBE ser `<Agregado>Controller` y `<Agregado>ExceptionHandler`.
+1.2. El nombre DEBE ser `<Agregado>Controller` y, para el manejador, `<Agregado>ExceptionHandler` en las Etapas 1 y 2; en la Etapa 3, `<Excepcion>Handler` (p. ej. `FacturaNoEncontradaExceptionHandler`).
 
 ### 2. Responsabilidad y dependencias
 
@@ -81,7 +81,7 @@ Normas, criterios, ejemplos breves y checklist de la capa HTTP. Ningún archivo 
 
 ### 5. Gestión de excepciones
 
-5.1. La traducción de excepciones de dominio a HTTP DEBE hacerse en el manejador del propio módulo, anotado con `@RestControllerAdvice(assignableTypes = <Agregado>Controller.class)` para no afectar a otros módulos.
+5.1. La traducción de excepciones de dominio a HTTP DEBE hacerse en el manejador del propio módulo, anotado con `@RestControllerAdvice(assignableTypes = <Agregado>Controller.class)` para no afectar a otros módulos. En la Etapa 3 DEBE haber un handler separado por excepción de dominio: cada clase de `api.http.handlers` declara un único método `@ExceptionHandler` con una sola excepción (regla `cadaHandlerTraduceUnaSolaExcepcion` de `ArquitecturaTest`).
 
 5.2. Cada handler DEBE devolver `ProblemDetail` con `ProblemDetail.forStatusAndDetail(status, excepcion.getMessage())`. Traducciones existentes:
 
@@ -109,7 +109,7 @@ Normas, criterios, ejemplos breves y checklist de la capa HTTP. Ningún archivo 
 
 ## Comprobaciones antes de finalizar
 
-- [ ] El controlador y el manejador están en el paquete de la etapa vigente y siguen los nombres `<Agregado>Controller` / `<Agregado>ExceptionHandler`.
+- [ ] El controlador y el manejador están en el paquete de la etapa vigente y siguen los nombres `<Agregado>Controller` / `<Agregado>ExceptionHandler` (en la Etapa 3, un `<Excepcion>Handler` por excepción).
 - [ ] Cada endpoint delega en un único caso de uso del propio módulo y no contiene lógica de negocio ni transacciones.
 - [ ] No se importan Repository, `persistence`, `service` ni clases de otros módulos.
 - [ ] Verbos, rutas y códigos (`201` + `Location`, `200`, `204`, `400`, `404`, `409`) se mantienen y no se han inventado endpoints.
