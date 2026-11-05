@@ -17,7 +17,7 @@ Rama de la propuesta, commit de partida de esa propuesta, tipo, informe de su au
 ## Lecturas obligatorias
 
 1. `.claude/agents/code-falsador.md` completo: su definición de afirmación, sus clasificaciones (`MENTIRA`, `NO DETECTADA`, `INDETERMINADA`), su exigencia de evidencia y su regla de que la falta de evidencia no demuestra falsedad son obligatorias aquí.
-2. `.claude/skills/do-test/procedimiento-testing.md` (escala de gravedad, sección 6.1) y `.claude/skills/do-test/tipos/<tipo>.md` (mutaciones orientativas).
+2. `.claude/skills/do-test/procedimiento-testing.md` (escala de gravedad, sección 6.1) y `.claude/skills/k-back-test-<tipo>/SKILL.md` (mutaciones que los tests deben detectar, sección 4).
 3. `.claude/skills/k-back-testing/SKILL.md` secciones 2, 6 y 8.
 
 ## Cómo se aplica `code-falsador.md`

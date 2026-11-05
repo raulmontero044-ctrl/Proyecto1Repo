@@ -1,15 +1,15 @@
 ---
-name: test-unit-repair
-description: Analiza y repara los tests unitarios del backend Java/Spring Boot de Facturación con cinco reparaciones independientes en worktrees sobre la misma base, cada una falsada con code-falsador.md por un test-falsifier, elige la mejor con un test-evaluator y la integra en develop comprobando que no se pierde ningún test. No modifica producción para que los tests pasen. Úsala cuando el usuario pida reparar o reforzar tests unitarios; funciona sola o desde /do-test. Hace commits, push e integración.
+name: do-test-api-repair
+description: Analiza y repara los tests de API e integración (capa HTTP y, si se autoriza, persistencia e integración con base de datos) del backend Java/Spring Boot de Facturación con cinco reparaciones independientes en worktrees sobre la misma base, cada una falsada con code-falsador.md por un test-falsifier, elige la mejor con un test-evaluator y la integra en develop comprobando que no se pierde ningún test. No modifica producción para que los tests pasen. Úsala cuando el usuario pida reparar o reforzar tests de API e integración (capa HTTP y, si se autoriza, persistencia e integración con base de datos); funciona sola o desde /do-test. Hace commits, push e integración.
 argument-hint: "[rama base a reparar (por defecto origin/develop)] [alcance, opcional]"
 disable-model-invocation: true
 ---
 
-# /test-unit-repair
+# /do-test-api-repair
 
 ## Propósito
 
-Ejecutar la fase REPAIR del tipo `unit`: mejorar la fiabilidad de los tests, eliminar falsos positivos y reforzar aserciones. El procedimiento es `.claude/skills/do-test/procedimiento-testing.md`; el alcance del tipo, `.claude/skills/do-test/tipos/unit.md`; las normas de testing, `/k-back-testing`. Esta skill NO los repite.
+Ejecutar la fase REPAIR del tipo `api`: mejorar la fiabilidad de los tests, eliminar falsos positivos y reforzar aserciones. El procedimiento es `.claude/skills/do-test/procedimiento-testing.md`; cómo se hace cada test del tipo, `/k-back-test-api`; las normas de testing, `/k-back-testing`. Esta skill NO los repite.
 
 REPAIR NO significa cambiar el código de producción para que los tests pasen (procedimiento sección 5.3).
 
@@ -17,7 +17,7 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 
 ## Modos
 
-- **Sola** (`/test-unit-repair` invocada por el usuario): repara los tests existentes del tipo partiendo de `origin/develop` o de la rama indicada en `$ARGUMENTS` (procedimiento sección 7.1).
+- **Sola** (`/do-test-api-repair` invocada por el usuario): repara los tests existentes del tipo partiendo de `origin/develop` o de la rama indicada en `$ARGUMENTS` (procedimiento sección 7.1).
 - **Desde `/do-test`**: recibe `<base>`, `B1`, el informe del analizador, el informe de falsación de la ganadora CREATE, el informe de evaluación CREATE y las autorizaciones; omite los pasos 1 a 3.
 
 ## Entradas
@@ -28,9 +28,9 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 
 Se ejecuta en el hilo principal (procedimiento sección 1.2).
 
-1. **Análisis**: lanza un `test-analyzer` de tipo `unit` sobre el commit base y aplica la puerta de decisión (procedimiento sección 3).
-2. **Base**: lanza el subagente de preparación que crea y publica `<base>` = `feature/test-unit-<descripcion>` en ese commit (`B1`) (procedimiento secciones 2.2 y 7.1).
-3. **Falsación de partida**: lanza un `test-falsifier` sobre `B1` con alcance «tests existentes del tipo `unit`» (procedimiento sección 5.1).
+1. **Análisis**: lanza un `test-analyzer` de tipo `api` sobre el commit base y aplica la puerta de decisión (procedimiento sección 3). Este tipo DEBE preguntar al usuario el alcance de infraestructura de `/k-back-test-api` sección 3 antes del paso 2.
+2. **Base**: lanza el subagente de preparación que crea y publica `<base>` = `feature/test-api-<descripcion>` en ese commit (`B1`) (procedimiento secciones 2.2 y 7.1).
+3. **Falsación de partida**: lanza un `test-falsifier` sobre `B1` con alcance «tests existentes del tipo `api`» (procedimiento sección 5.1).
 4. **Ramas candidatas**: lanza el subagente de preparación que crea `<base>-repair-1` … `<base>-repair-5` en `B1`.
 5. **Reparaciones**: lanza en un mismo mensaje cinco `test-repairer` con `isolation: "worktree"` (procedimiento secciones 1.6, 1.8 y 5.2).
 6. **Falsación**: lanza en un mismo mensaje un `test-falsifier` con `isolation: "worktree"` por reparación entregada, con el informe de falsación de partida (procedimiento sección 5.4).

@@ -1,8 +1,8 @@
 # Procedimiento común de las skills de testing
 
-Archivo de apoyo de `/do-test`, referenciado por las ocho skills especializadas `/test-<tipo>-<fase>` (`<tipo>` ∈ `unit`, `arch`, `api`, `e2e`; `<fase>` ∈ `create`, `repair`) con la ruta `.claude/skills/do-test/procedimiento-testing.md`. Define CÓMO se ejecuta un ciclo de testing: modos, agentes, ramas, fases CREATE y REPAIR, falsación, evaluación, integración e informes.
+Archivo de apoyo de `/do-test`, referenciado por las ocho skills especializadas `/do-test-<tipo>-<fase>` (`<tipo>` ∈ `unit`, `arch`, `api`, `e2e`; `<fase>` ∈ `create`, `repair`) con la ruta `.claude/skills/do-test/procedimiento-testing.md`. Define CÓMO se ejecuta un ciclo de testing: modos, agentes, ramas, fases CREATE y REPAIR, falsación, evaluación, integración e informes.
 
-QUÉ se prueba, con qué herramientas, cómo se nombran y ubican los tests y qué es un test válido es propiedad de `/k-back-testing` (`.claude/skills/k-back-testing/SKILL.md`). Qué abarca cada tipo de testing en Facturación es propiedad de su perfil (`.claude/skills/do-test/tipos/<tipo>.md`). Este archivo NO repite esas normas.
+QUÉ se prueba, con qué herramientas, cómo se nombran y ubican los tests y qué es un test válido es propiedad de `/k-back-testing` (`.claude/skills/k-back-testing/SKILL.md`). Cómo se hace cada tipo de test en Facturación (qué abarca, herramientas, infraestructura y mutaciones que debe detectar) es propiedad de su skill de conocimiento `/k-back-test-<tipo>` (`.claude/skills/k-back-test-<tipo>/SKILL.md`). Este archivo NO repite esas normas.
 
 Los términos DEBE, NO DEBE y PUEDE son normativos.
 
@@ -31,7 +31,7 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 
 1.7. Los informes se intercambian a través del coordinador: este conserva literalmente el informe de cada agente y lo pasa íntegro en el prompt de los agentes posteriores que lo necesiten. Los informes NO se commitean en el repositorio.
 
-1.8. Cada prompt DEBE incluir: tipo de testing, fase, ruta del perfil del tipo, ruta de este archivo, ruta de `.claude/skills/k-back-testing/SKILL.md`, informe del `test-analyzer` íntegro, requisitos y autorizaciones del usuario (sección 3.3), rama y commit base exactos, número de propuesta si procede, y los informes previos que indica cada fase.
+1.8. Cada prompt DEBE incluir: tipo de testing, fase, ruta de `.claude/skills/k-back-test-<tipo>/SKILL.md`, ruta de este archivo, ruta de `.claude/skills/k-back-testing/SKILL.md`, informe del `test-analyzer` íntegro, requisitos y autorizaciones del usuario (sección 3.3), rama y commit base exactos, número de propuesta si procede, y los informes previos que indica cada fase.
 
 ## 2. Ramas y Git
 
@@ -61,7 +61,7 @@ Las candidatas solo se commitean en local: los worktrees comparten las referenci
 
 ## 4. CREATE
 
-4.1. Desarrollo. Cinco `test-creator` en paralelo (sección 1.6), cada uno en `<base>-create-<n>`. Además de lo indicado en la sección 1.8, reciben el alcance del perfil del tipo. Cada uno entrega el informe de implementación de su definición de agente. Una propuesta que no entregue informe, deje la suite en rojo o no tenga commits se marca como «no entregada»: no se evalúa ni se repite.
+4.1. Desarrollo. Cinco `test-creator` en paralelo (sección 1.6), cada uno en `<base>-create-<n>`. Además de lo indicado en la sección 1.8, reciben el alcance de `/k-back-test-<tipo>` sección 1. Cada uno entrega el informe de implementación de su definición de agente. Una propuesta que no entregue informe, deje la suite en rojo o no tenga commits se marca como «no entregada»: no se evalúa ni se repite.
 
 4.2. Falsación. Cinco `test-falsifier` en paralelo, uno por propuesta entregada. Cada uno recibe solo su rama candidata, el commit base `B0`, el informe de su `test-creator` y el informe del analizador. Ninguno conoce las demás propuestas.
 
@@ -101,11 +101,11 @@ Las candidatas solo se commitean en local: los worktrees comparten las referenci
 
 ## 7. Variantes de entrada
 
-7.1. `/test-<tipo>-repair` sin CREATE previo: `<base>` parte de `origin/develop` o de la rama indicada en `$ARGUMENTS` (comprobando que existe y está publicada), y `B1` es ese mismo commit. Se aplica la sección 5.1.
+7.1. `/do-test-<tipo>-repair` sin CREATE previo: `<base>` parte de `origin/develop` o de la rama indicada en `$ARGUMENTS` (comprobando que existe y está publicada), y `B1` es ese mismo commit. Se aplica la sección 5.1.
 
 7.2. Desde `/do-test`: la especializada CREATE termina en la sección 4.4 y entrega `<base>` y `B1` a `/do-test`, que sigue con la especializada REPAIR sin repetir el análisis ni la preparación de `<base>`.
 
-7.3. `/test-<tipo>-create` sola: tras la sección 4.4, el coordinador lanza el `test-integrator` en modo «final» solo para integrar `<base>` en `develop` (sección 8.2, pasos 4 a 6).
+7.3. `/do-test-<tipo>-create` sola: tras la sección 4.4, el coordinador lanza el `test-integrator` en modo «final» solo para integrar `<base>` en `develop` (sección 8.2, pasos 4 a 6).
 
 ## 8. Integración
 
