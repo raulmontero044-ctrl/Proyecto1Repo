@@ -25,7 +25,7 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 
 1.5. Si la herramienta `Agent` no está disponible en el hilo principal, la ejecutora hace ella misma la preparación (sección 4.1, variante subagente), la implementación y el push y, al terminar, integra ella misma siguiendo la sección 4.5, informando de que no se usaron subagentes. NO DEBE simular subagentes ni afirmar haberlos lanzado.
 
-1.6. El agente `falsador` NO forma parte de este procedimiento.
+1.6. El agente `code-falsador` NO forma parte de este procedimiento.
 
 ## 2. Fase A — Implementación en exactamente 10 iteraciones
 

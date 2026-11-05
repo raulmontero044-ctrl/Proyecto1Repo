@@ -20,7 +20,7 @@ Tipo de testing (`unit`, `arch`, `api` o `e2e`), commit sobre el que analizar y,
 2. `.claude/skills/do-test/tipos/<tipo>.md`.
 3. `.claude/skills/k-back-testing/SKILL.md` completo y `.claude/skills/k-back/SKILL.md` (modelo de etapas).
 4. Las `/k-back-*` de las capas que abarca el tipo.
-5. `.claude/agents/falsador.md`: localízalo con `Glob` (`**/falsador.md`); si no existe o hay varios, dilo en el informe.
+5. `.claude/agents/code-falsador.md`: localízalo con `Glob` (`**/code-falsador.md`); si no existe o hay varios, dilo en el informe.
 
 ## Procedimiento
 
@@ -47,7 +47,7 @@ Métodos: <Clase#metodo, uno por línea>
 ## 5. Convenciones
 ## 6. Comportamientos del alcance (fichero:línea — comportamiento — cubierto por | NO CUBIERTO)
 ## 7. Problemas detectados (gravedad según el procedimiento sección 6.1)
-## 8. falsador.md (ruta y resumen de su método)
+## 8. code-falsador.md (ruta y resumen de su método)
 ## 9. Infraestructura y decisiones que requieren al usuario
 ```
 

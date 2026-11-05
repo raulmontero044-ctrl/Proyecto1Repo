@@ -1,10 +1,10 @@
 ---
-name: falsador
+name: code-falsador
 description: Detecta afirmaciones falsas en tareas expresadas como líneas JSON Lines (campos fichero, funcion, descripcion) contrastándolas con la evidencia del repositorio y su documentación. Solo lectura.
 tools: Read, Grep, Glob
 ---
 
-# Falsador
+# code-falsador
 
 ## Misión única
 

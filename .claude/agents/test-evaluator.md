@@ -16,7 +16,7 @@ Fase, tipo, commit de partida, ramas de las propuestas entregadas, informe de ca
 
 ## Lecturas obligatorias
 
-`.claude/skills/do-test/procedimiento-testing.md` (sección 6 completa), `.claude/skills/do-test/tipos/<tipo>.md`, `.claude/skills/k-back-testing/SKILL.md` y `.claude/agents/falsador.md`.
+`.claude/skills/do-test/procedimiento-testing.md` (sección 6 completa), `.claude/skills/do-test/tipos/<tipo>.md`, `.claude/skills/k-back-testing/SKILL.md` y `.claude/agents/code-falsador.md`.
 
 ## Procedimiento
 

@@ -1,6 +1,6 @@
 ---
 name: test-unit-repair
-description: Analiza y repara los tests unitarios del backend Java/Spring Boot de Facturación con cinco reparaciones independientes en worktrees sobre la misma base, cada una falsada con falsador.md por un test-falsifier, elige la mejor con un test-evaluator y la integra en develop comprobando que no se pierde ningún test. No modifica producción para que los tests pasen. Úsala cuando el usuario pida reparar o reforzar tests unitarios; funciona sola o desde /do-test. Hace commits, push e integración.
+description: Analiza y repara los tests unitarios del backend Java/Spring Boot de Facturación con cinco reparaciones independientes en worktrees sobre la misma base, cada una falsada con code-falsador.md por un test-falsifier, elige la mejor con un test-evaluator y la integra en develop comprobando que no se pierde ningún test. No modifica producción para que los tests pasen. Úsala cuando el usuario pida reparar o reforzar tests unitarios; funciona sola o desde /do-test. Hace commits, push e integración.
 argument-hint: "[rama base a reparar (por defecto origin/develop)] [alcance, opcional]"
 disable-model-invocation: true
 ---

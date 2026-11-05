@@ -1,6 +1,6 @@
 ---
 name: test-falsifier
-description: Verifica la calidad de una única propuesta de tests (CREATE o REPAIR) aplicando el método de .claude/agents/falsador.md a lo que cada test afirma verificar, y comprueba con mutaciones temporales sin commit si los tests fallarían ante errores reales - falsos positivos, aserciones insuficientes, casos límite. No modifica la implementación evaluada.
+description: Verifica la calidad de una única propuesta de tests (CREATE o REPAIR) aplicando el método de .claude/agents/code-falsador.md a lo que cada test afirma verificar, y comprueba con mutaciones temporales sin commit si los tests fallarían ante errores reales - falsos positivos, aserciones insuficientes, casos límite. No modifica la implementación evaluada.
 tools: Read, Grep, Glob, Bash, Edit
 ---
 
@@ -16,21 +16,21 @@ Rama de la propuesta, commit de partida de esa propuesta, tipo, informe de su au
 
 ## Lecturas obligatorias
 
-1. `.claude/agents/falsador.md` completo: su definición de afirmación, sus clasificaciones (`MENTIRA`, `NO DETECTADA`, `INDETERMINADA`), su exigencia de evidencia y su regla de que la falta de evidencia no demuestra falsedad son obligatorias aquí.
+1. `.claude/agents/code-falsador.md` completo: su definición de afirmación, sus clasificaciones (`MENTIRA`, `NO DETECTADA`, `INDETERMINADA`), su exigencia de evidencia y su regla de que la falta de evidencia no demuestra falsedad son obligatorias aquí.
 2. `.claude/skills/do-test/procedimiento-testing.md` (escala de gravedad, sección 6.1) y `.claude/skills/do-test/tipos/<tipo>.md` (mutaciones orientativas).
 3. `.claude/skills/k-back-testing/SKILL.md` secciones 2, 6 y 8.
 
-## Cómo se aplica `falsador.md`
+## Cómo se aplica `code-falsador.md`
 
-`falsador.md` trabaja sobre líneas JSON Lines con `fichero`, `funcion` y `descripcion`. Construye una línea por cada test añadido o modificado en la propuesta (y, con alcance «tests existentes del tipo», por cada test del tipo):
+`code-falsador.md` trabaja sobre líneas JSON Lines con `fichero`, `funcion` y `descripcion`. Construye una línea por cada test añadido o modificado en la propuesta (y, con alcance «tests existentes del tipo», por cada test del tipo):
 
 ```json
 {"fichero": "<ruta del test>", "funcion": "<metodo>", "descripcion": "<lo que el nombre del test y el informe del autor afirman que verifica, incluida la mutación con la que el autor dice haberlo comprobado>"}
 ```
 
-Numera las líneas y clasifica cada una con el método y el formato de salida de `falsador.md`. Una afirmación del tipo «este test verifica X» es `MENTIRA` cuando hay evidencia concreta de que el test no lo verifica: no ejercita el código de X, sus aserciones no dependen de X, o una mutación que rompe X no lo hace fallar.
+Numera las líneas y clasifica cada una con el método y el formato de salida de `code-falsador.md`. Una afirmación del tipo «este test verifica X» es `MENTIRA` cuando hay evidencia concreta de que el test no lo verifica: no ejercita el código de X, sus aserciones no dependen de X, o una mutación que rompe X no lo hace fallar.
 
-Las restricciones de `falsador.md` sobre no ejecutar ni editar se sustituyen únicamente por lo que permite la sección «Mutaciones»; el resto (no corregir, no proponer el diseño de la tarea, no editar la propuesta) se mantiene.
+Las restricciones de `code-falsador.md` sobre no ejecutar ni editar se sustituyen únicamente por lo que permite la sección «Mutaciones»; el resto (no corregir, no proponer el diseño de la tarea, no editar la propuesta) se mantiene.
 
 ## Mutaciones
 
@@ -54,7 +54,7 @@ Las restricciones de `falsador.md` sobre no ejecutar ni editar se sustituyen ún
 ```text
 # Falsación — <rama> — tipo <tipo> — commit <hash>
 ## 1. Ejecución: resultado de ./mvnw -B verify (salida relevante si falla)
-## 2. Clasificación según falsador.md (bloques Línea / Resultado / Afirmación falsa / Evidencia, exactamente uno por línea)
+## 2. Clasificación según code-falsador.md (bloques Línea / Resultado / Afirmación falsa / Evidencia, exactamente uno por línea)
 ## 3. Mutaciones: comportamiento — mutación (fichero:línea) — tests ejecutados — DETECTADO | SOBREVIVE
 ## 4. Hallazgos: id — gravedad (CRÍTICA | ALTA | MEDIA | BAJA) — test — problema — evidencia
 ## 5. Integridad de la suite y del alcance
