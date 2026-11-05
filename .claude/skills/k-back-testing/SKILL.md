@@ -36,6 +36,7 @@ Normas, criterios y checklists aplicables. Ningún archivo se crea ni se modific
 - `/k-back-controller`: endpoints, códigos y `ProblemDetail` que se prueban según la sección 3.4.
 - `/k-back-dto`: restricciones Bean Validation que se prueban según la sección 3.5.
 - `/k-back-module`: límites de módulo, facade y `package-info.java`; mecanismo de Spring Modulith (sección 5).
+- `/k-back-test-unit`, `/k-back-test-arch`, `/k-back-test-api` y `/k-back-test-e2e`: cómo se hace cada tipo de test (alcance, herramientas, infraestructura y mutaciones que debe detectar) a partir de estas normas.
 
 ## Normas
 

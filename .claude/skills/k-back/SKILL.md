@@ -41,6 +41,7 @@ Cada norma vive en una sola skill. Esta tabla DEBE consultarse antes de añadir 
 | DTO `record`, DTO HTTP frente a DTO de contrato público, Bean Validation en DTO, mapeo DTO | `/k-back-dto` |
 | Módulos, límites, contratos públicos (facade), dependencias y ciclos entre módulos, `package-info.java` | `/k-back-module` |
 | Qué probar en cada capa, JUnit 5, Mockito, AssertJ, `@WebMvcTest`, `@DataJpaTest`, integración, ArchUnit, Spring Modulith verify | `/k-back-testing` |
+| Cómo se hace cada tipo de test (`unit`, `arch`, `api`, `e2e`): alcance, herramientas, infraestructura y mutaciones que debe detectar | `/k-back-test-unit`, `/k-back-test-arch`, `/k-back-test-api`, `/k-back-test-e2e` |
 
 ## Normas
 

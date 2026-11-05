@@ -1,33 +1,33 @@
 ---
-name: test-arch-create
-description: Crea tests de arquitectura (ArchUnit y Spring Modulith) del backend Java/Spring Boot de Facturación con cinco propuestas independientes en worktrees, cada una falsada con code-falsador.md por un test-falsifier, elige la mejor con un test-evaluator y la integra en una rama feature/test-arch-*. Úsala cuando el usuario pida crear tests de arquitectura (ArchUnit y Spring Modulith); funciona sola o desde /do-test. Hace commits, push e integración.
+name: do-test-e2e-create
+description: Crea tests end-to-end (aplicación completa por HTTP real con base de datos real) del backend Java/Spring Boot de Facturación con cinco propuestas independientes en worktrees, cada una falsada con code-falsador.md por un test-falsifier, elige la mejor con un test-evaluator y la integra en una rama feature/test-e2e-*. Úsala cuando el usuario pida crear tests end-to-end (aplicación completa por HTTP real con base de datos real); funciona sola o desde /do-test. Hace commits, push e integración.
 argument-hint: "[requisitos o alcance, opcional]"
 disable-model-invocation: true
 ---
 
-# /test-arch-create
+# /do-test-e2e-create
 
 ## Propósito
 
-Ejecutar la fase CREATE del tipo `arch`. El procedimiento es `.claude/skills/do-test/procedimiento-testing.md`; el alcance del tipo, `.claude/skills/do-test/tipos/arch.md`; las normas de testing, `/k-back-testing`. Esta skill NO los repite.
+Ejecutar la fase CREATE del tipo `e2e`. El procedimiento es `.claude/skills/do-test/procedimiento-testing.md`; cómo se hace cada test del tipo, `/k-back-test-e2e`; las normas de testing, `/k-back-testing`. Esta skill NO los repite.
 
 Los términos DEBE, NO DEBE y PUEDE son normativos.
 
 ## Modos
 
-- **Sola** (`/test-arch-create` invocada por el usuario): ejecuta todos los pasos y termina integrando en `develop` (procedimiento sección 7.3).
+- **Sola** (`/do-test-e2e-create` invocada por el usuario): ejecuta todos los pasos y termina integrando en `develop` (procedimiento sección 7.3).
 - **Desde `/do-test`**: recibe el informe del analizador y las autorizaciones, omite el paso 1 y termina en el paso 6 entregando `<base>` y `B1` (procedimiento sección 7.2).
 
 ## Entradas
 
-- `$ARGUMENTS` (opcional): requisitos o alcance que acotan los comportamientos del perfil. NO DEBEN inventarse requisitos: si el alcance es ambiguo, se pregunta.
+- `$ARGUMENTS` (opcional): requisitos o alcance que acotan los comportamientos de `/k-back-test-e2e`. NO DEBEN inventarse requisitos: si el alcance es ambiguo, se pregunta.
 
 ## Procedimiento
 
 Se ejecuta en el hilo principal (procedimiento sección 1.2).
 
-1. **Análisis**: lanza un `test-analyzer` de tipo `arch` sobre `origin/develop` y aplica la puerta de decisión (procedimiento sección 3).
-2. **Ramas**: lanza el subagente de preparación que crea `<base>` = `feature/test-arch-<descripcion>` y `<base>-create-1` … `<base>-create-5` en `B0` (procedimiento sección 2.2).
+1. **Análisis**: lanza un `test-analyzer` de tipo `e2e` sobre `origin/develop` y aplica la puerta de decisión (procedimiento sección 3). Este tipo SIEMPRE requiere autorización de infraestructura (`/k-back-test-e2e` sección 3); sin ella, DEBE detenerse sin crear ramas.
+2. **Ramas**: lanza el subagente de preparación que crea `<base>` = `feature/test-e2e-<descripcion>` y `<base>-create-1` … `<base>-create-5` en `B0` (procedimiento sección 2.2).
 3. **Propuestas**: lanza en un mismo mensaje cinco `test-creator` con `isolation: "worktree"` (procedimiento secciones 1.6, 1.8 y 4.1).
 4. **Falsación**: lanza en un mismo mensaje un `test-falsifier` con `isolation: "worktree"` por propuesta entregada (procedimiento sección 4.2).
 5. **Evaluación**: lanza un `test-evaluator` en fase CREATE (procedimiento secciones 4.3 y 6). Si no hay ganadora aceptable, detente e informa.

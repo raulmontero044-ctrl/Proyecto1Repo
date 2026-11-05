@@ -9,14 +9,14 @@ disable-model-invocation: true
 
 ## Propósito
 
-Coordinar CREATE y REPAIR de un tipo de testing de principio a fin, delegando en las skills especializadas `/test-<tipo>-create` y `/test-<tipo>-repair` y en los agentes `test-*`. Esta skill NO escribe tests ni repite el procedimiento: lo define `.claude/skills/do-test/procedimiento-testing.md`, y las normas de testing, `/k-back-testing`.
+Coordinar CREATE y REPAIR de un tipo de testing de principio a fin, delegando en las skills especializadas `/do-test-<tipo>-create` y `/do-test-<tipo>-repair` y en los agentes `test-*`. Esta skill NO escribe tests ni repite el procedimiento: lo define `.claude/skills/do-test/procedimiento-testing.md`, las normas comunes de testing, `/k-back-testing`, y cómo se hace cada tipo de test, `/k-back-test-<tipo>`.
 
 Los términos DEBE, NO DEBE y PUEDE son normativos.
 
 ## Cuándo usarla
 
 - El usuario quiere crear tests de un tipo y dejarlos verificados, reparados e integrados.
-- Para solo una fase, el usuario PUEDE invocar directamente `/test-<tipo>-create` o `/test-<tipo>-repair`.
+- Para solo una fase, el usuario PUEDE invocar directamente `/do-test-<tipo>-create` o `/do-test-<tipo>-repair`.
 
 ## Entradas
 
@@ -33,11 +33,11 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 | Recurso | Ruta |
 |---|---|
 | Procedimiento común | `.claude/skills/do-test/procedimiento-testing.md` |
-| Perfiles de tipo | `.claude/skills/do-test/tipos/{unit,arch,api,e2e}.md` |
-| Especializadas | `.claude/skills/test-<tipo>-create/SKILL.md`, `.claude/skills/test-<tipo>-repair/SKILL.md` |
+| Cómo se hace cada tipo de test | `/k-back-test-{unit,arch,api,e2e}` (`.claude/skills/k-back-test-<tipo>/SKILL.md`) |
+| Especializadas | `.claude/skills/do-test-<tipo>-create/SKILL.md`, `.claude/skills/do-test-<tipo>-repair/SKILL.md` |
 | Agentes | `.claude/agents/test-{analyzer,creator,falsifier,evaluator,repairer,integrator}.md` |
 | Falsación | `.claude/agents/code-falsador.md` |
-| Normas | `/k-back-testing`, `/k-back` y las `/k-back-*` de capa |
+| Normas | `/k-back-testing`, `/k-back-test-<tipo>`, `/k-back` y las `/k-back-*` de capa |
 | Git | `.claude/skills/do-code-impl/procedimiento-comun.md` secciones 4.1 y 4.3 a 4.7 |
 
 ## Procedimiento
@@ -46,7 +46,7 @@ Se ejecuta en el hilo principal (procedimiento sección 1.2).
 
 ### Fase 1. Selección del tipo
 
-Si `$ARGUMENTS` no empieza por un tipo válido, DEBE preguntarse con `AskUserQuestion`: «¿Qué tipo de testing quieres realizar?», con las opciones `unit`, `arch`, `api` y `e2e` y una descripción de una línea tomada de cada perfil. NO DEBE empezar ninguna otra fase hasta conocer la respuesta.
+Si `$ARGUMENTS` no empieza por un tipo válido, DEBE preguntarse con `AskUserQuestion`: «¿Qué tipo de testing quieres realizar?», con las opciones `unit`, `arch`, `api` y `e2e` y una descripción de una línea tomada de la `description` de cada `/k-back-test-<tipo>`. NO DEBE empezar ninguna otra fase hasta conocer la respuesta.
 
 ### Fase 2. Análisis
 
@@ -54,13 +54,13 @@ Lanza un `test-analyzer` sobre `origin/develop` (procedimiento sección 3). Apli
 
 ### Fases 3 a 6. CREATE y preparación de REPAIR
 
-Lee `.claude/skills/test-<tipo>-create/SKILL.md` y síguelo en modo «desde `/do-test`», pasándole el informe del analizador y las autorizaciones: preparación de ramas, cinco `test-creator`, cinco `test-falsifier`, un `test-evaluator` y el `test-integrator` en modo `base` (procedimiento secciones 2 y 4). Termina con `<base>` publicada y `B1`.
+Lee `.claude/skills/do-test-<tipo>-create/SKILL.md` y síguelo en modo «desde `/do-test`», pasándole el informe del analizador y las autorizaciones: preparación de ramas, cinco `test-creator`, cinco `test-falsifier`, un `test-evaluator` y el `test-integrator` en modo `base` (procedimiento secciones 2 y 4). Termina con `<base>` publicada y `B1`.
 
 Si no hay ganadora aceptable o la integración en `<base>` falla, DEBE detenerse e informar: REPAIR no empieza sin `B1`.
 
 ### Fases 7 a 10. REPAIR e integración final
 
-Lee `.claude/skills/test-<tipo>-repair/SKILL.md` y síguelo en modo «desde `/do-test`», pasándole `<base>`, `B1`, el informe del analizador, el informe de falsación de la ganadora CREATE y el informe de evaluación CREATE: cinco `test-repairer`, cinco `test-falsifier`, un `test-evaluator` y el `test-integrator` en modo `final` (procedimiento secciones 5 y 8.2).
+Lee `.claude/skills/do-test-<tipo>-repair/SKILL.md` y síguelo en modo «desde `/do-test`», pasándole `<base>`, `B1`, el informe del analizador, el informe de falsación de la ganadora CREATE y el informe de evaluación CREATE: cinco `test-repairer`, cinco `test-falsifier`, un `test-evaluator` y el `test-integrator` en modo `final` (procedimiento secciones 5 y 8.2).
 
 ### Defectos de producción
 

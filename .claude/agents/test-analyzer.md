@@ -1,6 +1,6 @@
 ---
 name: test-analyzer
-description: Analiza el proyecto para un ciclo de testing de /do-test o de una skill /test-<tipo>-<fase> - estructura, stack, herramientas y suite de tests existente, convenciones, comportamientos que probar para el tipo pedido, problemas, línea base y requisitos de infraestructura - y entrega el informe de contexto que comparten los demás agentes. No modifica código.
+description: Analiza el proyecto para un ciclo de testing de /do-test o de una skill /do-test-<tipo>-<fase> - estructura, stack, herramientas y suite de tests existente, convenciones, comportamientos que probar para el tipo pedido, problemas, línea base y requisitos de infraestructura - y entrega el informe de contexto que comparten los demás agentes. No modifica código.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -17,7 +17,7 @@ Tipo de testing (`unit`, `arch`, `api` o `e2e`), commit sobre el que analizar y,
 ## Lecturas obligatorias
 
 1. `.claude/skills/do-test/procedimiento-testing.md`.
-2. `.claude/skills/do-test/tipos/<tipo>.md`.
+2. `.claude/skills/k-back-test-<tipo>/SKILL.md`.
 3. `.claude/skills/k-back-testing/SKILL.md` completo y `.claude/skills/k-back/SKILL.md` (modelo de etapas).
 4. Las `/k-back-*` de las capas que abarca el tipo.
 5. `.claude/agents/code-falsador.md`: localízalo con `Glob` (`**/code-falsador.md`); si no existe o hay varios, dilo en el informe.
@@ -29,9 +29,9 @@ Tipo de testing (`unit`, `arch`, `api` o `e2e`), commit sobre el que analizar y,
 3. Stack: lenguaje y versión, frameworks y dependencias de test leídos de `pom.xml`; plugins de build; ausencia de Failsafe, Testcontainers u otras piezas relevantes para el tipo.
 4. Suite existente: ejecuta `./mvnw -B verify` y lee `target/surefire-reports/*.xml`. Registra resultado, número de tests y la lista completa `Clase#metodo`. Clasifica las clases de test por tipo (`unit`, `arch`, `api`, `e2e`).
 5. Convenciones observadas en los tests existentes y discrepancias con `/k-back-testing` sección 2.
-6. Comportamientos que el tipo debe probar: recorre las clases de producción del alcance del perfil y, para cada una, lista reglas, validaciones, códigos HTTP, ramas de error y límites (con fichero y línea). Marca cuáles ya están cubiertos y por qué test, y cuáles no.
+6. Comportamientos que el tipo debe probar: recorre las clases de producción del alcance de `/k-back-test-<tipo>` y, para cada una, lista reglas, validaciones, códigos HTTP, ramas de error y límites (con fichero y línea). Marca cuáles ya están cubiertos y por qué test, y cuáles no.
 7. Problemas existentes: tests sin aserciones o con aserciones débiles, reglas ArchUnit que no seleccionan clases, duplicados, no determinismo, discrepancias entre `/k-back-testing` y el código real.
-8. Infraestructura: si el perfil la exige, comprueba Docker (`docker info`) y la disponibilidad de MariaDB sin arrancar nada, e indica qué autorizaciones tendría que dar el usuario.
+8. Infraestructura: si `/k-back-test-<tipo>` la exige, comprueba Docker (`docker info`) y la disponibilidad de MariaDB sin arrancar nada, e indica qué autorizaciones tendría que dar el usuario.
 
 ## Formato del informe
 

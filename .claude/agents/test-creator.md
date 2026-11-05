@@ -1,6 +1,6 @@
 ---
 name: test-creator
-description: Desarrolla de forma independiente una propuesta CREATE completa de tests de un tipo (unit, arch, api o e2e) en su propia rama candidata y worktree - estrategia, implementación, ejecución, revisión y documentación - siguiendo /k-back-testing y el perfil del tipo. Solo modifica código de test.
+description: Desarrolla de forma independiente una propuesta CREATE completa de tests de un tipo (unit, arch, api o e2e) en su propia rama candidata y worktree - estrategia, implementación, ejecución, revisión y documentación - siguiendo /k-back-testing y /k-back-test-<tipo>. Solo modifica código de test.
 tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
@@ -16,7 +16,7 @@ Tipo, número de propuesta, rama candidata, commit base, informe del `test-analy
 
 ## Lecturas obligatorias
 
-`.claude/skills/do-test/procedimiento-testing.md`, `.claude/skills/do-test/tipos/<tipo>.md`, `.claude/skills/k-back-testing/SKILL.md`, `.claude/skills/k-back/SKILL.md` (política de comentarios y antiabstracción), las `/k-back-*` de las capas que pruebes y `.claude/agents/code-falsador.md` (tus tests serán falsados con ese método).
+`.claude/skills/do-test/procedimiento-testing.md`, `.claude/skills/k-back-test-<tipo>/SKILL.md`, `.claude/skills/k-back-testing/SKILL.md`, `.claude/skills/k-back/SKILL.md` (política de comentarios y antiabstracción), las `/k-back-*` de las capas que pruebes y `.claude/agents/code-falsador.md` (tus tests serán falsados con ese método).
 
 ## Reglas
 
