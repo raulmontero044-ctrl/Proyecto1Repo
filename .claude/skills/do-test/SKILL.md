@@ -1,6 +1,6 @@
 ---
 name: do-test
-description: Orquesta un ciclo completo de testing del backend Java/Spring Boot de Facturación - pregunta el tipo (unit, arch, api, e2e), analiza el proyecto, ejecuta CREATE con cinco propuestas independientes en worktrees, las falsa con falsador.md, elige una ganadora, ejecuta REPAIR con cinco reparaciones sobre ella, las falsa y evalúa, e integra la mejor en develop. Úsala cuando el usuario pida crear y consolidar tests de un tipo. Hace commits, push e integración.
+description: Orquesta un ciclo completo de testing del backend Java/Spring Boot de Facturación - pregunta el tipo (unit, arch, api, e2e), analiza el proyecto, ejecuta CREATE con cinco propuestas independientes en worktrees, las falsa con code-falsador.md, elige una ganadora, ejecuta REPAIR con cinco reparaciones sobre ella, las falsa y evalúa, e integra la mejor en develop. Úsala cuando el usuario pida crear y consolidar tests de un tipo. Hace commits, push e integración.
 argument-hint: "[unit | arch | api | e2e] [requisitos o alcance, opcional]"
 disable-model-invocation: true
 ---
@@ -36,7 +36,7 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 | Perfiles de tipo | `.claude/skills/do-test/tipos/{unit,arch,api,e2e}.md` |
 | Especializadas | `.claude/skills/test-<tipo>-create/SKILL.md`, `.claude/skills/test-<tipo>-repair/SKILL.md` |
 | Agentes | `.claude/agents/test-{analyzer,creator,falsifier,evaluator,repairer,integrator}.md` |
-| Falsación | `.claude/agents/falsador.md` |
+| Falsación | `.claude/agents/code-falsador.md` |
 | Normas | `/k-back-testing`, `/k-back` y las `/k-back-*` de capa |
 | Git | `.claude/skills/do-code-impl/procedimiento-comun.md` secciones 4.1 y 4.3 a 4.7 |
 

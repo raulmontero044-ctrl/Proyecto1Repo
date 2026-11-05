@@ -18,7 +18,7 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 |---|---|---|---|
 | `test-analyzer` | Analiza el proyecto, registra la línea base y prepara el informe de contexto | No (solo ejecuta la suite) | Sí |
 | `test-creator` | Desarrolla una propuesta CREATE completa en su rama candidata | Sí, solo tests | Sí |
-| `test-falsifier` | Verifica una única propuesta siguiendo `.claude/agents/falsador.md` | No (mutaciones temporales sin commit) | Sí |
+| `test-falsifier` | Verifica una única propuesta siguiendo `.claude/agents/code-falsador.md` | No (mutaciones temporales sin commit) | Sí |
 | `test-evaluator` | Compara las propuestas y sus informes y elige una ganadora | No | No |
 | `test-repairer` | Repara y refuerza la suite ganadora en su rama candidata | Sí, solo tests | Sí |
 | `test-integrator` | Integra la ganadora, valida y publica | Sí (merges) | Sí |
@@ -87,7 +87,7 @@ Las candidatas solo se commitean en local: los worktrees comparten las referenci
 
 | Gravedad | Ejemplos |
 |---|---|
-| CRÍTICA | Test que pasa sin verificar lo que afirma (`MENTIRA` según `falsador.md`); suite en rojo; tests existentes borrados, desactivados o debilitados; producción modificada sin autorización; dependencia añadida sin autorización |
+| CRÍTICA | Test que pasa sin verificar lo que afirma (`MENTIRA` según `code-falsador.md`); suite en rojo; tests existentes borrados, desactivados o debilitados; producción modificada sin autorización; dependencia añadida sin autorización |
 | ALTA | Mutante relevante que sobrevive; aserción insuficiente sobre una regla de negocio o un código HTTP; test no determinista |
 | MEDIA | Caso límite o negativo exigido por `/k-back-testing` sección 6 ausente; dobles de prueba contrarios a la sección 2.8 |
 | BAJA | Nombres, estructura o estilo contrarios a la sección 2 sin efecto en lo que se verifica |
@@ -95,7 +95,7 @@ Las candidatas solo se commitean en local: los worktrees comparten las referenci
 6.2. Orden de prioridad, de mayor a menor. La fiabilidad prima sobre la cantidad: más tests NO es mejor si verifican menos.
 
 - CREATE: corrección; fiabilidad (hallazgos CRÍTICA y ALTA del falsador, mutantes que sobreviven); calidad de las aserciones; cobertura de los comportamientos del alcance; resultados de ejecución; compatibilidad con el proyecto y sus convenciones; mantenibilidad y legibilidad; menor complejidad.
-- REPAIR: ausencia de regresiones (ningún test ni aserción perdidos respecto a `B1`); hallazgos de partida resueltos; ausencia de falsos positivos; corrección y fiabilidad; estabilidad (determinismo); cobertura; cumplimiento de `falsador.md` y `/k-back-testing`; resultados de ejecución; compatibilidad; mantenibilidad.
+- REPAIR: ausencia de regresiones (ningún test ni aserción perdidos respecto a `B1`); hallazgos de partida resueltos; ausencia de falsos positivos; corrección y fiabilidad; estabilidad (determinismo); cobertura; cumplimiento de `code-falsador.md` y `/k-back-testing`; resultados de ejecución; compatibilidad; mantenibilidad.
 
 6.3. Descalifican una propuesta: suite en rojo, algún hallazgo CRÍTICA no refutado, o cambios fuera del alcance de testing sin autorización. Desempate: menos hallazgos ALTA, después menos mutantes supervivientes, después el diff más pequeño.
 

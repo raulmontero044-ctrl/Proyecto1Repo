@@ -1,6 +1,6 @@
 ---
 name: test-unit-create
-description: Crea tests unitarios del backend Java/Spring Boot de Facturación con cinco propuestas independientes en worktrees, cada una falsada con falsador.md por un test-falsifier, elige la mejor con un test-evaluator y la integra en una rama feature/test-unit-*. Úsala cuando el usuario pida crear tests unitarios; funciona sola o desde /do-test. Hace commits, push e integración.
+description: Crea tests unitarios del backend Java/Spring Boot de Facturación con cinco propuestas independientes en worktrees, cada una falsada con code-falsador.md por un test-falsifier, elige la mejor con un test-evaluator y la integra en una rama feature/test-unit-*. Úsala cuando el usuario pida crear tests unitarios; funciona sola o desde /do-test. Hace commits, push e integración.
 argument-hint: "[requisitos o alcance, opcional]"
 disable-model-invocation: true
 ---
@@ -38,7 +38,7 @@ Se ejecuta en el hilo principal (procedimiento sección 1.2).
 ## Comprobaciones antes de finalizar
 
 - [ ] Cinco `test-creator` lanzados en paralelo desde `B0`, cada uno en su rama y worktree.
-- [ ] Un informe de `test-falsifier` por propuesta entregada, siguiendo `falsador.md`.
+- [ ] Un informe de `test-falsifier` por propuesta entregada, siguiendo `code-falsador.md`.
 - [ ] Una única ganadora justificada por el `test-evaluator`, sin descalificaciones pendientes.
 - [ ] `<base>` publicada, en verde y sin regresiones (procedimiento sección 8.3).
 - [ ] Sin dependencias, configuración ni cambios en `src/main` no autorizados.
