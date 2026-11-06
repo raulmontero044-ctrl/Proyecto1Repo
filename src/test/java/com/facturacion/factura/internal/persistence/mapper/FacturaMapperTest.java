@@ -38,6 +38,23 @@ class FacturaMapperTest {
     }
 
     @Test
+    void aEntidadVinculaCadaLineaConLaEntidadDeSuFactura() {
+        Factura factura = Factura.nueva(
+                "F-003",
+                LocalDate.of(2026, 11, 3),
+                "Cliente SL",
+                "B12345678",
+                new BigDecimal("21.00"),
+                List.of(
+                        new LineaFactura("Primera", new BigDecimal("2"), new BigDecimal("10.50")),
+                        new LineaFactura("Segunda", new BigDecimal("1"), new BigDecimal("4.25"))));
+
+        FacturaEntity entidad = mapper.aEntidad(factura);
+
+        assertThat(entidad.getLineas()).extracting("factura").containsExactly(entidad, entidad);
+    }
+
+    @Test
     void aDominioReconstruyeConElConstructorYAplicaLasInvariantes() {
         FacturaEntity sinNumero = new FacturaEntity(
                 3L, " ", LocalDate.of(2026, 11, 3), "Cliente SL", "B12345678", new BigDecimal("21.00"));

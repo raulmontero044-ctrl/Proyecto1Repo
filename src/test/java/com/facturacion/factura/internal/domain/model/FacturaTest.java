@@ -80,6 +80,13 @@ class FacturaTest {
     }
 
     @Test
+    void rechazaNombreDeClienteFormadoSoloPorEspacios() {
+        assertThatThrownBy(() -> Factura.nueva("F-1", FECHA, "   ", "NIF", BigDecimal.TEN, List.of(linea("1", "1"))))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El nombre del cliente es obligatorio");
+    }
+
+    @Test
     void informaElMotivoDeCadaInvarianteIncumplida() {
         List<LineaFactura> conNula = new ArrayList<>();
         conNula.add(null);
