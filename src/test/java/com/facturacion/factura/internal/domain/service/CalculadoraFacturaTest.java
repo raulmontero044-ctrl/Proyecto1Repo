@@ -38,6 +38,12 @@ class CalculadoraFacturaTest {
     }
 
     @Test
+    void redondeaImporteDeLineaHaciaAbajoPorDebajoDeLaMitad() {
+        assertThat(CalculadoraFactura.importe(linea("0.502", "2")).toPlainString()).isEqualTo("1.00");
+        assertThat(CalculadoraFactura.importe(linea("1.333", "3.01")).toPlainString()).isEqualTo("4.01");
+    }
+
+    @Test
     void calculaImporteConCantidadDecimal() {
         assertThat(CalculadoraFactura.importe(linea("1.333", "3.00"))).isEqualByComparingTo("4.00");
         assertThat(CalculadoraFactura.importe(linea("0.001", "9999999999.99"))).isEqualByComparingTo("10000000.00");
