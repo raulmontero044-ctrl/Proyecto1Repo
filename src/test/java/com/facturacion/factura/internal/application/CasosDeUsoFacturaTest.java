@@ -76,9 +76,11 @@ class CasosDeUsoFacturaTest {
                 new NuevaLineaFacturaDto("Servicio", BigDecimal.ZERO, BigDecimal.ONE));
 
         assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", conNula)))
-                .isInstanceOf(FacturaInvalidaException.class);
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La factura no puede contener líneas vacías");
         assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", conCantidadCero)))
-                .isInstanceOf(FacturaInvalidaException.class);
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La cantidad de la línea debe ser mayor que cero");
         assertThat(listar.ejecutar()).isEmpty();
     }
 
@@ -109,9 +111,11 @@ class CasosDeUsoFacturaTest {
     @Test
     void rechazaFacturaSinLineas() {
         assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", List.of())))
-                .isInstanceOf(FacturaInvalidaException.class);
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La factura debe tener al menos una línea");
         assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", null)))
-                .isInstanceOf(FacturaInvalidaException.class);
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La factura debe tener al menos una línea");
     }
 
     @Test
@@ -138,5 +142,30 @@ class CasosDeUsoFacturaTest {
 
         assertThat(listar.ejecutar()).isEmpty();
         assertThatThrownBy(() -> eliminar.ejecutar(id)).isInstanceOf(FacturaNoEncontradaException.class);
+    }
+
+    @Test
+    void eliminarFacturaInexistenteIndicaElIdNoEncontrado() {
+        crear.ejecutar(nueva("F-001", dosLineas()));
+
+        assertThatThrownBy(() -> eliminar.ejecutar(99L))
+                .isInstanceOf(FacturaNoEncontradaException.class)
+                .hasMessage("No existe la factura con id 99");
+    }
+
+    @Test
+    void listarDevuelveUnaListaQueNoSePuedeModificar() {
+        crear.ejecutar(nueva("F-001", dosLineas()));
+
+        List<FacturaDto> facturas = listar.ejecutar();
+
+        assertThatThrownBy(facturas::clear).isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void laFacturaDevueltaTieneLineasQueNoSePuedenModificar() {
+        FacturaDto creada = crear.ejecutar(nueva("F-001", dosLineas()));
+
+        assertThatThrownBy(() -> creada.lineas().clear()).isInstanceOf(UnsupportedOperationException.class);
     }
 }
