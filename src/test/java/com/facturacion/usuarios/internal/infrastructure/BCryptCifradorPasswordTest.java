@@ -54,4 +54,14 @@ class BCryptCifradorPasswordTest {
 
         assertThat(cifrador.coincide(setentaYDos, hash)).isTrue();
     }
+
+    @Test
+    void cifraUnaContrasenaMultibyteDe72Bytes() {
+        String treintaYSeisEnes = "ñ".repeat(36);
+
+        String hash = cifrador.cifrar(new PasswordEnClaro(treintaYSeisEnes));
+
+        assertThat(cifrador.coincide(treintaYSeisEnes, hash)).isTrue();
+        assertThat(cifrador.coincide("ñ".repeat(35) + "n", hash)).isFalse();
+    }
 }

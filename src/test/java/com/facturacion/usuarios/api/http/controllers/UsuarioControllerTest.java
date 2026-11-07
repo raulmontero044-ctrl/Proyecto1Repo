@@ -16,6 +16,7 @@ import com.facturacion.usuarios.internal.domain.exception.EmailUsuarioDuplicadoE
 import com.facturacion.usuarios.internal.domain.exception.EmpresaInexistenteException;
 import com.facturacion.usuarios.internal.domain.exception.UsuarioInvalidoException;
 import com.facturacion.usuarios.internal.domain.exception.UsuarioNoEncontradoException;
+import com.facturacion.usuarios.internal.domain.model.PasswordEnClaro;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -186,6 +187,22 @@ class UsuarioControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("La contraseña debe tener entre 8 y 72 caracteres"))
                 .andExpect(content().string(not(containsString("corta"))));
+    }
+
+    @Test
+    void crearConContrasenaMultibyteDeMasDe72BytesDevuelve400() throws Exception {
+        when(crearUsuario.ejecutar(any(NuevoUsuarioDto.class))).thenAnswer(invocacion -> {
+            new PasswordEnClaro(invocacion.<NuevoUsuarioDto>getArgument(0).password());
+            return usuario(1L, "ana@empresa.es");
+        });
+
+        mockMvc.perform(post("/api/usuarios").contentType(MediaType.APPLICATION_JSON)
+                        .content(peticion("ana@empresa.es", "Ana", "ñ".repeat(37))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").value("La contraseña no puede superar 72 bytes en UTF-8"))
+                .andExpect(content().string(not(containsString("ñññ"))));
+        verify(crearUsuario).ejecutar(new NuevoUsuarioDto("ana@empresa.es", "Ana", "ñ".repeat(37), null));
     }
 
     @Test

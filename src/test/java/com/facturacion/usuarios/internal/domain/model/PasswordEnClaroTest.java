@@ -36,12 +36,32 @@ class PasswordEnClaroTest {
     @Test
     void cuentaCaracteresYNoUnidadesUtf16() {
         String ochoEmojis = "😀".repeat(8);
-        String setentaYDosEmojis = "😀".repeat(72);
 
         assertThat(new PasswordEnClaro(ochoEmojis).valor()).isEqualTo(ochoEmojis);
-        assertThat(new PasswordEnClaro(setentaYDosEmojis).valor()).isEqualTo(setentaYDosEmojis);
-        assertThatThrownBy(() -> new PasswordEnClaro("😀".repeat(73)))
-                .isInstanceOf(UsuarioInvalidoException.class);
+        assertThatThrownBy(() -> new PasswordEnClaro("😀".repeat(7)))
+                .isInstanceOf(UsuarioInvalidoException.class)
+                .hasMessage("La contraseña debe tener entre 8 y 72 caracteres");
+    }
+
+    @Test
+    void aceptaHasta72BytesEnUtf8() {
+        String treintaYSeisEnes = "ñ".repeat(36);
+
+        assertThat(new PasswordEnClaro(treintaYSeisEnes).valor()).isEqualTo(treintaYSeisEnes);
+        assertThat(new PasswordEnClaro("a".repeat(70) + "ñ").valor()).hasSize(71);
+    }
+
+    @Test
+    void rechazaMasDe72BytesEnUtf8AunqueNoSupere72Caracteres() {
+        assertThatThrownBy(() -> new PasswordEnClaro("ñ".repeat(37)))
+                .isInstanceOf(UsuarioInvalidoException.class)
+                .hasMessage("La contraseña no puede superar 72 bytes en UTF-8");
+        assertThatThrownBy(() -> new PasswordEnClaro("a".repeat(71) + "ñ"))
+                .isInstanceOf(UsuarioInvalidoException.class)
+                .hasMessage("La contraseña no puede superar 72 bytes en UTF-8");
+        assertThatThrownBy(() -> new PasswordEnClaro("😀".repeat(19)))
+                .isInstanceOf(UsuarioInvalidoException.class)
+                .hasMessage("La contraseña no puede superar 72 bytes en UTF-8");
     }
 
     @Test

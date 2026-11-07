@@ -117,6 +117,16 @@ class CasosDeUsoUsuarioTest {
     }
 
     @Test
+    void crearRechazaUnaContrasenaDeMasDe72BytesSinGuardar() {
+        NuevoUsuarioDto multibyte = new NuevoUsuarioDto("ana@empresa.es", "Ana", "ñ".repeat(37), List.of());
+
+        assertThatThrownBy(() -> crearUsuario.ejecutar(multibyte))
+                .isInstanceOf(UsuarioInvalidoException.class)
+                .hasMessage("La contraseña no puede superar 72 bytes en UTF-8");
+        assertThat(repository.listar()).isEmpty();
+    }
+
+    @Test
     void crearAceptaContrasenasEnLosLimites() {
         crearUsuario.ejecutar(new NuevoUsuarioDto("a@empresa.es", "Ana", "12345678", List.of()));
         crearUsuario.ejecutar(new NuevoUsuarioDto("b@empresa.es", "Ana", "a".repeat(72), List.of()));
