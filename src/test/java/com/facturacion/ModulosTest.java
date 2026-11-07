@@ -17,9 +17,9 @@ class ModulosTest {
     }
 
     @Test
-    void detectaComoModulosAppFacturaYEmpresas() {
+    void detectaComoModulosAppFacturaEmpresasYUsuarios() {
         assertThat(MODULOS.stream().map(ApplicationModule::getName))
-                .containsExactlyInAnyOrder("app", "factura", "empresas");
+                .containsExactlyInAnyOrder("app", "factura", "empresas", "usuarios");
     }
 
     @Test
