@@ -1,6 +1,7 @@
 package com.facturacion.factura.internal.application;
 
 import com.facturacion.factura.api.facade.dto.FacturaDto;
+import com.facturacion.factura.api.facade.dto.FacturaEliminadaEvento;
 import com.facturacion.factura.api.facade.dto.LineaFacturaDto;
 import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
 import com.facturacion.factura.api.facade.dto.NuevaLineaFacturaDto;
@@ -23,7 +24,8 @@ class CasosDeUsoFacturaTest {
     private final CrearFactura crear = new CrearFactura(repository);
     private final ObtenerFactura obtener = new ObtenerFactura(repository);
     private final ListarFacturas listar = new ListarFacturas(repository);
-    private final EliminarFactura eliminar = new EliminarFactura(repository);
+    private final List<Object> eventos = new ArrayList<>();
+    private final EliminarFactura eliminar = new EliminarFactura(repository, eventos::add);
 
     private static NuevaFacturaDto nueva(String numero, List<NuevaLineaFacturaDto> lineas) {
         return new NuevaFacturaDto(
@@ -138,5 +140,21 @@ class CasosDeUsoFacturaTest {
 
         assertThat(listar.ejecutar()).isEmpty();
         assertThatThrownBy(() -> eliminar.ejecutar(id)).isInstanceOf(FacturaNoEncontradaException.class);
+    }
+
+    @Test
+    void eliminarPublicaElEventoDeFacturaEliminadaConSuId() {
+        Long id = crear.ejecutar(nueva("F-001", dosLineas())).id();
+
+        eliminar.ejecutar(id);
+
+        assertThat(eventos).containsExactly(new FacturaEliminadaEvento(id));
+    }
+
+    @Test
+    void eliminarFacturaInexistenteNoPublicaNingunEvento() {
+        assertThatThrownBy(() -> eliminar.ejecutar(99L)).isInstanceOf(FacturaNoEncontradaException.class);
+
+        assertThat(eventos).isEmpty();
     }
 }

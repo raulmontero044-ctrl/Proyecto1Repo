@@ -23,7 +23,7 @@ class FacturaFacadeImplTest {
             new CrearFactura(repository),
             new ObtenerFactura(repository),
             new ListarFacturas(repository),
-            new EliminarFactura(repository));
+            new EliminarFactura(repository, evento -> { }));
 
     private static NuevaFacturaDto nueva(String numero, List<NuevaLineaFacturaDto> lineas) {
         return new NuevaFacturaDto(
