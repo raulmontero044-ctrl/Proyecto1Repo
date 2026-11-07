@@ -23,7 +23,8 @@ class FacturaFacadeImplTest {
             new CrearFactura(repository),
             new ObtenerFactura(repository),
             new ListarFacturas(repository),
-            new EliminarFactura(repository, evento -> { }));
+            new EliminarFactura(repository, evento -> { }),
+            new BuscarFactura(repository));
 
     private static NuevaFacturaDto nueva(String numero, List<NuevaLineaFacturaDto> lineas) {
         return new NuevaFacturaDto(
@@ -84,6 +85,18 @@ class FacturaFacadeImplTest {
         assertThatThrownBy(() -> facade.obtener(99L))
                 .isInstanceOf(FacturaNoEncontradaException.class)
                 .hasMessage("No existe la factura con id 99");
+    }
+
+    @Test
+    void buscarDevuelveLaMismaFacturaQueSeCreo() {
+        FacturaDto creada = facade.crear(nueva("F-001"));
+
+        assertThat(facade.buscar(creada.id())).contains(creada);
+    }
+
+    @Test
+    void buscarFacturaInexistenteDevuelveVacio() {
+        assertThat(facade.buscar(99L)).isEmpty();
     }
 
     @Test

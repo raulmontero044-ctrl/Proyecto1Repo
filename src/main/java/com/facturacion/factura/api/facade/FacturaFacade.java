@@ -4,6 +4,7 @@ import com.facturacion.factura.api.facade.dto.FacturaDto;
 import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FacturaFacade {
 
@@ -14,4 +15,6 @@ public interface FacturaFacade {
     List<FacturaDto> listar();
 
     void eliminar(Long id);
+
+    Optional<FacturaDto> buscar(Long id);
 }

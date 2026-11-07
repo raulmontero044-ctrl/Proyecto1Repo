@@ -24,6 +24,7 @@ class CasosDeUsoFacturaTest {
     private final CrearFactura crear = new CrearFactura(repository);
     private final ObtenerFactura obtener = new ObtenerFactura(repository);
     private final ListarFacturas listar = new ListarFacturas(repository);
+    private final BuscarFactura buscar = new BuscarFactura(repository);
     private final List<Object> eventos = new ArrayList<>();
     private final EliminarFactura eliminar = new EliminarFactura(repository, eventos::add);
 
@@ -140,6 +141,20 @@ class CasosDeUsoFacturaTest {
 
         assertThat(listar.ejecutar()).isEmpty();
         assertThatThrownBy(() -> eliminar.ejecutar(id)).isInstanceOf(FacturaNoEncontradaException.class);
+    }
+
+    @Test
+    void buscarDevuelveLaFacturaExistenteConSusTotales() {
+        FacturaDto creada = crear.ejecutar(nueva("F-001", dosLineas()));
+
+        assertThat(buscar.ejecutar(creada.id())).contains(creada);
+        assertThat(buscar.ejecutar(creada.id())).hasValueSatisfying(
+                factura -> assertThat(factura.total()).isEqualByComparingTo("30.55"));
+    }
+
+    @Test
+    void buscarFacturaInexistenteDevuelveVacioSinLanzar() {
+        assertThat(buscar.ejecutar(99L)).isEmpty();
     }
 
     @Test
