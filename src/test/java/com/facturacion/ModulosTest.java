@@ -17,9 +17,9 @@ class ModulosTest {
     }
 
     @Test
-    void detectaComoModulosAppFacturaEmpresasYUsuarios() {
+    void detectaComoModulosAppFacturaEmpresasUsuariosYTerceros() {
         assertThat(MODULOS.stream().map(ApplicationModule::getName))
-                .containsExactlyInAnyOrder("app", "factura", "empresas", "usuarios");
+                .containsExactlyInAnyOrder("app", "factura", "empresas", "usuarios", "terceros");
     }
 
     @Test
@@ -47,6 +47,16 @@ class ModulosTest {
         ApplicationModule usuarios = MODULOS.getModuleByName("usuarios").orElseThrow();
 
         assertThat(usuarios.getNamedInterfaces().stream()
+                .filter(interfaz -> !interfaz.isUnnamed())
+                .map(NamedInterface::getName))
+                .containsExactlyInAnyOrder("facade", "facade-dto");
+    }
+
+    @Test
+    void tercerosSoloExponeLaFacadeYSusDto() {
+        ApplicationModule terceros = MODULOS.getModuleByName("terceros").orElseThrow();
+
+        assertThat(terceros.getNamedInterfaces().stream()
                 .filter(interfaz -> !interfaz.isUnnamed())
                 .map(NamedInterface::getName))
                 .containsExactlyInAnyOrder("facade", "facade-dto");
