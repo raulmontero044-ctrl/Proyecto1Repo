@@ -31,4 +31,14 @@ class ModulosTest {
                 .map(NamedInterface::getName))
                 .containsExactlyInAnyOrder("facade", "facade-dto");
     }
+
+    @Test
+    void empresasSoloExponeLaFacadeYSusDto() {
+        ApplicationModule empresas = MODULOS.getModuleByName("empresas").orElseThrow();
+
+        assertThat(empresas.getNamedInterfaces().stream()
+                .filter(interfaz -> !interfaz.isUnnamed())
+                .map(NamedInterface::getName))
+                .containsExactlyInAnyOrder("facade", "facade-dto");
+    }
 }
