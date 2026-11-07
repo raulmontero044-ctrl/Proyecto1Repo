@@ -60,4 +60,13 @@ class ReglaHandlersSeparadosTest {
         assertThatCode(() -> ArquitecturaTest.cadaHandlerTraduceUnaSolaExcepcion.check(clases))
                 .doesNotThrowAnyException();
     }
+
+    @Test
+    void losHandlersDeUsuariosTraducenCadaUnoUnaSolaExcepcion() {
+        JavaClasses clases = new ClassFileImporter().importPackages("com.facturacion.usuarios.api.http.handlers");
+
+        assertThat(clases).hasSize(5);
+        assertThatCode(() -> ArquitecturaTest.cadaHandlerTraduceUnaSolaExcepcion.check(clases))
+                .doesNotThrowAnyException();
+    }
 }
