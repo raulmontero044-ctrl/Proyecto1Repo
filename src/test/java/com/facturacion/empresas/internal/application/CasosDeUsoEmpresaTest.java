@@ -20,6 +20,7 @@ class CasosDeUsoEmpresaTest {
     private final ListarEmpresas listar = new ListarEmpresas(repository);
     private final ModificarDatosFiscalesEmpresa modificarDatosFiscales = new ModificarDatosFiscalesEmpresa(repository);
     private final ModificarContactoEmpresa modificarContacto = new ModificarContactoEmpresa(repository);
+    private final BuscarEmpresa buscar = new BuscarEmpresa(repository);
 
     private static NuevaEmpresaDto nueva(String nif) {
         return new NuevaEmpresaDto(
@@ -167,6 +168,20 @@ class CasosDeUsoEmpresaTest {
 
         assertThat(modificada.email()).isNull();
         assertThat(modificada.telefono()).isNull();
+    }
+
+    @Test
+    void buscaEmpresaExistenteConTodosSusDatos() {
+        EmpresaDto creada = crear.ejecutar(nueva("B12345678"));
+
+        assertThat(buscar.ejecutar(creada.id())).contains(creada);
+    }
+
+    @Test
+    void buscarEmpresaInexistenteDevuelveVacioSinLanzarExcepcion() {
+        crear.ejecutar(nueva("B12345678"));
+
+        assertThat(buscar.ejecutar(99L)).isEmpty();
     }
 
     @Test
