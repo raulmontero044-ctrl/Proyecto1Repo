@@ -63,6 +63,7 @@ class FacturaControllerJsonTest {
                 numero,
                 "EMITIDA",
                 LocalDate.of(2026, 11, 3),
+                LocalDate.of(2026, 12, 3),
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21"),
@@ -75,7 +76,7 @@ class FacturaControllerJsonTest {
     }
 
     private static String json(Long id, String numero) {
-        return "{\"id\":" + id + ",\"numero\":\"" + numero + "\",\"tipo\":\"EMITIDA\",\"fecha\":\"2026-11-03\","
+        return "{\"id\":" + id + ",\"numero\":\"" + numero + "\",\"tipo\":\"EMITIDA\",\"fecha\":\"2026-11-03\",\"fechaVencimiento\":\"2026-12-03\","
                 + "\"clienteNombre\":\"Cliente SL\",\"clienteNif\":\"B12345678\",\"porcentajeIva\":21,"
                 + "\"lineas\":["
                 + "{\"concepto\":\"Primera\",\"cantidad\":2,\"precioUnitario\":10.50,\"importe\":21.00},"

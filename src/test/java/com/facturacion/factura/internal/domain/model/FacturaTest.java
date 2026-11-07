@@ -21,7 +21,7 @@ class FacturaTest {
 
     private static Factura nueva(
             String numero, LocalDate fecha, String nombre, String nif, BigDecimal iva, List<LineaFactura> lineas) {
-        return Factura.nueva(numero, TipoFactura.EMITIDA, fecha, nombre, nif, iva, lineas);
+        return Factura.nueva(numero, TipoFactura.EMITIDA, fecha, null, nombre, nif, iva, lineas);
     }
 
     private static Factura factura(String iva, List<LineaFactura> lineas) {
@@ -31,15 +31,35 @@ class FacturaTest {
     @Test
     void conservaElTipoDeLaFactura() {
         Factura recibida = Factura.nueva(
-                "F-1", TipoFactura.RECIBIDA, FECHA, "Cliente", "NIF", BigDecimal.TEN, List.of(linea("1", "1")));
+                "F-1", TipoFactura.RECIBIDA, FECHA, null, "Cliente", "NIF", BigDecimal.TEN, List.of(linea("1", "1")));
 
         assertThat(recibida.tipo()).isEqualTo(TipoFactura.RECIBIDA);
+    }
+
+    private static Factura conVencimiento(LocalDate fechaVencimiento) {
+        return Factura.nueva(
+                "F-1", TipoFactura.EMITIDA, FECHA, fechaVencimiento, "Cliente", "NIF", BigDecimal.TEN,
+                List.of(linea("1", "1")));
+    }
+
+    @Test
+    void aceptaVencimientoAusenteIgualOPosteriorALaFecha() {
+        assertThat(conVencimiento(null).fechaVencimiento()).isNull();
+        assertThat(conVencimiento(FECHA).fechaVencimiento()).isEqualTo(FECHA);
+        assertThat(conVencimiento(FECHA.plusDays(30)).fechaVencimiento()).isEqualTo(LocalDate.of(2026, 12, 3));
+    }
+
+    @Test
+    void rechazaVencimientoAnteriorALaFecha() {
+        assertThatThrownBy(() -> conVencimiento(FECHA.minusDays(1)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La fecha de vencimiento no puede ser anterior a la fecha de la factura");
     }
 
     @Test
     void rechazaFacturaSinTipo() {
         assertThatThrownBy(() -> Factura.nueva(
-                "F-1", null, FECHA, "Cliente", "NIF", BigDecimal.TEN, List.of(linea("1", "1"))))
+                "F-1", null, FECHA, null, "Cliente", "NIF", BigDecimal.TEN, List.of(linea("1", "1"))))
                 .isInstanceOf(FacturaInvalidaException.class)
                 .hasMessage("El tipo de factura es obligatorio");
     }

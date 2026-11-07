@@ -21,7 +21,7 @@ class FacturaMapperTest {
 
     private static FacturaEntity entidadValida(Long id, String numero) {
         return new FacturaEntity(
-                id, numero, "EMITIDA", LocalDate.of(2026, 11, 3), "Cliente SL", "B12345678", new BigDecimal("21.00"));
+                id, numero, "EMITIDA", LocalDate.of(2026, 11, 3), null, "Cliente SL", "B12345678", new BigDecimal("21.00"));
     }
 
     @Test
@@ -31,6 +31,7 @@ class FacturaMapperTest {
                 "F-001",
                 TipoFactura.RECIBIDA,
                 LocalDate.of(2026, 11, 3),
+                LocalDate.of(2026, 12, 3),
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21.00"),
@@ -41,6 +42,7 @@ class FacturaMapperTest {
         FacturaEntity entidad = mapper.aEntidad(factura);
 
         assertThat(entidad.getTipo()).isEqualTo("RECIBIDA");
+        assertThat(entidad.getFechaVencimiento()).isEqualTo(LocalDate.of(2026, 12, 3));
         assertThat(entidad.getLineas()).extracting("posicion").containsExactly(0, 1);
         assertThat(mapper.aDominio(entidad)).isEqualTo(factura);
     }
@@ -75,6 +77,7 @@ class FacturaMapperTest {
                 "F-002",
                 TipoFactura.EMITIDA,
                 LocalDate.of(2026, 11, 3),
+                null,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("10.50"),
@@ -86,6 +89,7 @@ class FacturaMapperTest {
         assertThat(entidad.getNumero()).isEqualTo("F-002");
         assertThat(entidad.getTipo()).isEqualTo("EMITIDA");
         assertThat(entidad.getFecha()).isEqualTo(LocalDate.of(2026, 11, 3));
+        assertThat(entidad.getFechaVencimiento()).isNull();
         assertThat(entidad.getClienteNombre()).isEqualTo("Cliente SL");
         assertThat(entidad.getClienteNif()).isEqualTo("B12345678");
         assertThat(entidad.getPorcentajeIva()).isEqualByComparingTo("10.50");

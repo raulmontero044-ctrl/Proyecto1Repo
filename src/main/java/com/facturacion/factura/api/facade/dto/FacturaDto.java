@@ -9,6 +9,7 @@ public record FacturaDto(
         String numero,
         String tipo,
         LocalDate fecha,
+        LocalDate fechaVencimiento,
         String clienteNombre,
         String clienteNif,
         BigDecimal porcentajeIva,

@@ -12,6 +12,7 @@ public record Factura(
         String numero,
         TipoFactura tipo,
         LocalDate fecha,
+        LocalDate fechaVencimiento,
         String clienteNombre,
         String clienteNif,
         BigDecimal porcentajeIva,
@@ -26,6 +27,9 @@ public record Factura(
         }
         if (fecha == null) {
             throw new FacturaInvalidaException("La fecha de la factura es obligatoria");
+        }
+        if (fechaVencimiento != null && fechaVencimiento.isBefore(fecha)) {
+            throw new FacturaInvalidaException("La fecha de vencimiento no puede ser anterior a la fecha de la factura");
         }
         if (clienteNombre == null || clienteNombre.isBlank()) {
             throw new FacturaInvalidaException("El nombre del cliente es obligatorio");
@@ -49,10 +53,11 @@ public record Factura(
             String numero,
             TipoFactura tipo,
             LocalDate fecha,
+            LocalDate fechaVencimiento,
             String clienteNombre,
             String clienteNif,
             BigDecimal porcentajeIva,
             List<LineaFactura> lineas) {
-        return new Factura(null, numero, tipo, fecha, clienteNombre, clienteNif, porcentajeIva, lineas);
+        return new Factura(null, numero, tipo, fecha, fechaVencimiento, clienteNombre, clienteNif, porcentajeIva, lineas);
     }
 }

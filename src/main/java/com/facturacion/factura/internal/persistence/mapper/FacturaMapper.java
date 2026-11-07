@@ -18,6 +18,7 @@ public class FacturaMapper {
                 factura.numero(),
                 factura.tipo().name(),
                 factura.fecha(),
+                factura.fechaVencimiento(),
                 factura.clienteNombre(),
                 factura.clienteNif(),
                 factura.porcentajeIva());
@@ -45,6 +46,7 @@ public class FacturaMapper {
                 entidad.getNumero(),
                 TipoFactura.valueOf(entidad.getTipo()),
                 entidad.getFecha(),
+                entidad.getFechaVencimiento(),
                 entidad.getClienteNombre(),
                 entidad.getClienteNif(),
                 entidad.getPorcentajeIva(),

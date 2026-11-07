@@ -32,6 +32,9 @@ public class FacturaEntity {
     @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
 
+    @Column(name = "fecha_vencimiento")
+    private LocalDate fechaVencimiento;
+
     @Column(name = "cliente_nombre", nullable = false, length = 200)
     private String clienteNombre;
 
@@ -53,6 +56,7 @@ public class FacturaEntity {
             String numero,
             String tipo,
             LocalDate fecha,
+            LocalDate fechaVencimiento,
             String clienteNombre,
             String clienteNif,
             BigDecimal porcentajeIva) {
@@ -60,6 +64,7 @@ public class FacturaEntity {
         this.numero = numero;
         this.tipo = tipo;
         this.fecha = fecha;
+        this.fechaVencimiento = fechaVencimiento;
         this.clienteNombre = clienteNombre;
         this.clienteNif = clienteNif;
         this.porcentajeIva = porcentajeIva;
@@ -84,6 +89,10 @@ public class FacturaEntity {
 
     public LocalDate getFecha() {
         return fecha;
+    }
+
+    public LocalDate getFechaVencimiento() {
+        return fechaVencimiento;
     }
 
     public String getClienteNombre() {

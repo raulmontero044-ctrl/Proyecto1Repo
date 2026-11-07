@@ -31,6 +31,7 @@ class FacturaFacadeImplTest {
                 numero,
                 "EMITIDA",
                 LocalDate.of(2026, 11, 3),
+                null,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21"),

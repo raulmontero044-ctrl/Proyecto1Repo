@@ -33,10 +33,16 @@ class CasosDeUsoFacturaTest {
     }
 
     private static NuevaFacturaDto nueva(String numero, String tipo, List<NuevaLineaFacturaDto> lineas) {
+        return nueva(numero, tipo, null, lineas);
+    }
+
+    private static NuevaFacturaDto nueva(
+            String numero, String tipo, LocalDate fechaVencimiento, List<NuevaLineaFacturaDto> lineas) {
         return new NuevaFacturaDto(
                 numero,
                 tipo,
                 LocalDate.of(2026, 11, 3),
+                fechaVencimiento,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21"),
@@ -109,6 +115,23 @@ class CasosDeUsoFacturaTest {
                 .hasMessage("El tipo de factura debe ser EMITIDA o RECIBIDA");
         assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", "emitida", dosLineas())))
                 .isInstanceOf(FacturaInvalidaException.class);
+        assertThat(listar.ejecutar()).isEmpty();
+    }
+
+    @Test
+    void conservaLaFechaDeVencimientoOpcional() {
+        FacturaDto conVencimiento = crear.ejecutar(nueva("F-001", "EMITIDA", LocalDate.of(2026, 12, 3), dosLineas()));
+        FacturaDto sinVencimiento = crear.ejecutar(nueva("F-002", dosLineas()));
+
+        assertThat(obtener.ejecutar(conVencimiento.id()).fechaVencimiento()).isEqualTo(LocalDate.of(2026, 12, 3));
+        assertThat(obtener.ejecutar(sinVencimiento.id()).fechaVencimiento()).isNull();
+    }
+
+    @Test
+    void rechazaVencimientoAnteriorALaFechaSinGuardarNada() {
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", "EMITIDA", LocalDate.of(2026, 11, 2), dosLineas())))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La fecha de vencimiento no puede ser anterior a la fecha de la factura");
         assertThat(listar.ejecutar()).isEmpty();
     }
 

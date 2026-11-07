@@ -73,6 +73,7 @@ class FacturaControllerTest {
                 "F-001",
                 "EMITIDA",
                 LocalDate.of(2026, 11, 3),
+                null,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21"),
@@ -209,6 +210,20 @@ class FacturaControllerTest {
     }
 
     @Test
+    void trasladaLaFechaDeVencimientoOpcionalYRechazaSuFormatoInvalido() throws Exception {
+        when(crearFactura.ejecutar(any(NuevaFacturaDto.class))).thenReturn(factura(1L));
+        String conVencimiento = PETICION_VALIDA.replace(
+                "\"fecha\": \"2026-11-03\",", "\"fecha\": \"2026-11-03\", \"fechaVencimiento\": \"2026-12-03\",");
+
+        mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON).content(conVencimiento))
+                .andExpect(status().isCreated());
+        esperarRechazo(PETICION_VALIDA.replace(
+                "\"fecha\": \"2026-11-03\",", "\"fecha\": \"2026-11-03\", \"fechaVencimiento\": \"03/12/2026\","));
+
+        verify(crearFactura).ejecutar(argThat(nueva -> LocalDate.of(2026, 12, 3).equals(nueva.fechaVencimiento())));
+    }
+
+    @Test
     void rechazaCuerpoMalFormadoOAusente() throws Exception {
         esperarRechazo("{\"numero\": ");
         esperarRechazo(PETICION_VALIDA.replace("\"2026-11-03\"", "\"03/11/2026\""));
@@ -229,6 +244,7 @@ class FacturaControllerTest {
                 "F-001",
                 "EMITIDA",
                 LocalDate.of(2026, 11, 3),
+                null,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21"),

@@ -31,7 +31,7 @@ class JpaFacturaRepositoryTest {
 
     private static FacturaEntity entidad(Long id, String numero) {
         FacturaEntity entidad = new FacturaEntity(
-                id, numero, "EMITIDA", FECHA, "Cliente SL", "B12345678", new BigDecimal("21.00"));
+                id, numero, "EMITIDA", FECHA, null, "Cliente SL", "B12345678", new BigDecimal("21.00"));
         entidad.agregarLinea(new LineaFacturaEntity(0, "Primera", new BigDecimal("2"), new BigDecimal("10.50")));
         entidad.agregarLinea(new LineaFacturaEntity(1, "Segunda", new BigDecimal("1"), new BigDecimal("4.25")));
         return entidad;
@@ -44,6 +44,7 @@ class JpaFacturaRepositoryTest {
                 "F-001",
                 TipoFactura.EMITIDA,
                 FECHA,
+                null,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21.00"),

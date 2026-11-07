@@ -17,6 +17,7 @@ public record CrearFacturaRequest(
         @NotBlank @Size(max = 50) String numero,
         @NotNull @Pattern(regexp = "EMITIDA|RECIBIDA") String tipo,
         @NotNull LocalDate fecha,
+        LocalDate fechaVencimiento,
         @NotBlank @Size(max = 200) String clienteNombre,
         @NotBlank @Size(max = 20) String clienteNif,
         @NotNull @DecimalMin("0") @Digits(integer = 3, fraction = 2) BigDecimal porcentajeIva,
