@@ -7,6 +7,7 @@ import java.util.List;
 public record FacturaResponse(
         Long id,
         String numero,
+        String tipo,
         LocalDate fecha,
         String clienteNombre,
         String clienteNif,

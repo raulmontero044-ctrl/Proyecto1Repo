@@ -6,6 +6,7 @@ import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
 import com.facturacion.factura.internal.domain.exception.FacturaInvalidaException;
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.model.LineaFactura;
+import com.facturacion.factura.internal.domain.model.TipoFactura;
 import com.facturacion.factura.internal.domain.service.CalculadoraFactura;
 
 import java.util.List;
@@ -29,11 +30,23 @@ final class FacturaDtoConverter {
                 .toList();
         return Factura.nueva(
                 dto.numero(),
+                aTipo(dto.tipo()),
                 dto.fecha(),
                 dto.clienteNombre(),
                 dto.clienteNif(),
                 dto.porcentajeIva(),
                 lineas);
+    }
+
+    private static TipoFactura aTipo(String tipo) {
+        if (tipo == null) {
+            throw new FacturaInvalidaException("El tipo de factura es obligatorio");
+        }
+        try {
+            return TipoFactura.valueOf(tipo);
+        } catch (IllegalArgumentException excepcion) {
+            throw new FacturaInvalidaException("El tipo de factura debe ser EMITIDA o RECIBIDA");
+        }
     }
 
     static FacturaDto aDto(Factura factura) {
@@ -47,6 +60,7 @@ final class FacturaDtoConverter {
         return new FacturaDto(
                 factura.id(),
                 factura.numero(),
+                factura.tipo().name(),
                 factura.fecha(),
                 factura.clienteNombre(),
                 factura.clienteNif(),

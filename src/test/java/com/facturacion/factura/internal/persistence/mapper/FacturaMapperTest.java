@@ -3,6 +3,7 @@ package com.facturacion.factura.internal.persistence.mapper;
 import com.facturacion.factura.internal.domain.exception.FacturaInvalidaException;
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.model.LineaFactura;
+import com.facturacion.factura.internal.domain.model.TipoFactura;
 import com.facturacion.factura.internal.persistence.entity.FacturaEntity;
 import com.facturacion.factura.internal.persistence.entity.LineaFacturaEntity;
 import org.junit.jupiter.api.Test;
@@ -18,11 +19,17 @@ class FacturaMapperTest {
 
     private final FacturaMapper mapper = new FacturaMapper();
 
+    private static FacturaEntity entidadValida(Long id, String numero) {
+        return new FacturaEntity(
+                id, numero, "EMITIDA", LocalDate.of(2026, 11, 3), "Cliente SL", "B12345678", new BigDecimal("21.00"));
+    }
+
     @Test
     void conservaDatosYOrdenDeLineasEnIdaYVuelta() {
         Factura factura = new Factura(
                 7L,
                 "F-001",
+                TipoFactura.RECIBIDA,
                 LocalDate.of(2026, 11, 3),
                 "Cliente SL",
                 "B12345678",
@@ -33,17 +40,16 @@ class FacturaMapperTest {
 
         FacturaEntity entidad = mapper.aEntidad(factura);
 
+        assertThat(entidad.getTipo()).isEqualTo("RECIBIDA");
         assertThat(entidad.getLineas()).extracting("posicion").containsExactly(0, 1);
         assertThat(mapper.aDominio(entidad)).isEqualTo(factura);
     }
 
     @Test
     void aDominioReconstruyeConElConstructorYAplicaLasInvariantes() {
-        FacturaEntity sinNumero = new FacturaEntity(
-                3L, " ", LocalDate.of(2026, 11, 3), "Cliente SL", "B12345678", new BigDecimal("21.00"));
+        FacturaEntity sinNumero = entidadValida(3L, " ");
         sinNumero.agregarLinea(new LineaFacturaEntity(0, "Servicio", BigDecimal.ONE, BigDecimal.ONE));
-        FacturaEntity sinLineas = new FacturaEntity(
-                4L, "F-004", LocalDate.of(2026, 11, 3), "Cliente SL", "B12345678", new BigDecimal("21.00"));
+        FacturaEntity sinLineas = entidadValida(4L, "F-004");
 
         assertThatThrownBy(() -> mapper.aDominio(sinNumero)).isInstanceOf(FacturaInvalidaException.class);
         assertThatThrownBy(() -> mapper.aDominio(sinLineas)).isInstanceOf(FacturaInvalidaException.class);
@@ -51,8 +57,7 @@ class FacturaMapperTest {
 
     @Test
     void aDominioConservaElOrdenDeLasLineasDeLaEntidadSinExponerLaPosicion() {
-        FacturaEntity entidad = new FacturaEntity(
-                8L, "F-008", LocalDate.of(2026, 11, 3), "Cliente SL", "B12345678", new BigDecimal("21.00"));
+        FacturaEntity entidad = entidadValida(8L, "F-008");
         entidad.agregarLinea(new LineaFacturaEntity(0, "Primera", BigDecimal.ONE, BigDecimal.TEN));
         entidad.agregarLinea(new LineaFacturaEntity(1, "Segunda", new BigDecimal("2"), BigDecimal.ONE));
 
@@ -68,6 +73,7 @@ class FacturaMapperTest {
     void facturaNuevaGeneraEntidadSinIdYConDatosCopiados() {
         Factura nueva = Factura.nueva(
                 "F-002",
+                TipoFactura.EMITIDA,
                 LocalDate.of(2026, 11, 3),
                 "Cliente SL",
                 "B12345678",
@@ -78,6 +84,7 @@ class FacturaMapperTest {
 
         assertThat(entidad.getId()).isNull();
         assertThat(entidad.getNumero()).isEqualTo("F-002");
+        assertThat(entidad.getTipo()).isEqualTo("EMITIDA");
         assertThat(entidad.getFecha()).isEqualTo(LocalDate.of(2026, 11, 3));
         assertThat(entidad.getClienteNombre()).isEqualTo("Cliente SL");
         assertThat(entidad.getClienteNif()).isEqualTo("B12345678");

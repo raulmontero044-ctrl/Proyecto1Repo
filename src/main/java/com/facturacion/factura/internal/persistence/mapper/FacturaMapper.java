@@ -2,6 +2,7 @@ package com.facturacion.factura.internal.persistence.mapper;
 
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.model.LineaFactura;
+import com.facturacion.factura.internal.domain.model.TipoFactura;
 import com.facturacion.factura.internal.persistence.entity.FacturaEntity;
 import com.facturacion.factura.internal.persistence.entity.LineaFacturaEntity;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ public class FacturaMapper {
         FacturaEntity entidad = new FacturaEntity(
                 factura.id(),
                 factura.numero(),
+                factura.tipo().name(),
                 factura.fecha(),
                 factura.clienteNombre(),
                 factura.clienteNif(),
@@ -41,6 +43,7 @@ public class FacturaMapper {
         return new Factura(
                 entidad.getId(),
                 entidad.getNumero(),
+                TipoFactura.valueOf(entidad.getTipo()),
                 entidad.getFecha(),
                 entidad.getClienteNombre(),
                 entidad.getClienteNif(),

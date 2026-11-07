@@ -76,6 +76,7 @@ public class FacturaController {
                 .toList();
         return new NuevaFacturaDto(
                 request.numero(),
+                request.tipo(),
                 request.fecha(),
                 request.clienteNombre(),
                 request.clienteNif(),
@@ -94,6 +95,7 @@ public class FacturaController {
         return new FacturaResponse(
                 factura.id(),
                 factura.numero(),
+                factura.tipo(),
                 factura.fecha(),
                 factura.clienteNombre(),
                 factura.clienteNif(),

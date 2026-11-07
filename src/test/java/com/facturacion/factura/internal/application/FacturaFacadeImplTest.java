@@ -29,6 +29,7 @@ class FacturaFacadeImplTest {
     private static NuevaFacturaDto nueva(String numero, List<NuevaLineaFacturaDto> lineas) {
         return new NuevaFacturaDto(
                 numero,
+                "EMITIDA",
                 LocalDate.of(2026, 11, 3),
                 "Cliente SL",
                 "B12345678",

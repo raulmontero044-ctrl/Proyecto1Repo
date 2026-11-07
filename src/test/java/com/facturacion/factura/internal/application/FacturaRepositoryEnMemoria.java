@@ -20,6 +20,7 @@ class FacturaRepositoryEnMemoria implements FacturaRepository {
         Factura guardada = new Factura(
                 id,
                 factura.numero(),
+                factura.tipo(),
                 factura.fecha(),
                 factura.clienteNombre(),
                 factura.clienteNif(),

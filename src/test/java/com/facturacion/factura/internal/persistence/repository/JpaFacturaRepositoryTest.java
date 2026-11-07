@@ -2,6 +2,7 @@ package com.facturacion.factura.internal.persistence.repository;
 
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.model.LineaFactura;
+import com.facturacion.factura.internal.domain.model.TipoFactura;
 import com.facturacion.factura.internal.persistence.dao.FacturaDao;
 import com.facturacion.factura.internal.persistence.entity.FacturaEntity;
 import com.facturacion.factura.internal.persistence.entity.LineaFacturaEntity;
@@ -29,7 +30,8 @@ class JpaFacturaRepositoryTest {
     private final JpaFacturaRepository repository = new JpaFacturaRepository(dao, new FacturaMapper());
 
     private static FacturaEntity entidad(Long id, String numero) {
-        FacturaEntity entidad = new FacturaEntity(id, numero, FECHA, "Cliente SL", "B12345678", new BigDecimal("21.00"));
+        FacturaEntity entidad = new FacturaEntity(
+                id, numero, "EMITIDA", FECHA, "Cliente SL", "B12345678", new BigDecimal("21.00"));
         entidad.agregarLinea(new LineaFacturaEntity(0, "Primera", new BigDecimal("2"), new BigDecimal("10.50")));
         entidad.agregarLinea(new LineaFacturaEntity(1, "Segunda", new BigDecimal("1"), new BigDecimal("4.25")));
         return entidad;
@@ -40,6 +42,7 @@ class JpaFacturaRepositoryTest {
         when(dao.save(any(FacturaEntity.class))).thenReturn(entidad(5L, "F-001"));
         Factura nueva = Factura.nueva(
                 "F-001",
+                TipoFactura.EMITIDA,
                 FECHA,
                 "Cliente SL",
                 "B12345678",

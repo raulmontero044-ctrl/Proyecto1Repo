@@ -26,6 +26,7 @@ class FacturaResponseTest {
         FacturaDto dto = new FacturaDto(
                 3L,
                 "F-003",
+                "EMITIDA",
                 FECHA,
                 "Cliente SL",
                 "B12345678",
@@ -37,6 +38,7 @@ class FacturaResponseTest {
         FacturaResponse respuesta = new FacturaResponse(
                 3L,
                 "F-003",
+                "EMITIDA",
                 FECHA,
                 "Cliente SL",
                 "B12345678",
@@ -49,7 +51,7 @@ class FacturaResponseTest {
         String json = objectMapper.writeValueAsString(respuesta);
 
         assertThat(json).isEqualTo(objectMapper.writeValueAsString(dto));
-        assertThat(json).isEqualTo("{\"id\":3,\"numero\":\"F-003\",\"fecha\":\"2026-11-03\","
+        assertThat(json).isEqualTo("{\"id\":3,\"numero\":\"F-003\",\"tipo\":\"EMITIDA\",\"fecha\":\"2026-11-03\","
                 + "\"clienteNombre\":\"Cliente SL\",\"clienteNif\":\"B12345678\",\"porcentajeIva\":21.00,"
                 + "\"lineas\":[{\"concepto\":\"Servicio\",\"cantidad\":2.000,\"precioUnitario\":10.50,\"importe\":21.00}],"
                 + "\"base\":21.00,\"cuotaIva\":4.41,\"total\":25.41}");

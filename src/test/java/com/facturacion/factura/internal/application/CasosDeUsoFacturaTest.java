@@ -29,8 +29,13 @@ class CasosDeUsoFacturaTest {
     private final EliminarFactura eliminar = new EliminarFactura(repository, eventos::add);
 
     private static NuevaFacturaDto nueva(String numero, List<NuevaLineaFacturaDto> lineas) {
+        return nueva(numero, "EMITIDA", lineas);
+    }
+
+    private static NuevaFacturaDto nueva(String numero, String tipo, List<NuevaLineaFacturaDto> lineas) {
         return new NuevaFacturaDto(
                 numero,
+                tipo,
                 LocalDate.of(2026, 11, 3),
                 "Cliente SL",
                 "B12345678",
@@ -61,6 +66,7 @@ class CasosDeUsoFacturaTest {
         FacturaDto creada = crear.ejecutar(nueva("F-001", dosLineas()));
 
         assertThat(creada.numero()).isEqualTo("F-001");
+        assertThat(creada.tipo()).isEqualTo("EMITIDA");
         assertThat(creada.fecha()).isEqualTo(LocalDate.of(2026, 11, 3));
         assertThat(creada.clienteNombre()).isEqualTo("Cliente SL");
         assertThat(creada.clienteNif()).isEqualTo("B12345678");
@@ -81,6 +87,27 @@ class CasosDeUsoFacturaTest {
         assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", conNula)))
                 .isInstanceOf(FacturaInvalidaException.class);
         assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", conCantidadCero)))
+                .isInstanceOf(FacturaInvalidaException.class);
+        assertThat(listar.ejecutar()).isEmpty();
+    }
+
+    @Test
+    void creaFacturaRecibidaConservandoSuTipo() {
+        FacturaDto creada = crear.ejecutar(nueva("P-001", "RECIBIDA", dosLineas()));
+
+        assertThat(creada.tipo()).isEqualTo("RECIBIDA");
+        assertThat(obtener.ejecutar(creada.id()).tipo()).isEqualTo("RECIBIDA");
+    }
+
+    @Test
+    void rechazaTipoNuloOInexistenteSinGuardarNada() {
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", null, dosLineas())))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El tipo de factura es obligatorio");
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", "ABONO", dosLineas())))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El tipo de factura debe ser EMITIDA o RECIBIDA");
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", "emitida", dosLineas())))
                 .isInstanceOf(FacturaInvalidaException.class);
         assertThat(listar.ejecutar()).isEmpty();
     }

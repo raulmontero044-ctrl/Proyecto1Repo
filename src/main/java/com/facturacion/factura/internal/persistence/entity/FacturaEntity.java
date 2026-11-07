@@ -26,6 +26,9 @@ public class FacturaEntity {
     @Column(name = "numero", nullable = false, unique = true, length = 50)
     private String numero;
 
+    @Column(name = "tipo", nullable = false, length = 10)
+    private String tipo;
+
     @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
 
@@ -48,12 +51,14 @@ public class FacturaEntity {
     public FacturaEntity(
             Long id,
             String numero,
+            String tipo,
             LocalDate fecha,
             String clienteNombre,
             String clienteNif,
             BigDecimal porcentajeIva) {
         this.id = id;
         this.numero = numero;
+        this.tipo = tipo;
         this.fecha = fecha;
         this.clienteNombre = clienteNombre;
         this.clienteNif = clienteNif;
@@ -71,6 +76,10 @@ public class FacturaEntity {
 
     public String getNumero() {
         return numero;
+    }
+
+    public String getTipo() {
+        return tipo;
     }
 
     public LocalDate getFecha() {

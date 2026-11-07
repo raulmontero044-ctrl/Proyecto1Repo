@@ -10,6 +10,7 @@ import java.util.Objects;
 public record Factura(
         Long id,
         String numero,
+        TipoFactura tipo,
         LocalDate fecha,
         String clienteNombre,
         String clienteNif,
@@ -19,6 +20,9 @@ public record Factura(
     public Factura {
         if (numero == null || numero.isBlank()) {
             throw new FacturaInvalidaException("El número de factura es obligatorio");
+        }
+        if (tipo == null) {
+            throw new FacturaInvalidaException("El tipo de factura es obligatorio");
         }
         if (fecha == null) {
             throw new FacturaInvalidaException("La fecha de la factura es obligatoria");
@@ -43,11 +47,12 @@ public record Factura(
 
     public static Factura nueva(
             String numero,
+            TipoFactura tipo,
             LocalDate fecha,
             String clienteNombre,
             String clienteNif,
             BigDecimal porcentajeIva,
             List<LineaFactura> lineas) {
-        return new Factura(null, numero, fecha, clienteNombre, clienteNif, porcentajeIva, lineas);
+        return new Factura(null, numero, tipo, fecha, clienteNombre, clienteNif, porcentajeIva, lineas);
     }
 }

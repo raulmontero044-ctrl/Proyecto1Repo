@@ -6,6 +6,7 @@ import java.util.List;
 
 public record NuevaFacturaDto(
         String numero,
+        String tipo,
         LocalDate fecha,
         String clienteNombre,
         String clienteNif,
