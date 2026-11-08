@@ -34,6 +34,7 @@ class CasosDeUsoFacturaTest {
     private final ObtenerFactura obtener = new ObtenerFactura(repository);
     private final ListarFacturas listar = new ListarFacturas(repository);
     private final BuscarFactura buscar = new BuscarFactura(repository);
+    private final ListarFacturasPorEmpresa listarPorEmpresa = new ListarFacturasPorEmpresa(repository);
     private final List<Object> eventos = new ArrayList<>();
     private final EliminarFactura eliminar = new EliminarFactura(repository, eventos::add);
 
@@ -49,6 +50,10 @@ class CasosDeUsoFacturaTest {
             String numero, String tipo, LocalDate fechaVencimiento, List<NuevaLineaFacturaDto> lineas) {
         Long terceroId = "RECIBIDA".equals(tipo) ? PROVEEDOR : CLIENTE;
         return nueva(numero, tipo, fechaVencimiento, EMPRESA, terceroId, lineas);
+    }
+
+    private static NuevaFacturaDto delDia(String numero, Long empresaId, Long terceroId, LocalDate fecha) {
+        return new NuevaFacturaDto(numero, "EMITIDA", fecha, null, empresaId, terceroId, new BigDecimal("21"), dosLineas());
     }
 
     private static NuevaFacturaDto referida(String tipo, Long empresaId, Long terceroId) {
@@ -267,6 +272,37 @@ class CasosDeUsoFacturaTest {
                 .isInstanceOf(FacturaInvalidaException.class)
                 .hasMessage("Una factura RECIBIDA requiere un tercero proveedor y el tercero con id 10 no lo es");
         assertThat(listar.ejecutar()).isEmpty();
+    }
+
+    @Test
+    void listarPorEmpresaIncluyeAmbosExtremosDelPeriodoYOrdenaPorFecha() {
+        directorio.registrar(empresa(2L, true));
+        directorio.registrar(tercero(80L, 2L, true, false, true));
+        crear.ejecutar(delDia("F-04", EMPRESA, CLIENTE, LocalDate.of(2026, 11, 30)));
+        crear.ejecutar(delDia("F-02", EMPRESA, CLIENTE, LocalDate.of(2026, 11, 1)));
+        crear.ejecutar(delDia("F-01", EMPRESA, CLIENTE, LocalDate.of(2026, 10, 31)));
+        crear.ejecutar(delDia("F-03", EMPRESA, CLIENTE, LocalDate.of(2026, 11, 15)));
+        crear.ejecutar(delDia("F-05", EMPRESA, CLIENTE, LocalDate.of(2026, 12, 1)));
+        crear.ejecutar(delDia("G-01", 2L, 80L, LocalDate.of(2026, 11, 15)));
+
+        List<FacturaDto> noviembre = listarPorEmpresa.ejecutar(
+                EMPRESA, LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30));
+
+        assertThat(noviembre).extracting(FacturaDto::numero).containsExactly("F-02", "F-03", "F-04");
+        assertThat(noviembre).allSatisfy(factura -> {
+            assertThat(factura.empresaId()).isEqualTo(EMPRESA);
+            assertThat(factura.total()).isEqualByComparingTo("30.55");
+        });
+    }
+
+    @Test
+    void listarPorEmpresaDevuelveVacioSinFacturasEnElPeriodo() {
+        crear.ejecutar(delDia("F-01", EMPRESA, CLIENTE, LocalDate.of(2026, 11, 3)));
+
+        assertThat(listarPorEmpresa.ejecutar(EMPRESA, LocalDate.of(2026, 12, 1), LocalDate.of(2026, 12, 31))).isEmpty();
+        assertThat(listarPorEmpresa.ejecutar(99L, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31))).isEmpty();
+        assertThat(listarPorEmpresa.ejecutar(EMPRESA, LocalDate.of(2026, 11, 3), LocalDate.of(2026, 11, 3)))
+                .extracting(FacturaDto::numero).containsExactly("F-01");
     }
 
     @Test

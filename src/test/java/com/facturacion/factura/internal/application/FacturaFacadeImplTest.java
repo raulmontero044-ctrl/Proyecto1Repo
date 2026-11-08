@@ -25,7 +25,8 @@ class FacturaFacadeImplTest {
             new ObtenerFactura(repository),
             new ListarFacturas(repository),
             new EliminarFactura(repository, evento -> { }),
-            new BuscarFactura(repository));
+            new BuscarFactura(repository),
+            new ListarFacturasPorEmpresa(repository));
 
     private static NuevaFacturaDto nueva(String numero, List<NuevaLineaFacturaDto> lineas) {
         return new NuevaFacturaDto(
@@ -100,6 +101,16 @@ class FacturaFacadeImplTest {
     @Test
     void buscarFacturaInexistenteDevuelveVacio() {
         assertThat(facade.buscar(99L)).isEmpty();
+    }
+
+    @Test
+    void listarPorEmpresaDevuelveLasFacturasDeLaEmpresaEnElPeriodoInclusive() {
+        FacturaDto creada = facade.crear(nueva("F-001"));
+
+        assertThat(facade.listarPorEmpresa(1L, LocalDate.of(2026, 11, 3), LocalDate.of(2026, 11, 3)))
+                .containsExactly(creada);
+        assertThat(facade.listarPorEmpresa(1L, LocalDate.of(2026, 11, 4), LocalDate.of(2026, 12, 31))).isEmpty();
+        assertThat(facade.listarPorEmpresa(2L, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31))).isEmpty();
     }
 
     @Test

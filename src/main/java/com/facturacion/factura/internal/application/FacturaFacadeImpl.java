@@ -5,6 +5,7 @@ import com.facturacion.factura.api.facade.dto.FacturaDto;
 import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,18 +17,21 @@ class FacturaFacadeImpl implements FacturaFacade {
     private final ListarFacturas listarFacturas;
     private final EliminarFactura eliminarFactura;
     private final BuscarFactura buscarFactura;
+    private final ListarFacturasPorEmpresa listarFacturasPorEmpresa;
 
     FacturaFacadeImpl(
             CrearFactura crearFactura,
             ObtenerFactura obtenerFactura,
             ListarFacturas listarFacturas,
             EliminarFactura eliminarFactura,
-            BuscarFactura buscarFactura) {
+            BuscarFactura buscarFactura,
+            ListarFacturasPorEmpresa listarFacturasPorEmpresa) {
         this.crearFactura = crearFactura;
         this.obtenerFactura = obtenerFactura;
         this.listarFacturas = listarFacturas;
         this.eliminarFactura = eliminarFactura;
         this.buscarFactura = buscarFactura;
+        this.listarFacturasPorEmpresa = listarFacturasPorEmpresa;
     }
 
     @Override
@@ -53,5 +57,10 @@ class FacturaFacadeImpl implements FacturaFacade {
     @Override
     public Optional<FacturaDto> buscar(Long id) {
         return buscarFactura.ejecutar(id);
+    }
+
+    @Override
+    public List<FacturaDto> listarPorEmpresa(Long empresaId, LocalDate desde, LocalDate hasta) {
+        return listarFacturasPorEmpresa.ejecutar(empresaId, desde, hasta);
     }
 }

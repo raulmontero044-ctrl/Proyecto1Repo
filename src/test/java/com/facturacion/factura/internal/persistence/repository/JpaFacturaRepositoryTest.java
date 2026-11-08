@@ -101,6 +101,21 @@ class JpaFacturaRepositoryTest {
     }
 
     @Test
+    void listarPorEmpresaEntreFechasUsaLaConsultaPorEmpresaYPeriodoConLineas() {
+        LocalDate desde = LocalDate.of(2026, 11, 1);
+        LocalDate hasta = LocalDate.of(2026, 11, 30);
+        when(dao.findAllByEmpresaIdAndFechaBetweenOrderByFechaAscIdAsc(1L, desde, hasta))
+                .thenReturn(List.of(entidad(1L, "F-001"), entidad(2L, "F-002")));
+
+        List<Factura> facturas = repository.listarPorEmpresaEntreFechas(1L, desde, hasta);
+
+        assertThat(facturas).extracting(Factura::numero).containsExactly("F-001", "F-002");
+        assertThat(facturas.get(0).lineas()).extracting(LineaFactura::concepto).containsExactly("Primera", "Segunda");
+        verify(dao, never()).findAll();
+        verify(dao, never()).findAllByOrderByIdAsc();
+    }
+
+    @Test
     void eliminarBorraPorId() {
         repository.eliminar(7L);
 

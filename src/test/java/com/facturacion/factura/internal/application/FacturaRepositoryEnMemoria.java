@@ -4,7 +4,9 @@ import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.model.TipoFactura;
 import com.facturacion.factura.internal.domain.repository.FacturaRepository;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +49,15 @@ class FacturaRepositoryEnMemoria implements FacturaRepository {
     @Override
     public List<Factura> listar() {
         return new ArrayList<>(facturas.values());
+    }
+
+    @Override
+    public List<Factura> listarPorEmpresaEntreFechas(Long empresaId, LocalDate desde, LocalDate hasta) {
+        return facturas.values().stream()
+                .filter(factura -> Objects.equals(factura.empresaId(), empresaId))
+                .filter(factura -> !factura.fecha().isBefore(desde) && !factura.fecha().isAfter(hasta))
+                .sorted(Comparator.comparing(Factura::fecha).thenComparing(Factura::id))
+                .toList();
     }
 
     @Override

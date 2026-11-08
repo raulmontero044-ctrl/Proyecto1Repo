@@ -7,6 +7,7 @@ import com.facturacion.factura.internal.persistence.dao.FacturaDao;
 import com.facturacion.factura.internal.persistence.mapper.FacturaMapper;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +35,13 @@ public class JpaFacturaRepository implements FacturaRepository {
     @Override
     public List<Factura> listar() {
         return dao.findAllByOrderByIdAsc().stream().map(mapper::aDominio).toList();
+    }
+
+    @Override
+    public List<Factura> listarPorEmpresaEntreFechas(Long empresaId, LocalDate desde, LocalDate hasta) {
+        return dao.findAllByEmpresaIdAndFechaBetweenOrderByFechaAscIdAsc(empresaId, desde, hasta).stream()
+                .map(mapper::aDominio)
+                .toList();
     }
 
     @Override
