@@ -69,4 +69,22 @@ class ModulosTest {
                 .map(NamedInterface::getName))
                 .containsExactlyInAnyOrder("facade", "facade-dto");
     }
+
+    @Test
+    void pagosSoloExponeLaFacadeYSusDto() {
+        ApplicationModule pagos = MODULOS.getModuleByName("pagos").orElseThrow();
+
+        assertThat(pagos.getNamedInterfaces().stream()
+                .filter(interfaz -> !interfaz.isUnnamed())
+                .map(NamedInterface::getName))
+                .containsExactlyInAnyOrder("facade", "facade-dto");
+    }
+
+    @Test
+    void pagosSoloDependeDeFactura() {
+        ApplicationModule pagos = MODULOS.getModuleByName("pagos").orElseThrow();
+
+        assertThat(pagos.getDirectDependencies(MODULOS).uniqueModules().map(ApplicationModule::getName))
+                .containsExactlyInAnyOrder("factura");
+    }
 }
