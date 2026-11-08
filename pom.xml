@@ -20,6 +20,7 @@
         <java.version>21</java.version>
         <archunit.version>1.4.2</archunit.version>
         <spring-modulith.version>1.4.14</spring-modulith.version>
+        <openpdf.version>2.4.0</openpdf.version>
     </properties>
 
     <dependencyManagement>
@@ -62,6 +63,11 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>${openpdf.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
