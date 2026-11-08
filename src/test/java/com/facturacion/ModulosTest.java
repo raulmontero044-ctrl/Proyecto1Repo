@@ -33,6 +33,14 @@ class ModulosTest {
     }
 
     @Test
+    void facturaSoloDependeDeEmpresasYTerceros() {
+        ApplicationModule factura = MODULOS.getModuleByName("factura").orElseThrow();
+
+        assertThat(factura.getDirectDependencies(MODULOS).uniqueModules().map(ApplicationModule::getName))
+                .containsExactlyInAnyOrder("empresas", "terceros");
+    }
+
+    @Test
     void empresasSoloExponeLaFacadeYSusDto() {
         ApplicationModule empresas = MODULOS.getModuleByName("empresas").orElseThrow();
 
