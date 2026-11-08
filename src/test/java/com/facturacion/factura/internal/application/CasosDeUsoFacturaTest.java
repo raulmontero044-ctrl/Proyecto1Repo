@@ -1,6 +1,8 @@
 package com.facturacion.factura.internal.application;
 
+import com.facturacion.empresas.api.facade.dto.EmpresaDto;
 import com.facturacion.factura.api.facade.dto.FacturaDto;
+import com.facturacion.terceros.api.facade.dto.TerceroDto;
 import com.facturacion.factura.api.facade.dto.FacturaEliminadaEvento;
 import com.facturacion.factura.api.facade.dto.LineaFacturaDto;
 import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
@@ -67,8 +69,6 @@ class CasosDeUsoFacturaTest {
                 fechaVencimiento,
                 empresaId,
                 terceroId,
-                "Cliente SL",
-                "B12345678",
                 new BigDecimal("21"),
                 lineas);
     }
@@ -98,8 +98,8 @@ class CasosDeUsoFacturaTest {
         assertThat(creada.numero()).isEqualTo("F-001");
         assertThat(creada.tipo()).isEqualTo("EMITIDA");
         assertThat(creada.fecha()).isEqualTo(LocalDate.of(2026, 11, 3));
-        assertThat(creada.clienteNombre()).isEqualTo("Cliente SL");
-        assertThat(creada.clienteNif()).isEqualTo("B12345678");
+        assertThat(creada.terceroNombre()).isEqualTo("Tercero 10 SA");
+        assertThat(creada.terceroNif()).isEqualTo("A000000010");
         assertThat(creada.porcentajeIva()).isEqualByComparingTo("21");
         assertThat(creada.lineas()).extracting(LineaFacturaDto::concepto).containsExactly("Primera", "Segunda");
         assertThat(creada.lineas().get(0).cantidad()).isEqualByComparingTo("2");
@@ -168,6 +168,47 @@ class CasosDeUsoFacturaTest {
         assertThat(emitida.terceroId()).isEqualTo(CLIENTE);
         assertThat(recibida.empresaId()).isEqualTo(EMPRESA);
         assertThat(recibida.terceroId()).isEqualTo(PROVEEDOR);
+    }
+
+    @Test
+    void copiaEnLaFacturaLaFotografiaDeLaEmpresaYDelTercero() {
+        FacturaDto creada = crear.ejecutar(referida("EMITIDA", EMPRESA, CLIENTE));
+
+        assertThat(creada.empresaRazonSocial()).isEqualTo("Empresa 1 SL");
+        assertThat(creada.empresaNif()).isEqualTo("B00000001");
+        assertThat(creada.empresaDireccion()).isEqualTo("Calle Mayor 1, 28001, Madrid, Madrid, España");
+        assertThat(creada.terceroNombre()).isEqualTo("Tercero 10 SA");
+        assertThat(creada.terceroNif()).isEqualTo("A000000010");
+        assertThat(creada.terceroDireccion()).isEqualTo("Avenida Diagonal 2, 08001, Barcelona, Barcelona, España");
+    }
+
+    @Test
+    void losCambiosPosterioresDeEmpresaOTerceroNoAlteranLaFactura() {
+        FacturaDto creada = crear.ejecutar(referida("EMITIDA", EMPRESA, CLIENTE));
+        directorio.registrar(new EmpresaDto(
+                EMPRESA, "Otra razón SL", "B99999999", "Calle Nueva 9", "41001", "Sevilla", "Sevilla", "España",
+                null, null, true));
+        directorio.registrar(new TerceroDto(
+                CLIENTE, EMPRESA, "Z99999999", "Otro nombre SA", null, null, null, null, null,
+                null, null, true, false, true));
+
+        assertThat(obtener.ejecutar(creada.id())).isEqualTo(creada);
+    }
+
+    @Test
+    void componeLaDireccionOmitiendoLasPartesVaciasYAdmiteTerceroSinDireccion() {
+        directorio.registrar(new TerceroDto(
+                60L, EMPRESA, "C1", "Parcial SL", "Plaza 3", " ", "Valencia", null, "España",
+                null, null, true, false, true));
+        directorio.registrar(new TerceroDto(
+                70L, EMPRESA, "C2", "Sin dirección SL", null, null, null, null, null,
+                null, null, true, false, true));
+
+        FacturaDto parcial = crear.ejecutar(nueva("F-001", "EMITIDA", null, EMPRESA, 60L, dosLineas()));
+        FacturaDto sinDireccion = crear.ejecutar(nueva("F-002", "EMITIDA", null, EMPRESA, 70L, dosLineas()));
+
+        assertThat(parcial.terceroDireccion()).isEqualTo("Plaza 3, Valencia, España");
+        assertThat(sinDireccion.terceroDireccion()).isNull();
     }
 
     @Test

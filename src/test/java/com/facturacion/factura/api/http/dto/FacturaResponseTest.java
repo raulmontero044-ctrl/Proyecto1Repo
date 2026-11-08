@@ -30,9 +30,13 @@ class FacturaResponseTest {
                 FECHA,
                 null,
                 1L,
+                "Empresa SL",
+                "B00000001",
+                "Calle Mayor 1, 28001, Madrid, Madrid, España",
                 10L,
                 "Cliente SL",
                 "B12345678",
+                "Avenida Diagonal 2, 08001, Barcelona, Barcelona, España",
                 new BigDecimal("21.00"),
                 List.of(new LineaFacturaDto("Servicio", new BigDecimal("2.000"), new BigDecimal("10.50"), new BigDecimal("21.00"))),
                 new BigDecimal("21.00"),
@@ -45,9 +49,13 @@ class FacturaResponseTest {
                 FECHA,
                 null,
                 1L,
+                "Empresa SL",
+                "B00000001",
+                "Calle Mayor 1, 28001, Madrid, Madrid, España",
                 10L,
                 "Cliente SL",
                 "B12345678",
+                "Avenida Diagonal 2, 08001, Barcelona, Barcelona, España",
                 new BigDecimal("21.00"),
                 List.of(new LineaFacturaResponse("Servicio", new BigDecimal("2.000"), new BigDecimal("10.50"), new BigDecimal("21.00"))),
                 new BigDecimal("21.00"),
@@ -57,8 +65,12 @@ class FacturaResponseTest {
         String json = objectMapper.writeValueAsString(respuesta);
 
         assertThat(json).isEqualTo(objectMapper.writeValueAsString(dto));
-        assertThat(json).isEqualTo("{\"id\":3,\"numero\":\"F-003\",\"tipo\":\"EMITIDA\",\"fecha\":\"2026-11-03\",\"fechaVencimiento\":null,\"empresaId\":1,\"terceroId\":10,"
-                + "\"clienteNombre\":\"Cliente SL\",\"clienteNif\":\"B12345678\",\"porcentajeIva\":21.00,"
+        assertThat(json).isEqualTo("{\"id\":3,\"numero\":\"F-003\",\"tipo\":\"EMITIDA\",\"fecha\":\"2026-11-03\",\"fechaVencimiento\":null,\"empresaId\":1,"
+                + "\"empresaRazonSocial\":\"Empresa SL\",\"empresaNif\":\"B00000001\","
+                + "\"empresaDireccion\":\"Calle Mayor 1, 28001, Madrid, Madrid, España\","
+                + "\"terceroId\":10,\"terceroNombre\":\"Cliente SL\",\"terceroNif\":\"B12345678\","
+                + "\"terceroDireccion\":\"Avenida Diagonal 2, 08001, Barcelona, Barcelona, España\","
+                + "\"porcentajeIva\":21.00,"
                 + "\"lineas\":[{\"concepto\":\"Servicio\",\"cantidad\":2.000,\"precioUnitario\":10.50,\"importe\":21.00}],"
                 + "\"base\":21.00,\"cuotaIva\":4.41,\"total\":25.41}");
     }

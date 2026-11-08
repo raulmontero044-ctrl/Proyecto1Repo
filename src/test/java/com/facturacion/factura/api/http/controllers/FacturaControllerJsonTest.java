@@ -32,8 +32,6 @@ class FacturaControllerJsonTest {
             {
               "numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10,
               "fecha": "2026-11-03",
-              "clienteNombre": "Cliente SL",
-              "clienteNif": "B12345678",
               "porcentajeIva": 21,
               "lineas": [
                 {"concepto": "Primera", "cantidad": 2, "precioUnitario": 10.50},
@@ -65,9 +63,13 @@ class FacturaControllerJsonTest {
                 LocalDate.of(2026, 11, 3),
                 LocalDate.of(2026, 12, 3),
                 1L,
+                "Empresa SL",
+                "B00000001",
+                "Calle Mayor 1, 28001, Madrid, Madrid, España",
                 10L,
                 "Cliente SL",
                 "B12345678",
+                "Avenida Diagonal 2, 08001, Barcelona, Barcelona, España",
                 new BigDecimal("21"),
                 List.of(
                         new LineaFacturaDto("Primera", new BigDecimal("2"), new BigDecimal("10.50"), new BigDecimal("21.00")),
@@ -78,8 +80,12 @@ class FacturaControllerJsonTest {
     }
 
     private static String json(Long id, String numero) {
-        return "{\"id\":" + id + ",\"numero\":\"" + numero + "\",\"tipo\":\"EMITIDA\",\"fecha\":\"2026-11-03\",\"fechaVencimiento\":\"2026-12-03\",\"empresaId\":1,\"terceroId\":10,"
-                + "\"clienteNombre\":\"Cliente SL\",\"clienteNif\":\"B12345678\",\"porcentajeIva\":21,"
+        return "{\"id\":" + id + ",\"numero\":\"" + numero + "\",\"tipo\":\"EMITIDA\",\"fecha\":\"2026-11-03\",\"fechaVencimiento\":\"2026-12-03\",\"empresaId\":1,"
+                + "\"empresaRazonSocial\":\"Empresa SL\",\"empresaNif\":\"B00000001\","
+                + "\"empresaDireccion\":\"Calle Mayor 1, 28001, Madrid, Madrid, España\","
+                + "\"terceroId\":10,\"terceroNombre\":\"Cliente SL\",\"terceroNif\":\"B12345678\","
+                + "\"terceroDireccion\":\"Avenida Diagonal 2, 08001, Barcelona, Barcelona, España\","
+                + "\"porcentajeIva\":21,"
                 + "\"lineas\":["
                 + "{\"concepto\":\"Primera\",\"cantidad\":2,\"precioUnitario\":10.50,\"importe\":21.00},"
                 + "{\"concepto\":\"Segunda\",\"cantidad\":1.5,\"precioUnitario\":4.25,\"importe\":6.38}],"

@@ -31,7 +31,7 @@ public class CrearFactura {
     public FacturaDto ejecutar(NuevaFacturaDto nuevaFactura) {
         EmpresaDto empresa = empresaActiva(nuevaFactura.empresaId());
         TerceroDto tercero = terceroActivoDeLaEmpresa(nuevaFactura.terceroId(), empresa.id());
-        Factura factura = FacturaDtoConverter.aDominio(nuevaFactura);
+        Factura factura = FacturaDtoConverter.aDominio(nuevaFactura, empresa, tercero);
         exigirCondicionDelTercero(factura.tipo(), tercero);
         if (repository.existePorNumero(factura.numero())) {
             throw new NumeroFacturaDuplicadoException(factura.numero());

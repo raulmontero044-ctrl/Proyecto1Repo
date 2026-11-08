@@ -38,14 +38,26 @@ public class FacturaEntity {
     @Column(name = "empresa_id")
     private Long empresaId;
 
+    @Column(name = "empresa_razon_social", length = 200)
+    private String empresaRazonSocial;
+
+    @Column(name = "empresa_nif", length = 20)
+    private String empresaNif;
+
+    @Column(name = "empresa_direccion", length = 600)
+    private String empresaDireccion;
+
     @Column(name = "tercero_id")
     private Long terceroId;
 
-    @Column(name = "cliente_nombre", nullable = false, length = 200)
-    private String clienteNombre;
+    @Column(name = "tercero_nombre", nullable = false, length = 200)
+    private String terceroNombre;
 
-    @Column(name = "cliente_nif", nullable = false, length = 20)
-    private String clienteNif;
+    @Column(name = "tercero_nif", nullable = false, length = 20)
+    private String terceroNif;
+
+    @Column(name = "tercero_direccion", length = 600)
+    private String terceroDireccion;
 
     @Column(name = "porcentaje_iva", nullable = false, precision = 5, scale = 2)
     private BigDecimal porcentajeIva;
@@ -64,9 +76,13 @@ public class FacturaEntity {
             LocalDate fecha,
             LocalDate fechaVencimiento,
             Long empresaId,
+            String empresaRazonSocial,
+            String empresaNif,
+            String empresaDireccion,
             Long terceroId,
-            String clienteNombre,
-            String clienteNif,
+            String terceroNombre,
+            String terceroNif,
+            String terceroDireccion,
             BigDecimal porcentajeIva) {
         this.id = id;
         this.numero = numero;
@@ -74,9 +90,13 @@ public class FacturaEntity {
         this.fecha = fecha;
         this.fechaVencimiento = fechaVencimiento;
         this.empresaId = empresaId;
+        this.empresaRazonSocial = empresaRazonSocial;
+        this.empresaNif = empresaNif;
+        this.empresaDireccion = empresaDireccion;
         this.terceroId = terceroId;
-        this.clienteNombre = clienteNombre;
-        this.clienteNif = clienteNif;
+        this.terceroNombre = terceroNombre;
+        this.terceroNif = terceroNif;
+        this.terceroDireccion = terceroDireccion;
         this.porcentajeIva = porcentajeIva;
     }
 
@@ -109,16 +129,32 @@ public class FacturaEntity {
         return empresaId;
     }
 
+    public String getEmpresaRazonSocial() {
+        return empresaRazonSocial;
+    }
+
+    public String getEmpresaNif() {
+        return empresaNif;
+    }
+
+    public String getEmpresaDireccion() {
+        return empresaDireccion;
+    }
+
     public Long getTerceroId() {
         return terceroId;
     }
 
-    public String getClienteNombre() {
-        return clienteNombre;
+    public String getTerceroNombre() {
+        return terceroNombre;
     }
 
-    public String getClienteNif() {
-        return clienteNif;
+    public String getTerceroNif() {
+        return terceroNif;
+    }
+
+    public String getTerceroDireccion() {
+        return terceroDireccion;
     }
 
     public BigDecimal getPorcentajeIva() {

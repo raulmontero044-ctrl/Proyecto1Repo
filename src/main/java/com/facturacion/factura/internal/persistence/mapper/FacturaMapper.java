@@ -20,9 +20,13 @@ public class FacturaMapper {
                 factura.fecha(),
                 factura.fechaVencimiento(),
                 factura.empresaId(),
+                factura.empresaRazonSocial(),
+                factura.empresaNif(),
+                factura.empresaDireccion(),
                 factura.terceroId(),
-                factura.clienteNombre(),
-                factura.clienteNif(),
+                factura.terceroNombre(),
+                factura.terceroNif(),
+                factura.terceroDireccion(),
                 factura.porcentajeIva());
         List<LineaFactura> lineas = factura.lineas();
         for (int posicion = 0; posicion < lineas.size(); posicion++) {
@@ -50,9 +54,13 @@ public class FacturaMapper {
                 entidad.getFecha(),
                 entidad.getFechaVencimiento(),
                 entidad.getEmpresaId(),
+                entidad.getEmpresaRazonSocial(),
+                entidad.getEmpresaNif(),
+                entidad.getEmpresaDireccion(),
                 entidad.getTerceroId(),
-                entidad.getClienteNombre(),
-                entidad.getClienteNif(),
+                entidad.getTerceroNombre(),
+                entidad.getTerceroNif(),
+                entidad.getTerceroDireccion(),
                 entidad.getPorcentajeIva(),
                 lineas);
     }

@@ -11,8 +11,6 @@ public record NuevaFacturaDto(
         LocalDate fechaVencimiento,
         Long empresaId,
         Long terceroId,
-        String clienteNombre,
-        String clienteNif,
         BigDecimal porcentajeIva,
         List<NuevaLineaFacturaDto> lineas) {
 }

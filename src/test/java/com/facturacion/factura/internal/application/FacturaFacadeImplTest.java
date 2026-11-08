@@ -35,8 +35,6 @@ class FacturaFacadeImplTest {
                 null,
                 1L,
                 10L,
-                "Cliente SL",
-                "B12345678",
                 new BigDecimal("21"),
                 lineas);
     }
