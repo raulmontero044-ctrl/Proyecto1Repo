@@ -76,9 +76,11 @@ public class FacturaController {
                 .toList();
         return new NuevaFacturaDto(
                 request.numero(),
+                request.tipo(),
                 request.fecha(),
-                request.clienteNombre(),
-                request.clienteNif(),
+                request.fechaVencimiento(),
+                request.empresaId(),
+                request.terceroId(),
                 request.porcentajeIva(),
                 lineas);
     }
@@ -94,9 +96,17 @@ public class FacturaController {
         return new FacturaResponse(
                 factura.id(),
                 factura.numero(),
+                factura.tipo(),
                 factura.fecha(),
-                factura.clienteNombre(),
-                factura.clienteNif(),
+                factura.fechaVencimiento(),
+                factura.empresaId(),
+                factura.empresaRazonSocial(),
+                factura.empresaNif(),
+                factura.empresaDireccion(),
+                factura.terceroId(),
+                factura.terceroNombre(),
+                factura.terceroNif(),
+                factura.terceroDireccion(),
                 factura.porcentajeIva(),
                 lineas,
                 factura.base(),

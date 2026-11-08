@@ -1,6 +1,9 @@
 package com.facturacion.factura.internal.application;
 
+import com.facturacion.empresas.api.facade.dto.EmpresaDto;
 import com.facturacion.factura.api.facade.dto.FacturaDto;
+import com.facturacion.terceros.api.facade.dto.TerceroDto;
+import com.facturacion.factura.api.facade.dto.FacturaEliminadaEvento;
 import com.facturacion.factura.api.facade.dto.LineaFacturaDto;
 import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
 import com.facturacion.factura.api.facade.dto.NuevaLineaFacturaDto;
@@ -14,23 +17,63 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.facturacion.factura.internal.application.EmpresasYTercerosEnMemoria.CLIENTE;
+import static com.facturacion.factura.internal.application.EmpresasYTercerosEnMemoria.EMPRESA;
+import static com.facturacion.factura.internal.application.EmpresasYTercerosEnMemoria.PROVEEDOR;
+import static com.facturacion.factura.internal.application.EmpresasYTercerosEnMemoria.empresa;
+import static com.facturacion.factura.internal.application.EmpresasYTercerosEnMemoria.tercero;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CasosDeUsoFacturaTest {
 
     private final FacturaRepositoryEnMemoria repository = new FacturaRepositoryEnMemoria();
-    private final CrearFactura crear = new CrearFactura(repository);
+    private final EmpresasYTercerosEnMemoria directorio = new EmpresasYTercerosEnMemoria();
+    private final CrearFactura crear = new CrearFactura(
+            repository, directorio.empresaFacade(), directorio.terceroFacade());
     private final ObtenerFactura obtener = new ObtenerFactura(repository);
     private final ListarFacturas listar = new ListarFacturas(repository);
-    private final EliminarFactura eliminar = new EliminarFactura(repository);
+    private final BuscarFactura buscar = new BuscarFactura(repository);
+    private final ListarFacturasPorEmpresa listarPorEmpresa = new ListarFacturasPorEmpresa(repository);
+    private final List<Object> eventos = new ArrayList<>();
+    private final EliminarFactura eliminar = new EliminarFactura(repository, eventos::add);
 
     private static NuevaFacturaDto nueva(String numero, List<NuevaLineaFacturaDto> lineas) {
+        return nueva(numero, "EMITIDA", lineas);
+    }
+
+    private static NuevaFacturaDto nueva(String numero, String tipo, List<NuevaLineaFacturaDto> lineas) {
+        return nueva(numero, tipo, null, lineas);
+    }
+
+    private static NuevaFacturaDto nueva(
+            String numero, String tipo, LocalDate fechaVencimiento, List<NuevaLineaFacturaDto> lineas) {
+        Long terceroId = "RECIBIDA".equals(tipo) ? PROVEEDOR : CLIENTE;
+        return nueva(numero, tipo, fechaVencimiento, EMPRESA, terceroId, lineas);
+    }
+
+    private static NuevaFacturaDto delDia(String numero, Long empresaId, Long terceroId, LocalDate fecha) {
+        return new NuevaFacturaDto(numero, "EMITIDA", fecha, null, empresaId, terceroId, new BigDecimal("21"), dosLineas());
+    }
+
+    private static NuevaFacturaDto referida(String tipo, Long empresaId, Long terceroId) {
+        return nueva("F-001", tipo, null, empresaId, terceroId, dosLineas());
+    }
+
+    private static NuevaFacturaDto nueva(
+            String numero,
+            String tipo,
+            LocalDate fechaVencimiento,
+            Long empresaId,
+            Long terceroId,
+            List<NuevaLineaFacturaDto> lineas) {
         return new NuevaFacturaDto(
                 numero,
+                tipo,
                 LocalDate.of(2026, 11, 3),
-                "Cliente SL",
-                "B12345678",
+                fechaVencimiento,
+                empresaId,
+                terceroId,
                 new BigDecimal("21"),
                 lineas);
     }
@@ -58,9 +101,10 @@ class CasosDeUsoFacturaTest {
         FacturaDto creada = crear.ejecutar(nueva("F-001", dosLineas()));
 
         assertThat(creada.numero()).isEqualTo("F-001");
+        assertThat(creada.tipo()).isEqualTo("EMITIDA");
         assertThat(creada.fecha()).isEqualTo(LocalDate.of(2026, 11, 3));
-        assertThat(creada.clienteNombre()).isEqualTo("Cliente SL");
-        assertThat(creada.clienteNif()).isEqualTo("B12345678");
+        assertThat(creada.terceroNombre()).isEqualTo("Tercero 10 SA");
+        assertThat(creada.terceroNif()).isEqualTo("A000000010");
         assertThat(creada.porcentajeIva()).isEqualByComparingTo("21");
         assertThat(creada.lineas()).extracting(LineaFacturaDto::concepto).containsExactly("Primera", "Segunda");
         assertThat(creada.lineas().get(0).cantidad()).isEqualByComparingTo("2");
@@ -80,6 +124,185 @@ class CasosDeUsoFacturaTest {
         assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", conCantidadCero)))
                 .isInstanceOf(FacturaInvalidaException.class);
         assertThat(listar.ejecutar()).isEmpty();
+    }
+
+    @Test
+    void creaFacturaRecibidaConservandoSuTipo() {
+        FacturaDto creada = crear.ejecutar(nueva("P-001", "RECIBIDA", dosLineas()));
+
+        assertThat(creada.tipo()).isEqualTo("RECIBIDA");
+        assertThat(obtener.ejecutar(creada.id()).tipo()).isEqualTo("RECIBIDA");
+    }
+
+    @Test
+    void rechazaTipoNuloOInexistenteSinGuardarNada() {
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", null, dosLineas())))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El tipo de factura es obligatorio");
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", "ABONO", dosLineas())))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El tipo de factura debe ser EMITIDA o RECIBIDA");
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", "emitida", dosLineas())))
+                .isInstanceOf(FacturaInvalidaException.class);
+        assertThat(listar.ejecutar()).isEmpty();
+    }
+
+    @Test
+    void conservaLaFechaDeVencimientoOpcional() {
+        FacturaDto conVencimiento = crear.ejecutar(nueva("F-001", "EMITIDA", LocalDate.of(2026, 12, 3), dosLineas()));
+        FacturaDto sinVencimiento = crear.ejecutar(nueva("F-002", dosLineas()));
+
+        assertThat(obtener.ejecutar(conVencimiento.id()).fechaVencimiento()).isEqualTo(LocalDate.of(2026, 12, 3));
+        assertThat(obtener.ejecutar(sinVencimiento.id()).fechaVencimiento()).isNull();
+    }
+
+    @Test
+    void rechazaVencimientoAnteriorALaFechaSinGuardarNada() {
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", "EMITIDA", LocalDate.of(2026, 11, 2), dosLineas())))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La fecha de vencimiento no puede ser anterior a la fecha de la factura");
+        assertThat(listar.ejecutar()).isEmpty();
+    }
+
+    @Test
+    void creaFacturasConLaEmpresaYElTerceroIndicados() {
+        FacturaDto emitida = crear.ejecutar(referida("EMITIDA", EMPRESA, CLIENTE));
+        FacturaDto recibida = crear.ejecutar(nueva("P-001", "RECIBIDA", dosLineas()));
+
+        assertThat(emitida.empresaId()).isEqualTo(EMPRESA);
+        assertThat(emitida.terceroId()).isEqualTo(CLIENTE);
+        assertThat(recibida.empresaId()).isEqualTo(EMPRESA);
+        assertThat(recibida.terceroId()).isEqualTo(PROVEEDOR);
+    }
+
+    @Test
+    void copiaEnLaFacturaLaFotografiaDeLaEmpresaYDelTercero() {
+        FacturaDto creada = crear.ejecutar(referida("EMITIDA", EMPRESA, CLIENTE));
+
+        assertThat(creada.empresaRazonSocial()).isEqualTo("Empresa 1 SL");
+        assertThat(creada.empresaNif()).isEqualTo("B00000001");
+        assertThat(creada.empresaDireccion()).isEqualTo("Calle Mayor 1, 28001, Madrid, Madrid, España");
+        assertThat(creada.terceroNombre()).isEqualTo("Tercero 10 SA");
+        assertThat(creada.terceroNif()).isEqualTo("A000000010");
+        assertThat(creada.terceroDireccion()).isEqualTo("Avenida Diagonal 2, 08001, Barcelona, Barcelona, España");
+    }
+
+    @Test
+    void losCambiosPosterioresDeEmpresaOTerceroNoAlteranLaFactura() {
+        FacturaDto creada = crear.ejecutar(referida("EMITIDA", EMPRESA, CLIENTE));
+        directorio.registrar(new EmpresaDto(
+                EMPRESA, "Otra razón SL", "B99999999", "Calle Nueva 9", "41001", "Sevilla", "Sevilla", "España",
+                null, null, true));
+        directorio.registrar(new TerceroDto(
+                CLIENTE, EMPRESA, "Z99999999", "Otro nombre SA", null, null, null, null, null,
+                null, null, true, false, true));
+
+        assertThat(obtener.ejecutar(creada.id())).isEqualTo(creada);
+    }
+
+    @Test
+    void componeLaDireccionOmitiendoLasPartesVaciasYAdmiteTerceroSinDireccion() {
+        directorio.registrar(new TerceroDto(
+                60L, EMPRESA, "C1", "Parcial SL", "Plaza 3", " ", "Valencia", null, "España",
+                null, null, true, false, true));
+        directorio.registrar(new TerceroDto(
+                70L, EMPRESA, "C2", "Sin dirección SL", null, null, null, null, null,
+                null, null, true, false, true));
+
+        FacturaDto parcial = crear.ejecutar(nueva("F-001", "EMITIDA", null, EMPRESA, 60L, dosLineas()));
+        FacturaDto sinDireccion = crear.ejecutar(nueva("F-002", "EMITIDA", null, EMPRESA, 70L, dosLineas()));
+
+        assertThat(parcial.terceroDireccion()).isEqualTo("Plaza 3, Valencia, España");
+        assertThat(sinDireccion.terceroDireccion()).isNull();
+    }
+
+    @Test
+    void aceptaUnTerceroQueEsClienteYProveedorEnAmbosTipos() {
+        directorio.registrar(tercero(30L, EMPRESA, true, true, true));
+
+        crear.ejecutar(nueva("F-001", "EMITIDA", null, EMPRESA, 30L, dosLineas()));
+        crear.ejecutar(nueva("P-001", "RECIBIDA", null, EMPRESA, 30L, dosLineas()));
+
+        assertThat(listar.ejecutar()).extracting(FacturaDto::terceroId).containsExactly(30L, 30L);
+    }
+
+    @Test
+    void rechazaEmpresaAusenteInexistenteOInactivaSinGuardarNada() {
+        directorio.registrar(empresa(2L, false));
+
+        assertThatThrownBy(() -> crear.ejecutar(referida("EMITIDA", null, CLIENTE)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La empresa de la factura es obligatoria");
+        assertThatThrownBy(() -> crear.ejecutar(referida("EMITIDA", 99L, CLIENTE)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("No existe la empresa con id 99");
+        assertThatThrownBy(() -> crear.ejecutar(referida("EMITIDA", 2L, CLIENTE)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La empresa con id 2 no está activa");
+        assertThat(listar.ejecutar()).isEmpty();
+    }
+
+    @Test
+    void rechazaTerceroAusenteInexistenteInactivoODeOtraEmpresaSinGuardarNada() {
+        directorio.registrar(empresa(2L, true));
+        directorio.registrar(tercero(40L, 2L, true, true, true));
+        directorio.registrar(tercero(50L, EMPRESA, true, true, false));
+
+        assertThatThrownBy(() -> crear.ejecutar(referida("EMITIDA", EMPRESA, null)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El tercero de la factura es obligatorio");
+        assertThatThrownBy(() -> crear.ejecutar(referida("EMITIDA", EMPRESA, 99L)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("No existe el tercero con id 99");
+        assertThatThrownBy(() -> crear.ejecutar(referida("EMITIDA", EMPRESA, 40L)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El tercero con id 40 no pertenece a la empresa con id 1");
+        assertThatThrownBy(() -> crear.ejecutar(referida("EMITIDA", EMPRESA, 50L)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El tercero con id 50 no está activo");
+        assertThat(listar.ejecutar()).isEmpty();
+    }
+
+    @Test
+    void rechazaTerceroSinLaCondicionQueExigeElTipoSinGuardarNada() {
+        assertThatThrownBy(() -> crear.ejecutar(referida("EMITIDA", EMPRESA, PROVEEDOR)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("Una factura EMITIDA requiere un tercero cliente y el tercero con id 20 no lo es");
+        assertThatThrownBy(() -> crear.ejecutar(referida("RECIBIDA", EMPRESA, CLIENTE)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("Una factura RECIBIDA requiere un tercero proveedor y el tercero con id 10 no lo es");
+        assertThat(listar.ejecutar()).isEmpty();
+    }
+
+    @Test
+    void listarPorEmpresaIncluyeAmbosExtremosDelPeriodoYOrdenaPorFecha() {
+        directorio.registrar(empresa(2L, true));
+        directorio.registrar(tercero(80L, 2L, true, false, true));
+        crear.ejecutar(delDia("F-04", EMPRESA, CLIENTE, LocalDate.of(2026, 11, 30)));
+        crear.ejecutar(delDia("F-02", EMPRESA, CLIENTE, LocalDate.of(2026, 11, 1)));
+        crear.ejecutar(delDia("F-01", EMPRESA, CLIENTE, LocalDate.of(2026, 10, 31)));
+        crear.ejecutar(delDia("F-03", EMPRESA, CLIENTE, LocalDate.of(2026, 11, 15)));
+        crear.ejecutar(delDia("F-05", EMPRESA, CLIENTE, LocalDate.of(2026, 12, 1)));
+        crear.ejecutar(delDia("G-01", 2L, 80L, LocalDate.of(2026, 11, 15)));
+
+        List<FacturaDto> noviembre = listarPorEmpresa.ejecutar(
+                EMPRESA, LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30));
+
+        assertThat(noviembre).extracting(FacturaDto::numero).containsExactly("F-02", "F-03", "F-04");
+        assertThat(noviembre).allSatisfy(factura -> {
+            assertThat(factura.empresaId()).isEqualTo(EMPRESA);
+            assertThat(factura.total()).isEqualByComparingTo("30.55");
+        });
+    }
+
+    @Test
+    void listarPorEmpresaDevuelveVacioSinFacturasEnElPeriodo() {
+        crear.ejecutar(delDia("F-01", EMPRESA, CLIENTE, LocalDate.of(2026, 11, 3)));
+
+        assertThat(listarPorEmpresa.ejecutar(EMPRESA, LocalDate.of(2026, 12, 1), LocalDate.of(2026, 12, 31))).isEmpty();
+        assertThat(listarPorEmpresa.ejecutar(99L, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31))).isEmpty();
+        assertThat(listarPorEmpresa.ejecutar(EMPRESA, LocalDate.of(2026, 11, 3), LocalDate.of(2026, 11, 3)))
+                .extracting(FacturaDto::numero).containsExactly("F-01");
     }
 
     @Test
@@ -104,6 +327,44 @@ class CasosDeUsoFacturaTest {
         assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", dosLineas())))
                 .isInstanceOf(NumeroFacturaDuplicadoException.class);
         assertThat(listar.ejecutar()).hasSize(1);
+    }
+
+    @Test
+    void elNumeroDeUnaEmitidaSoloSeRepiteEnOtraEmpresa() {
+        directorio.registrar(empresa(2L, true));
+        directorio.registrar(tercero(80L, 2L, true, false, true));
+        crear.ejecutar(nueva("F-001", "EMITIDA", null, EMPRESA, CLIENTE, dosLineas()));
+        directorio.registrar(tercero(30L, EMPRESA, true, false, true));
+
+        crear.ejecutar(nueva("F-001", "EMITIDA", null, 2L, 80L, dosLineas()));
+
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", "EMITIDA", null, EMPRESA, 30L, dosLineas())))
+                .isInstanceOf(NumeroFacturaDuplicadoException.class)
+                .hasMessage("Ya existe una factura con el número F-001");
+        assertThat(listar.ejecutar()).hasSize(2);
+    }
+
+    @Test
+    void elNumeroDeUnaRecibidaEsUnicoPorEmpresaYProveedor() {
+        directorio.registrar(tercero(30L, EMPRESA, false, true, true));
+        crear.ejecutar(nueva("P-001", "RECIBIDA", null, EMPRESA, PROVEEDOR, dosLineas()));
+
+        crear.ejecutar(nueva("P-001", "RECIBIDA", null, EMPRESA, 30L, dosLineas()));
+
+        assertThatThrownBy(() -> crear.ejecutar(nueva("P-001", "RECIBIDA", null, EMPRESA, PROVEEDOR, dosLineas())))
+                .isInstanceOf(NumeroFacturaDuplicadoException.class)
+                .hasMessage("Ya existe una factura con el número P-001");
+        assertThat(listar.ejecutar()).hasSize(2);
+    }
+
+    @Test
+    void unaEmitidaYUnaRecibidaPuedenCompartirNumero() {
+        directorio.registrar(tercero(30L, EMPRESA, true, true, true));
+
+        crear.ejecutar(nueva("F-001", "EMITIDA", null, EMPRESA, 30L, dosLineas()));
+        crear.ejecutar(nueva("F-001", "RECIBIDA", null, EMPRESA, 30L, dosLineas()));
+
+        assertThat(listar.ejecutar()).extracting(FacturaDto::tipo).containsExactly("EMITIDA", "RECIBIDA");
     }
 
     @Test
@@ -138,5 +399,35 @@ class CasosDeUsoFacturaTest {
 
         assertThat(listar.ejecutar()).isEmpty();
         assertThatThrownBy(() -> eliminar.ejecutar(id)).isInstanceOf(FacturaNoEncontradaException.class);
+    }
+
+    @Test
+    void buscarDevuelveLaFacturaExistenteConSusTotales() {
+        FacturaDto creada = crear.ejecutar(nueva("F-001", dosLineas()));
+
+        assertThat(buscar.ejecutar(creada.id())).contains(creada);
+        assertThat(buscar.ejecutar(creada.id())).hasValueSatisfying(
+                factura -> assertThat(factura.total()).isEqualByComparingTo("30.55"));
+    }
+
+    @Test
+    void buscarFacturaInexistenteDevuelveVacioSinLanzar() {
+        assertThat(buscar.ejecutar(99L)).isEmpty();
+    }
+
+    @Test
+    void eliminarPublicaElEventoDeFacturaEliminadaConSuId() {
+        Long id = crear.ejecutar(nueva("F-001", dosLineas())).id();
+
+        eliminar.ejecutar(id);
+
+        assertThat(eventos).containsExactly(new FacturaEliminadaEvento(id));
+    }
+
+    @Test
+    void eliminarFacturaInexistenteNoPublicaNingunEvento() {
+        assertThatThrownBy(() -> eliminar.ejecutar(99L)).isInstanceOf(FacturaNoEncontradaException.class);
+
+        assertThat(eventos).isEmpty();
     }
 }

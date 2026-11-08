@@ -2,6 +2,7 @@ package com.facturacion.factura.internal.domain.service;
 
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.model.LineaFactura;
+import com.facturacion.factura.internal.domain.model.TipoFactura;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -19,7 +20,7 @@ class CalculadoraFacturaTest {
     }
 
     private static Factura factura(String iva, List<LineaFactura> lineas) {
-        return Factura.nueva("F-001", FECHA, "Cliente SL", "B12345678", new BigDecimal(iva), lineas);
+        return Factura.nueva("F-001", TipoFactura.EMITIDA, FECHA, null, 1L, "Empresa SL", "B00000001", "Calle Mayor 1", 10L, "Cliente SL", "B12345678", null, new BigDecimal(iva), lineas);
     }
 
     @Test

@@ -19,18 +19,23 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class FacturaFacadeImplTest {
 
     private final FacturaRepositoryEnMemoria repository = new FacturaRepositoryEnMemoria();
+    private final EmpresasYTercerosEnMemoria directorio = new EmpresasYTercerosEnMemoria();
     private final FacturaFacade facade = new FacturaFacadeImpl(
-            new CrearFactura(repository),
+            new CrearFactura(repository, directorio.empresaFacade(), directorio.terceroFacade()),
             new ObtenerFactura(repository),
             new ListarFacturas(repository),
-            new EliminarFactura(repository));
+            new EliminarFactura(repository, evento -> { }),
+            new BuscarFactura(repository),
+            new ListarFacturasPorEmpresa(repository));
 
     private static NuevaFacturaDto nueva(String numero, List<NuevaLineaFacturaDto> lineas) {
         return new NuevaFacturaDto(
                 numero,
+                "EMITIDA",
                 LocalDate.of(2026, 11, 3),
-                "Cliente SL",
-                "B12345678",
+                null,
+                1L,
+                10L,
                 new BigDecimal("21"),
                 lineas);
     }
@@ -84,6 +89,28 @@ class FacturaFacadeImplTest {
         assertThatThrownBy(() -> facade.obtener(99L))
                 .isInstanceOf(FacturaNoEncontradaException.class)
                 .hasMessage("No existe la factura con id 99");
+    }
+
+    @Test
+    void buscarDevuelveLaMismaFacturaQueSeCreo() {
+        FacturaDto creada = facade.crear(nueva("F-001"));
+
+        assertThat(facade.buscar(creada.id())).contains(creada);
+    }
+
+    @Test
+    void buscarFacturaInexistenteDevuelveVacio() {
+        assertThat(facade.buscar(99L)).isEmpty();
+    }
+
+    @Test
+    void listarPorEmpresaDevuelveLasFacturasDeLaEmpresaEnElPeriodoInclusive() {
+        FacturaDto creada = facade.crear(nueva("F-001"));
+
+        assertThat(facade.listarPorEmpresa(1L, LocalDate.of(2026, 11, 3), LocalDate.of(2026, 11, 3)))
+                .containsExactly(creada);
+        assertThat(facade.listarPorEmpresa(1L, LocalDate.of(2026, 11, 4), LocalDate.of(2026, 12, 31))).isEmpty();
+        assertThat(facade.listarPorEmpresa(2L, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31))).isEmpty();
     }
 
     @Test

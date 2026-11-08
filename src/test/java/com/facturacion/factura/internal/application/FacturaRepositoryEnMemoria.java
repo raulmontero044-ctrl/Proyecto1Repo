@@ -1,12 +1,16 @@
 package com.facturacion.factura.internal.application;
 
 import com.facturacion.factura.internal.domain.model.Factura;
+import com.facturacion.factura.internal.domain.model.TipoFactura;
 import com.facturacion.factura.internal.domain.repository.FacturaRepository;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 class FacturaRepositoryEnMemoria implements FacturaRepository {
@@ -20,9 +24,17 @@ class FacturaRepositoryEnMemoria implements FacturaRepository {
         Factura guardada = new Factura(
                 id,
                 factura.numero(),
+                factura.tipo(),
                 factura.fecha(),
-                factura.clienteNombre(),
-                factura.clienteNif(),
+                factura.fechaVencimiento(),
+                factura.empresaId(),
+                factura.empresaRazonSocial(),
+                factura.empresaNif(),
+                factura.empresaDireccion(),
+                factura.terceroId(),
+                factura.terceroNombre(),
+                factura.terceroNif(),
+                factura.terceroDireccion(),
                 factura.porcentajeIva(),
                 factura.lineas());
         facturas.put(id, guardada);
@@ -40,12 +52,31 @@ class FacturaRepositoryEnMemoria implements FacturaRepository {
     }
 
     @Override
+    public List<Factura> listarPorEmpresaEntreFechas(Long empresaId, LocalDate desde, LocalDate hasta) {
+        return facturas.values().stream()
+                .filter(factura -> Objects.equals(factura.empresaId(), empresaId))
+                .filter(factura -> !factura.fecha().isBefore(desde) && !factura.fecha().isAfter(hasta))
+                .sorted(Comparator.comparing(Factura::fecha).thenComparing(Factura::id))
+                .toList();
+    }
+
+    @Override
     public void eliminar(Long id) {
         facturas.remove(id);
     }
 
     @Override
-    public boolean existePorNumero(String numero) {
-        return facturas.values().stream().anyMatch(factura -> factura.numero().equals(numero));
+    public boolean existeEmitidaPorNumero(Long empresaId, String numero) {
+        return facturas.values().stream().anyMatch(factura -> factura.tipo() == TipoFactura.EMITIDA
+                && Objects.equals(factura.empresaId(), empresaId)
+                && factura.numero().equals(numero));
+    }
+
+    @Override
+    public boolean existeRecibidaPorNumero(Long empresaId, Long terceroId, String numero) {
+        return facturas.values().stream().anyMatch(factura -> factura.tipo() == TipoFactura.RECIBIDA
+                && Objects.equals(factura.empresaId(), empresaId)
+                && Objects.equals(factura.terceroId(), terceroId)
+                && factura.numero().equals(numero));
     }
 }

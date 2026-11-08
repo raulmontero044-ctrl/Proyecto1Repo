@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -40,10 +41,8 @@ class FacturaControllerTest {
 
     private static final String PETICION_VALIDA = """
             {
-              "numero": "F-001",
+              "numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10,
               "fecha": "2026-11-03",
-              "clienteNombre": "Cliente SL",
-              "clienteNif": "B12345678",
               "porcentajeIva": 21,
               "lineas": [
                 {"concepto": "Servicio", "cantidad": 2, "precioUnitario": 10.50}
@@ -70,9 +69,17 @@ class FacturaControllerTest {
         return new FacturaDto(
                 id,
                 "F-001",
+                "EMITIDA",
                 LocalDate.of(2026, 11, 3),
+                null,
+                1L,
+                "Empresa SL",
+                "B00000001",
+                "Calle Mayor 1, 28001, Madrid, Madrid, España",
+                10L,
                 "Cliente SL",
                 "B12345678",
+                "Avenida Diagonal 2, 08001, Barcelona, Barcelona, España",
                 new BigDecimal("21"),
                 List.of(new LineaFacturaDto("Servicio", new BigDecimal("2"), new BigDecimal("10.50"), new BigDecimal("21.00"))),
                 new BigDecimal("21.00"),
@@ -94,8 +101,8 @@ class FacturaControllerTest {
     @Test
     void rechazaPeticionInvalidaCon400SinInvocarCasoDeUso() throws Exception {
         String invalida = """
-                {"numero": "", "fecha": "2026-11-03", "clienteNombre": "Cliente SL",
-                 "clienteNif": "B12345678", "porcentajeIva": -1, "lineas": []}
+                {"numero": "", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10, "fecha": "2026-11-03",
+                 "porcentajeIva": -1, "lineas": []}
                 """;
 
         mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON).content(invalida))
@@ -115,13 +122,13 @@ class FacturaControllerTest {
     }
 
     private static String peticion(
-            String numero, String clienteNombre, String clienteNif, String porcentajeIva,
+            String numero, String porcentajeIva,
             String concepto, String cantidad, String precioUnitario) {
         return """
-                {"numero": "%s", "fecha": "2026-11-03", "clienteNombre": "%s", "clienteNif": "%s",
+                {"numero": "%s", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10, "fecha": "2026-11-03",
                  "porcentajeIva": %s,
                  "lineas": [{"concepto": "%s", "cantidad": %s, "precioUnitario": %s}]}
-                """.formatted(numero, clienteNombre, clienteNif, porcentajeIva, concepto, cantidad, precioUnitario);
+                """.formatted(numero, porcentajeIva, concepto, cantidad, precioUnitario);
     }
 
     private void esperarRechazo(String cuerpo) throws Exception {
@@ -131,22 +138,20 @@ class FacturaControllerTest {
 
     @Test
     void rechazaTextosMasLargosQueSusColumnas() throws Exception {
-        esperarRechazo(peticion("F".repeat(51), "Cliente SL", "B12345678", "21", "Servicio", "1", "1"));
-        esperarRechazo(peticion("F-001", "C".repeat(201), "B12345678", "21", "Servicio", "1", "1"));
-        esperarRechazo(peticion("F-001", "Cliente SL", "N".repeat(21), "21", "Servicio", "1", "1"));
-        esperarRechazo(peticion("F-001", "Cliente SL", "B12345678", "21", "S".repeat(501), "1", "1"));
+        esperarRechazo(peticion("F".repeat(51), "21", "Servicio", "1", "1"));
+        esperarRechazo(peticion("F-001", "21", "S".repeat(501), "1", "1"));
 
         verify(crearFactura, never()).ejecutar(any());
     }
 
     @Test
     void rechazaNumerosFueraDeLaPrecisionDeSusColumnas() throws Exception {
-        esperarRechazo(peticion("F-001", "Cliente SL", "B12345678", "21.555", "Servicio", "1", "1"));
-        esperarRechazo(peticion("F-001", "Cliente SL", "B12345678", "1000", "Servicio", "1", "1"));
-        esperarRechazo(peticion("F-001", "Cliente SL", "B12345678", "21", "Servicio", "0.0004", "1"));
-        esperarRechazo(peticion("F-001", "Cliente SL", "B12345678", "21", "Servicio", "1000000000", "1"));
-        esperarRechazo(peticion("F-001", "Cliente SL", "B12345678", "21", "Servicio", "1", "10.555"));
-        esperarRechazo(peticion("F-001", "Cliente SL", "B12345678", "21", "Servicio", "1", "10000000000"));
+        esperarRechazo(peticion("F-001", "21.555", "Servicio", "1", "1"));
+        esperarRechazo(peticion("F-001", "1000", "Servicio", "1", "1"));
+        esperarRechazo(peticion("F-001", "21", "Servicio", "0.0004", "1"));
+        esperarRechazo(peticion("F-001", "21", "Servicio", "1000000000", "1"));
+        esperarRechazo(peticion("F-001", "21", "Servicio", "1", "10.555"));
+        esperarRechazo(peticion("F-001", "21", "Servicio", "1", "10000000000"));
 
         verify(crearFactura, never()).ejecutar(any());
     }
@@ -155,7 +160,7 @@ class FacturaControllerTest {
     void aceptaValoresEnElLimiteDeSusColumnas() throws Exception {
         when(crearFactura.ejecutar(any(NuevaFacturaDto.class))).thenReturn(factura(1L));
         String enLimite = peticion(
-                "F".repeat(50), "C".repeat(200), "N".repeat(20), "999.99",
+                "F".repeat(50), "999.99",
                 "S".repeat(500), "999999999.001", "9999999999.99");
 
         mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON).content(enLimite))
@@ -165,23 +170,69 @@ class FacturaControllerTest {
     @Test
     void rechazaCamposObligatoriosAusentes() throws Exception {
         esperarRechazo("""
-                {"numero": "F-001", "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
+                {"numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10,
                  "porcentajeIva": 21, "lineas": [{"concepto": "Servicio", "cantidad": 1, "precioUnitario": 1}]}
                 """);
         esperarRechazo("""
-                {"numero": "F-001", "fecha": "2026-11-03", "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
+                {"numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10, "fecha": "2026-11-03",
                  "lineas": [{"concepto": "Servicio", "cantidad": 1, "precioUnitario": 1}]}
                 """);
         esperarRechazo("""
-                {"numero": "F-001", "fecha": "2026-11-03", "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
+                {"numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10, "fecha": "2026-11-03",
                  "porcentajeIva": 21, "lineas": [{"concepto": "Servicio", "cantidad": 1}]}
                 """);
         esperarRechazo("""
-                {"numero": "F-001", "fecha": "2026-11-03", "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
+                {"numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10, "fecha": "2026-11-03",
                  "porcentajeIva": 21, "lineas": [null]}
                 """);
 
         verify(crearFactura, never()).ejecutar(any());
+    }
+
+    @Test
+    void rechazaTipoAusenteOFueraDeLosValoresPermitidos() throws Exception {
+        esperarRechazo(PETICION_VALIDA.replace("\"tipo\": \"EMITIDA\",", ""));
+        esperarRechazo(PETICION_VALIDA.replace("\"tipo\": \"EMITIDA\"", "\"tipo\": null"));
+        esperarRechazo(PETICION_VALIDA.replace("\"tipo\": \"EMITIDA\"", "\"tipo\": \"ABONO\""));
+        esperarRechazo(PETICION_VALIDA.replace("\"tipo\": \"EMITIDA\"", "\"tipo\": \"emitida\""));
+        esperarRechazo(PETICION_VALIDA.replace("\"tipo\": \"EMITIDA\"", "\"tipo\": \"EMITIDA \""));
+
+        verify(crearFactura, never()).ejecutar(any());
+    }
+
+    @Test
+    void rechazaEmpresaOTerceroAusentesONoNumericos() throws Exception {
+        esperarRechazo(PETICION_VALIDA.replace("\"empresaId\": 1,", ""));
+        esperarRechazo(PETICION_VALIDA.replace("\"terceroId\": 10,", ""));
+        esperarRechazo(PETICION_VALIDA.replace("\"empresaId\": 1,", "\"empresaId\": null,"));
+        esperarRechazo(PETICION_VALIDA.replace("\"terceroId\": 10,", "\"terceroId\": \"diez\","));
+
+        verify(crearFactura, never()).ejecutar(any());
+    }
+
+    @Test
+    void aceptaYTrasladaElTipoRecibida() throws Exception {
+        when(crearFactura.ejecutar(any(NuevaFacturaDto.class))).thenReturn(factura(1L));
+
+        mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON)
+                        .content(PETICION_VALIDA.replace("\"tipo\": \"EMITIDA\"", "\"tipo\": \"RECIBIDA\"")))
+                .andExpect(status().isCreated());
+
+        verify(crearFactura).ejecutar(argThat(nueva -> "RECIBIDA".equals(nueva.tipo())));
+    }
+
+    @Test
+    void trasladaLaFechaDeVencimientoOpcionalYRechazaSuFormatoInvalido() throws Exception {
+        when(crearFactura.ejecutar(any(NuevaFacturaDto.class))).thenReturn(factura(1L));
+        String conVencimiento = PETICION_VALIDA.replace(
+                "\"fecha\": \"2026-11-03\",", "\"fecha\": \"2026-11-03\", \"fechaVencimiento\": \"2026-12-03\",");
+
+        mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON).content(conVencimiento))
+                .andExpect(status().isCreated());
+        esperarRechazo(PETICION_VALIDA.replace(
+                "\"fecha\": \"2026-11-03\",", "\"fecha\": \"2026-11-03\", \"fechaVencimiento\": \"03/12/2026\","));
+
+        verify(crearFactura).ejecutar(argThat(nueva -> LocalDate.of(2026, 12, 3).equals(nueva.fechaVencimiento())));
     }
 
     @Test
@@ -203,9 +254,11 @@ class FacturaControllerTest {
 
         verify(crearFactura).ejecutar(new NuevaFacturaDto(
                 "F-001",
+                "EMITIDA",
                 LocalDate.of(2026, 11, 3),
-                "Cliente SL",
-                "B12345678",
+                null,
+                1L,
+                10L,
                 new BigDecimal("21"),
                 List.of(new NuevaLineaFacturaDto("Servicio", new BigDecimal("2"), new BigDecimal("10.50")))));
     }
@@ -242,12 +295,34 @@ class FacturaControllerTest {
     }
 
     @Test
+    void empresaOTerceroNoValidosParaLaFacturaDevuelven400ConElMotivo() throws Exception {
+        when(crearFactura.ejecutar(any()))
+                .thenThrow(new FacturaInvalidaException("No existe la empresa con id 1"))
+                .thenThrow(new FacturaInvalidaException(
+                        "Una factura EMITIDA requiere un tercero cliente y el tercero con id 10 no lo es"));
+
+        mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON).content(PETICION_VALIDA))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("No existe la empresa con id 1"));
+        mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON).content(PETICION_VALIDA))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail")
+                        .value("Una factura EMITIDA requiere un tercero cliente y el tercero con id 10 no lo es"));
+    }
+
+    @Test
     void obtieneFacturaPorId() throws Exception {
         when(obtenerFactura.ejecutar(1L)).thenReturn(factura(1L));
 
         mockMvc.perform(get("/api/facturas/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.numero").value("F-001"))
+                .andExpect(jsonPath("$.tipo").value("EMITIDA"))
+                .andExpect(jsonPath("$.empresaRazonSocial").value("Empresa SL"))
+                .andExpect(jsonPath("$.terceroNombre").value("Cliente SL"))
+                .andExpect(jsonPath("$.terceroNif").value("B12345678"))
+                .andExpect(jsonPath("$.clienteNombre").doesNotExist())
                 .andExpect(jsonPath("$.lineas[0].importe").value(21.00));
     }
 

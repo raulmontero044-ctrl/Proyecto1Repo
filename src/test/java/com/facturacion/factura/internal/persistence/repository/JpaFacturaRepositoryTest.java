@@ -2,6 +2,7 @@ package com.facturacion.factura.internal.persistence.repository;
 
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.model.LineaFactura;
+import com.facturacion.factura.internal.domain.model.TipoFactura;
 import com.facturacion.factura.internal.persistence.dao.FacturaDao;
 import com.facturacion.factura.internal.persistence.entity.FacturaEntity;
 import com.facturacion.factura.internal.persistence.entity.LineaFacturaEntity;
@@ -29,7 +30,8 @@ class JpaFacturaRepositoryTest {
     private final JpaFacturaRepository repository = new JpaFacturaRepository(dao, new FacturaMapper());
 
     private static FacturaEntity entidad(Long id, String numero) {
-        FacturaEntity entidad = new FacturaEntity(id, numero, FECHA, "Cliente SL", "B12345678", new BigDecimal("21.00"));
+        FacturaEntity entidad = new FacturaEntity(
+                id, numero, "EMITIDA", FECHA, null, 1L, "Empresa SL", "B00000001", "Calle Mayor 1", 10L, "Cliente SL", "B12345678", null, new BigDecimal("21.00"));
         entidad.agregarLinea(new LineaFacturaEntity(0, "Primera", new BigDecimal("2"), new BigDecimal("10.50")));
         entidad.agregarLinea(new LineaFacturaEntity(1, "Segunda", new BigDecimal("1"), new BigDecimal("4.25")));
         return entidad;
@@ -40,9 +42,17 @@ class JpaFacturaRepositoryTest {
         when(dao.save(any(FacturaEntity.class))).thenReturn(entidad(5L, "F-001"));
         Factura nueva = Factura.nueva(
                 "F-001",
+                TipoFactura.EMITIDA,
                 FECHA,
+                null,
+                1L,
+                "Empresa SL",
+                "B00000001",
+                "Calle Mayor 1, 28001, Madrid, Madrid, España",
+                10L,
                 "Cliente SL",
                 "B12345678",
+                "Avenida Diagonal 2, 08001, Barcelona, Barcelona, España",
                 new BigDecimal("21.00"),
                 List.of(
                         new LineaFactura("Primera", new BigDecimal("2"), new BigDecimal("10.50")),
@@ -91,6 +101,21 @@ class JpaFacturaRepositoryTest {
     }
 
     @Test
+    void listarPorEmpresaEntreFechasUsaLaConsultaPorEmpresaYPeriodoConLineas() {
+        LocalDate desde = LocalDate.of(2026, 11, 1);
+        LocalDate hasta = LocalDate.of(2026, 11, 30);
+        when(dao.findAllByEmpresaIdAndFechaBetweenOrderByFechaAscIdAsc(1L, desde, hasta))
+                .thenReturn(List.of(entidad(1L, "F-001"), entidad(2L, "F-002")));
+
+        List<Factura> facturas = repository.listarPorEmpresaEntreFechas(1L, desde, hasta);
+
+        assertThat(facturas).extracting(Factura::numero).containsExactly("F-001", "F-002");
+        assertThat(facturas.get(0).lineas()).extracting(LineaFactura::concepto).containsExactly("Primera", "Segunda");
+        verify(dao, never()).findAll();
+        verify(dao, never()).findAllByOrderByIdAsc();
+    }
+
+    @Test
     void eliminarBorraPorId() {
         repository.eliminar(7L);
 
@@ -98,11 +123,22 @@ class JpaFacturaRepositoryTest {
     }
 
     @Test
-    void existePorNumeroUsaLaConsultaDeExistencia() {
-        when(dao.existsByNumero("F-001")).thenReturn(true);
+    void existeEmitidaPorNumeroUsaLaConsultaDeExistenciaPorEmpresaYTipo() {
+        when(dao.existsByEmpresaIdAndTipoAndNumero(1L, "EMITIDA", "F-001")).thenReturn(true);
 
-        assertThat(repository.existePorNumero("F-001")).isTrue();
-        assertThat(repository.existePorNumero("F-002")).isFalse();
+        assertThat(repository.existeEmitidaPorNumero(1L, "F-001")).isTrue();
+        assertThat(repository.existeEmitidaPorNumero(1L, "F-002")).isFalse();
+        assertThat(repository.existeEmitidaPorNumero(2L, "F-001")).isFalse();
+        verify(dao, never()).findAll();
+    }
+
+    @Test
+    void existeRecibidaPorNumeroUsaLaConsultaDeExistenciaPorEmpresaTerceroYTipo() {
+        when(dao.existsByEmpresaIdAndTerceroIdAndTipoAndNumero(1L, 20L, "RECIBIDA", "P-001")).thenReturn(true);
+
+        assertThat(repository.existeRecibidaPorNumero(1L, 20L, "P-001")).isTrue();
+        assertThat(repository.existeRecibidaPorNumero(1L, 30L, "P-001")).isFalse();
+        assertThat(repository.existeRecibidaPorNumero(1L, 20L, "P-002")).isFalse();
         verify(dao, never()).findAll();
     }
 }

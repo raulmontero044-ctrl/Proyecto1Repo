@@ -6,9 +6,11 @@ import java.util.List;
 
 public record NuevaFacturaDto(
         String numero,
+        String tipo,
         LocalDate fecha,
-        String clienteNombre,
-        String clienteNif,
+        LocalDate fechaVencimiento,
+        Long empresaId,
+        Long terceroId,
         BigDecimal porcentajeIva,
         List<NuevaLineaFacturaDto> lineas) {
 }

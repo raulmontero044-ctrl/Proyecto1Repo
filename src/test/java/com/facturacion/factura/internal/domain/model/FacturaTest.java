@@ -14,13 +14,146 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class FacturaTest {
 
     private static final LocalDate FECHA = LocalDate.of(2026, 11, 3);
+    private static final String DIRECCION_EMPRESA = "Calle Mayor 1, 28001, Madrid, Madrid, España";
 
     private static LineaFactura linea(String cantidad, String precio) {
         return new LineaFactura("Servicio", new BigDecimal(cantidad), new BigDecimal(precio));
     }
 
+    private static Factura completa(
+            TipoFactura tipo,
+            LocalDate fechaVencimiento,
+            Long empresaId,
+            String empresaRazonSocial,
+            String empresaNif,
+            String empresaDireccion,
+            Long terceroId,
+            String terceroDireccion) {
+        return Factura.nueva(
+                "F-1", tipo, FECHA, fechaVencimiento,
+                empresaId, empresaRazonSocial, empresaNif, empresaDireccion,
+                terceroId, "Cliente", "NIF", terceroDireccion,
+                BigDecimal.TEN, List.of(linea("1", "1")));
+    }
+
+    private static Factura conEmpresa(Long empresaId, String razonSocial, String nif, String direccion) {
+        return completa(TipoFactura.EMITIDA, null, empresaId, razonSocial, nif, direccion, 10L, null);
+    }
+
+    private static Factura nueva(
+            String numero, LocalDate fecha, String nombre, String nif, BigDecimal iva, List<LineaFactura> lineas) {
+        return Factura.nueva(
+                numero, TipoFactura.EMITIDA, fecha, null,
+                1L, "Empresa SL", "B00000001", DIRECCION_EMPRESA,
+                10L, nombre, nif, null,
+                iva, lineas);
+    }
+
     private static Factura factura(String iva, List<LineaFactura> lineas) {
-        return Factura.nueva("F-001", FECHA, "Cliente SL", "B12345678", new BigDecimal(iva), lineas);
+        return nueva("F-001", FECHA, "Cliente SL", "B12345678", new BigDecimal(iva), lineas);
+    }
+
+    @Test
+    void conservaElTipoDeLaFactura() {
+        Factura recibida = completa(TipoFactura.RECIBIDA, null, 1L, "Empresa SL", "B1", DIRECCION_EMPRESA, 10L, null);
+
+        assertThat(recibida.tipo()).isEqualTo(TipoFactura.RECIBIDA);
+    }
+
+    private static Factura conVencimiento(LocalDate fechaVencimiento) {
+        return completa(TipoFactura.EMITIDA, fechaVencimiento, 1L, "Empresa SL", "B1", DIRECCION_EMPRESA, 10L, null);
+    }
+
+    @Test
+    void aceptaVencimientoAusenteIgualOPosteriorALaFecha() {
+        assertThat(conVencimiento(null).fechaVencimiento()).isNull();
+        assertThat(conVencimiento(FECHA).fechaVencimiento()).isEqualTo(FECHA);
+        assertThat(conVencimiento(FECHA.plusDays(30)).fechaVencimiento()).isEqualTo(LocalDate.of(2026, 12, 3));
+    }
+
+    @Test
+    void rechazaVencimientoAnteriorALaFecha() {
+        assertThatThrownBy(() -> conVencimiento(FECHA.minusDays(1)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La fecha de vencimiento no puede ser anterior a la fecha de la factura");
+    }
+
+    @Test
+    void nuevaExigeEmpresaYTercero() {
+        assertThatThrownBy(() -> completa(TipoFactura.EMITIDA, null, null, "Empresa SL", "B1", DIRECCION_EMPRESA, 10L, null))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La empresa de la factura es obligatoria");
+        assertThatThrownBy(() -> completa(TipoFactura.EMITIDA, null, 1L, "Empresa SL", "B1", DIRECCION_EMPRESA, null, null))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El tercero de la factura es obligatorio");
+    }
+
+    @Test
+    void nuevaExigeLaFotografiaDeLaEmpresa() {
+        assertThatThrownBy(() -> conEmpresa(1L, null, "B1", DIRECCION_EMPRESA))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La razón social de la empresa es obligatoria");
+        assertThatThrownBy(() -> conEmpresa(1L, "Empresa SL", " ", DIRECCION_EMPRESA))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El NIF de la empresa es obligatorio");
+        assertThatThrownBy(() -> conEmpresa(1L, "Empresa SL", "B1", ""))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La dirección de la empresa es obligatoria");
+        assertThatThrownBy(() -> conEmpresa(1L, "Empresa SL", "B1", null))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La dirección de la empresa es obligatoria");
+    }
+
+    @Test
+    void conservaLaFotografiaDeEmpresaYTerceroYAdmiteTerceroSinDireccion() {
+        Factura conDireccion = completa(
+                TipoFactura.EMITIDA, null, 1L, "Empresa SL", "B1", DIRECCION_EMPRESA, 10L, "Avenida 2, 08001, Barcelona");
+        Factura sinDireccion = completa(TipoFactura.EMITIDA, null, 1L, "Empresa SL", "B1", DIRECCION_EMPRESA, 10L, null);
+
+        assertThat(conDireccion.empresaRazonSocial()).isEqualTo("Empresa SL");
+        assertThat(conDireccion.empresaNif()).isEqualTo("B1");
+        assertThat(conDireccion.empresaDireccion()).isEqualTo(DIRECCION_EMPRESA);
+        assertThat(conDireccion.terceroNombre()).isEqualTo("Cliente");
+        assertThat(conDireccion.terceroNif()).isEqualTo("NIF");
+        assertThat(conDireccion.terceroDireccion()).isEqualTo("Avenida 2, 08001, Barcelona");
+        assertThat(sinDireccion.terceroDireccion()).isNull();
+    }
+
+    @Test
+    void limitaLasDireccionesDeLaFotografiaA600Caracteres() {
+        assertThat(conEmpresa(1L, "Empresa SL", "B1", "D".repeat(600)).empresaDireccion()).hasSize(600);
+        assertThat(completa(TipoFactura.EMITIDA, null, 1L, "Empresa SL", "B1", DIRECCION_EMPRESA, 10L, "T".repeat(600))
+                .terceroDireccion()).hasSize(600);
+        assertThatThrownBy(() -> conEmpresa(1L, "Empresa SL", "B1", "D".repeat(601)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La dirección de la empresa no puede superar 600 caracteres");
+        assertThatThrownBy(() -> completa(
+                TipoFactura.EMITIDA, null, 1L, "Empresa SL", "B1", DIRECCION_EMPRESA, 10L, "T".repeat(601)))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La dirección del tercero no puede superar 600 caracteres");
+    }
+
+    @Test
+    void laReconstruccionToleraFilasAnterioresSinEmpresaNiTerceroNiFotografia() {
+        Factura anterior = new Factura(
+                3L, "F-3", TipoFactura.EMITIDA, FECHA, null,
+                null, null, null, null,
+                null, "Cliente", "NIF", null,
+                BigDecimal.TEN, List.of(linea("1", "1")));
+
+        assertThat(anterior.empresaId()).isNull();
+        assertThat(anterior.empresaRazonSocial()).isNull();
+        assertThat(anterior.empresaNif()).isNull();
+        assertThat(anterior.empresaDireccion()).isNull();
+        assertThat(anterior.terceroId()).isNull();
+        assertThat(anterior.terceroDireccion()).isNull();
+    }
+
+    @Test
+    void rechazaFacturaSinTipo() {
+        assertThatThrownBy(() -> completa(null, null, 1L, "Empresa SL", "B1", DIRECCION_EMPRESA, 10L, null))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El tipo de factura es obligatorio");
     }
 
     @Test
@@ -54,13 +187,13 @@ class FacturaTest {
     void rechazaDatosObligatoriosVacios() {
         List<LineaFactura> lineas = List.of(linea("1", "1"));
 
-        assertThatThrownBy(() -> Factura.nueva(" ", FECHA, "Cliente", "NIF", BigDecimal.TEN, lineas))
+        assertThatThrownBy(() -> nueva(" ", FECHA, "Cliente", "NIF", BigDecimal.TEN, lineas))
                 .isInstanceOf(FacturaInvalidaException.class);
-        assertThatThrownBy(() -> Factura.nueva("F-1", null, "Cliente", "NIF", BigDecimal.TEN, lineas))
+        assertThatThrownBy(() -> nueva("F-1", null, "Cliente", "NIF", BigDecimal.TEN, lineas))
                 .isInstanceOf(FacturaInvalidaException.class);
-        assertThatThrownBy(() -> Factura.nueva("F-1", FECHA, "", "NIF", BigDecimal.TEN, lineas))
+        assertThatThrownBy(() -> nueva("F-1", FECHA, "", "NIF", BigDecimal.TEN, lineas))
                 .isInstanceOf(FacturaInvalidaException.class);
-        assertThatThrownBy(() -> Factura.nueva("F-1", FECHA, "Cliente", null, BigDecimal.TEN, lineas))
+        assertThatThrownBy(() -> nueva("F-1", FECHA, "Cliente", null, BigDecimal.TEN, lineas))
                 .isInstanceOf(FacturaInvalidaException.class);
     }
 
@@ -68,15 +201,15 @@ class FacturaTest {
     void rechazaNumeroYClienteNulosYNifEnBlanco() {
         List<LineaFactura> lineas = List.of(linea("1", "1"));
 
-        assertThatThrownBy(() -> Factura.nueva(null, FECHA, "Cliente", "NIF", BigDecimal.TEN, lineas))
+        assertThatThrownBy(() -> nueva(null, FECHA, "Cliente", "NIF", BigDecimal.TEN, lineas))
                 .isInstanceOf(FacturaInvalidaException.class)
                 .hasMessage("El número de factura es obligatorio");
-        assertThatThrownBy(() -> Factura.nueva("F-1", FECHA, null, "NIF", BigDecimal.TEN, lineas))
+        assertThatThrownBy(() -> nueva("F-1", FECHA, null, "NIF", BigDecimal.TEN, lineas))
                 .isInstanceOf(FacturaInvalidaException.class)
-                .hasMessage("El nombre del cliente es obligatorio");
-        assertThatThrownBy(() -> Factura.nueva("F-1", FECHA, "Cliente", "  ", BigDecimal.TEN, lineas))
+                .hasMessage("El nombre del tercero es obligatorio");
+        assertThatThrownBy(() -> nueva("F-1", FECHA, "Cliente", "  ", BigDecimal.TEN, lineas))
                 .isInstanceOf(FacturaInvalidaException.class)
-                .hasMessage("El NIF del cliente es obligatorio");
+                .hasMessage("El NIF del tercero es obligatorio");
     }
 
     @Test
@@ -84,7 +217,7 @@ class FacturaTest {
         List<LineaFactura> conNula = new ArrayList<>();
         conNula.add(null);
 
-        assertThatThrownBy(() -> Factura.nueva("F-1", null, "Cliente", "NIF", BigDecimal.TEN, List.of(linea("1", "1"))))
+        assertThatThrownBy(() -> nueva("F-1", null, "Cliente", "NIF", BigDecimal.TEN, List.of(linea("1", "1"))))
                 .hasMessage("La fecha de la factura es obligatoria");
         assertThatThrownBy(() -> factura("-0.01", List.of(linea("1", "1"))))
                 .hasMessage("El porcentaje de IVA no puede ser negativo");
@@ -125,7 +258,7 @@ class FacturaTest {
 
     @Test
     void rechazaIvaNulo() {
-        assertThatThrownBy(() -> Factura.nueva("F-1", FECHA, "Cliente", "NIF", null, List.of(linea("1", "1"))))
+        assertThatThrownBy(() -> nueva("F-1", FECHA, "Cliente", "NIF", null, List.of(linea("1", "1"))))
                 .isInstanceOf(FacturaInvalidaException.class);
     }
 

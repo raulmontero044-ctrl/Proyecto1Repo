@@ -2,6 +2,7 @@ package com.facturacion.factura.internal.persistence.mapper;
 
 import com.facturacion.factura.internal.domain.model.Factura;
 import com.facturacion.factura.internal.domain.model.LineaFactura;
+import com.facturacion.factura.internal.domain.model.TipoFactura;
 import com.facturacion.factura.internal.persistence.entity.FacturaEntity;
 import com.facturacion.factura.internal.persistence.entity.LineaFacturaEntity;
 import org.springframework.stereotype.Component;
@@ -15,9 +16,17 @@ public class FacturaMapper {
         FacturaEntity entidad = new FacturaEntity(
                 factura.id(),
                 factura.numero(),
+                factura.tipo().name(),
                 factura.fecha(),
-                factura.clienteNombre(),
-                factura.clienteNif(),
+                factura.fechaVencimiento(),
+                factura.empresaId(),
+                factura.empresaRazonSocial(),
+                factura.empresaNif(),
+                factura.empresaDireccion(),
+                factura.terceroId(),
+                factura.terceroNombre(),
+                factura.terceroNif(),
+                factura.terceroDireccion(),
                 factura.porcentajeIva());
         List<LineaFactura> lineas = factura.lineas();
         for (int posicion = 0; posicion < lineas.size(); posicion++) {
@@ -41,9 +50,17 @@ public class FacturaMapper {
         return new Factura(
                 entidad.getId(),
                 entidad.getNumero(),
+                TipoFactura.valueOf(entidad.getTipo()),
                 entidad.getFecha(),
-                entidad.getClienteNombre(),
-                entidad.getClienteNif(),
+                entidad.getFechaVencimiento(),
+                entidad.getEmpresaId(),
+                entidad.getEmpresaRazonSocial(),
+                entidad.getEmpresaNif(),
+                entidad.getEmpresaDireccion(),
+                entidad.getTerceroId(),
+                entidad.getTerceroNombre(),
+                entidad.getTerceroNif(),
+                entidad.getTerceroDireccion(),
                 entidad.getPorcentajeIva(),
                 lineas);
     }
