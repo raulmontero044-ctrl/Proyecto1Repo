@@ -11,6 +11,7 @@ import com.facturacion.documentos.internal.domain.model.LineaImprimible;
 import com.facturacion.documentos.internal.domain.model.OrigenDocumento;
 import com.facturacion.documentos.internal.domain.model.TipoContenido;
 import com.facturacion.documentos.internal.domain.model.TipoFactura;
+import com.facturacion.documentos.internal.domain.repository.DocumentoRepository;
 import com.facturacion.documentos.internal.domain.service.GeneradorPdfFactura;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,9 +26,12 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class CasosDeUsoDocumentoTest {
 
@@ -276,6 +280,17 @@ class CasosDeUsoDocumentoTest {
         assertThatThrownBy(() -> descargarDocumento.ejecutar(99L))
                 .isInstanceOf(DocumentoNoEncontradoException.class)
                 .hasMessage("No existe el documento con id 99");
+    }
+
+    @Test
+    void descargarUnDocumentoSinContenidoGuardadoFalla() {
+        DocumentoRepository sinContenido = mock(DocumentoRepository.class);
+        when(sinContenido.buscarPorId(5L)).thenReturn(Optional.of(guardado(EntidadTipo.FACTURA, 10L)));
+        when(sinContenido.buscarContenido(5L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> new DescargarDocumento(sinContenido).ejecutar(5L))
+                .isInstanceOf(DocumentoNoEncontradoException.class)
+                .hasMessage("No existe el documento con id 5");
     }
 
     @Test
