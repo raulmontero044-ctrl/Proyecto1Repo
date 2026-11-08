@@ -88,4 +88,19 @@ class ModulosTest {
         assertThat(pagos.getDirectDependencies(MODULOS).uniqueModules().map(ApplicationModule::getName))
                 .containsExactlyInAnyOrder("factura");
     }
+
+    @Test
+    void documentosNoExponeNingunaInterfazConNombre() {
+        ApplicationModule documentos = MODULOS.getModuleByName("documentos").orElseThrow();
+
+        assertThat(documentos.getNamedInterfaces().stream().filter(interfaz -> !interfaz.isUnnamed())).isEmpty();
+    }
+
+    @Test
+    void documentosSoloDependeDeFacturaEmpresasTercerosYPagos() {
+        ApplicationModule documentos = MODULOS.getModuleByName("documentos").orElseThrow();
+
+        assertThat(documentos.getDirectDependencies(MODULOS).uniqueModules().map(ApplicationModule::getName))
+                .containsExactlyInAnyOrder("factura", "empresas", "terceros", "pagos");
+    }
 }
