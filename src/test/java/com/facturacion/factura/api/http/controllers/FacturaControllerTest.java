@@ -295,6 +295,23 @@ class FacturaControllerTest {
     }
 
     @Test
+    void empresaOTerceroNoValidosParaLaFacturaDevuelven400ConElMotivo() throws Exception {
+        when(crearFactura.ejecutar(any()))
+                .thenThrow(new FacturaInvalidaException("No existe la empresa con id 1"))
+                .thenThrow(new FacturaInvalidaException(
+                        "Una factura EMITIDA requiere un tercero cliente y el tercero con id 10 no lo es"));
+
+        mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON).content(PETICION_VALIDA))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("No existe la empresa con id 1"));
+        mockMvc.perform(post("/api/facturas").contentType(MediaType.APPLICATION_JSON).content(PETICION_VALIDA))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail")
+                        .value("Una factura EMITIDA requiere un tercero cliente y el tercero con id 10 no lo es"));
+    }
+
+    @Test
     void obtieneFacturaPorId() throws Exception {
         when(obtenerFactura.ejecutar(1L)).thenReturn(factura(1L));
 

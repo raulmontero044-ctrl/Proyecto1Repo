@@ -122,6 +122,29 @@ class FacturaControllerJsonTest {
     }
 
     @Test
+    void obtenerUnaFacturaAnteriorALaAmpliacionDevuelveLosCamposNuevosANull() throws Exception {
+        when(obtenerFactura.ejecutar(3L)).thenReturn(new FacturaDto(
+                3L, "F-003", "EMITIDA", LocalDate.of(2026, 11, 3), null,
+                null, null, null, null,
+                null, "Cliente SL", "B12345678", null,
+                new BigDecimal("21"),
+                List.of(new LineaFacturaDto("Primera", new BigDecimal("2"), new BigDecimal("10.50"), new BigDecimal("21.00"))),
+                new BigDecimal("21.00"),
+                new BigDecimal("4.41"),
+                new BigDecimal("25.41")));
+
+        mockMvc.perform(get("/api/facturas/3"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("{\"id\":3,\"numero\":\"F-003\",\"tipo\":\"EMITIDA\","
+                        + "\"fecha\":\"2026-11-03\",\"fechaVencimiento\":null,"
+                        + "\"empresaId\":null,\"empresaRazonSocial\":null,\"empresaNif\":null,\"empresaDireccion\":null,"
+                        + "\"terceroId\":null,\"terceroNombre\":\"Cliente SL\",\"terceroNif\":\"B12345678\","
+                        + "\"terceroDireccion\":null,\"porcentajeIva\":21,"
+                        + "\"lineas\":[{\"concepto\":\"Primera\",\"cantidad\":2,\"precioUnitario\":10.50,\"importe\":21.00}],"
+                        + "\"base\":21.00,\"cuotaIva\":4.41,\"total\":25.41}"));
+    }
+
+    @Test
     void listarSinFacturasDevuelveUnArrayJsonVacio() throws Exception {
         when(listarFacturas.ejecutar()).thenReturn(List.of());
 
