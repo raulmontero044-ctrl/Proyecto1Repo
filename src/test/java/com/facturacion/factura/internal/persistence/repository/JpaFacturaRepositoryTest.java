@@ -108,11 +108,22 @@ class JpaFacturaRepositoryTest {
     }
 
     @Test
-    void existePorNumeroUsaLaConsultaDeExistencia() {
-        when(dao.existsByNumero("F-001")).thenReturn(true);
+    void existeEmitidaPorNumeroUsaLaConsultaDeExistenciaPorEmpresaYTipo() {
+        when(dao.existsByEmpresaIdAndTipoAndNumero(1L, "EMITIDA", "F-001")).thenReturn(true);
 
-        assertThat(repository.existePorNumero("F-001")).isTrue();
-        assertThat(repository.existePorNumero("F-002")).isFalse();
+        assertThat(repository.existeEmitidaPorNumero(1L, "F-001")).isTrue();
+        assertThat(repository.existeEmitidaPorNumero(1L, "F-002")).isFalse();
+        assertThat(repository.existeEmitidaPorNumero(2L, "F-001")).isFalse();
+        verify(dao, never()).findAll();
+    }
+
+    @Test
+    void existeRecibidaPorNumeroUsaLaConsultaDeExistenciaPorEmpresaTerceroYTipo() {
+        when(dao.existsByEmpresaIdAndTerceroIdAndTipoAndNumero(1L, 20L, "RECIBIDA", "P-001")).thenReturn(true);
+
+        assertThat(repository.existeRecibidaPorNumero(1L, 20L, "P-001")).isTrue();
+        assertThat(repository.existeRecibidaPorNumero(1L, 30L, "P-001")).isFalse();
+        assertThat(repository.existeRecibidaPorNumero(1L, 20L, "P-002")).isFalse();
         verify(dao, never()).findAll();
     }
 }

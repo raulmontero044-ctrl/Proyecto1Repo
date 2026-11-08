@@ -15,5 +15,7 @@ public interface FacturaRepository {
 
     void eliminar(Long id);
 
-    boolean existePorNumero(String numero);
+    boolean existeEmitidaPorNumero(Long empresaId, String numero);
+
+    boolean existeRecibidaPorNumero(Long empresaId, Long terceroId, String numero);
 }

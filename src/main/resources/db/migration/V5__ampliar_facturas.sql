@@ -8,3 +8,5 @@ ALTER TABLE factura ADD COLUMN empresa_direccion VARCHAR(600) NULL;
 ALTER TABLE factura RENAME COLUMN cliente_nombre TO tercero_nombre;
 ALTER TABLE factura RENAME COLUMN cliente_nif TO tercero_nif;
 ALTER TABLE factura ADD COLUMN tercero_direccion VARCHAR(600) NULL;
+ALTER TABLE factura DROP INDEX uk_factura_numero;
+CREATE INDEX ix_factura_empresa_numero ON factura (empresa_id, numero);

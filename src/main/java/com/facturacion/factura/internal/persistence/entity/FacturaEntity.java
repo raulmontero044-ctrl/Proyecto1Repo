@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
@@ -16,14 +17,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "factura")
+@Table(name = "factura", indexes = @Index(name = "ix_factura_empresa_numero", columnList = "empresa_id, numero"))
 public class FacturaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "numero", nullable = false, unique = true, length = 50)
+    @Column(name = "numero", nullable = false, length = 50)
     private String numero;
 
     @Column(name = "tipo", nullable = false, length = 10)

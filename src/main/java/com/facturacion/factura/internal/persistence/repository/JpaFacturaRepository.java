@@ -1,6 +1,7 @@
 package com.facturacion.factura.internal.persistence.repository;
 
 import com.facturacion.factura.internal.domain.model.Factura;
+import com.facturacion.factura.internal.domain.model.TipoFactura;
 import com.facturacion.factura.internal.domain.repository.FacturaRepository;
 import com.facturacion.factura.internal.persistence.dao.FacturaDao;
 import com.facturacion.factura.internal.persistence.mapper.FacturaMapper;
@@ -41,7 +42,13 @@ public class JpaFacturaRepository implements FacturaRepository {
     }
 
     @Override
-    public boolean existePorNumero(String numero) {
-        return dao.existsByNumero(numero);
+    public boolean existeEmitidaPorNumero(Long empresaId, String numero) {
+        return dao.existsByEmpresaIdAndTipoAndNumero(empresaId, TipoFactura.EMITIDA.name(), numero);
+    }
+
+    @Override
+    public boolean existeRecibidaPorNumero(Long empresaId, Long terceroId, String numero) {
+        return dao.existsByEmpresaIdAndTerceroIdAndTipoAndNumero(
+                empresaId, terceroId, TipoFactura.RECIBIDA.name(), numero);
     }
 }

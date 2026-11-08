@@ -15,5 +15,7 @@ public interface FacturaDao extends JpaRepository<FacturaEntity, Long> {
     @EntityGraph(attributePaths = "lineas")
     List<FacturaEntity> findAllByOrderByIdAsc();
 
-    boolean existsByNumero(String numero);
+    boolean existsByEmpresaIdAndTipoAndNumero(Long empresaId, String tipo, String numero);
+
+    boolean existsByEmpresaIdAndTerceroIdAndTipoAndNumero(Long empresaId, Long terceroId, String tipo, String numero);
 }

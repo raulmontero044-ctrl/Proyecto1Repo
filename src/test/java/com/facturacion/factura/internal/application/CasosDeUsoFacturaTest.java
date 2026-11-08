@@ -294,6 +294,44 @@ class CasosDeUsoFacturaTest {
     }
 
     @Test
+    void elNumeroDeUnaEmitidaSoloSeRepiteEnOtraEmpresa() {
+        directorio.registrar(empresa(2L, true));
+        directorio.registrar(tercero(80L, 2L, true, false, true));
+        crear.ejecutar(nueva("F-001", "EMITIDA", null, EMPRESA, CLIENTE, dosLineas()));
+        directorio.registrar(tercero(30L, EMPRESA, true, false, true));
+
+        crear.ejecutar(nueva("F-001", "EMITIDA", null, 2L, 80L, dosLineas()));
+
+        assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", "EMITIDA", null, EMPRESA, 30L, dosLineas())))
+                .isInstanceOf(NumeroFacturaDuplicadoException.class)
+                .hasMessage("Ya existe una factura con el número F-001");
+        assertThat(listar.ejecutar()).hasSize(2);
+    }
+
+    @Test
+    void elNumeroDeUnaRecibidaEsUnicoPorEmpresaYProveedor() {
+        directorio.registrar(tercero(30L, EMPRESA, false, true, true));
+        crear.ejecutar(nueva("P-001", "RECIBIDA", null, EMPRESA, PROVEEDOR, dosLineas()));
+
+        crear.ejecutar(nueva("P-001", "RECIBIDA", null, EMPRESA, 30L, dosLineas()));
+
+        assertThatThrownBy(() -> crear.ejecutar(nueva("P-001", "RECIBIDA", null, EMPRESA, PROVEEDOR, dosLineas())))
+                .isInstanceOf(NumeroFacturaDuplicadoException.class)
+                .hasMessage("Ya existe una factura con el número P-001");
+        assertThat(listar.ejecutar()).hasSize(2);
+    }
+
+    @Test
+    void unaEmitidaYUnaRecibidaPuedenCompartirNumero() {
+        directorio.registrar(tercero(30L, EMPRESA, true, true, true));
+
+        crear.ejecutar(nueva("F-001", "EMITIDA", null, EMPRESA, 30L, dosLineas()));
+        crear.ejecutar(nueva("F-001", "RECIBIDA", null, EMPRESA, 30L, dosLineas()));
+
+        assertThat(listar.ejecutar()).extracting(FacturaDto::tipo).containsExactly("EMITIDA", "RECIBIDA");
+    }
+
+    @Test
     void rechazaFacturaSinLineas() {
         assertThatThrownBy(() -> crear.ejecutar(nueva("F-001", List.of())))
                 .isInstanceOf(FacturaInvalidaException.class);

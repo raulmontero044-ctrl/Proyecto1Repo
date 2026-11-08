@@ -33,10 +33,17 @@ public class CrearFactura {
         TerceroDto tercero = terceroActivoDeLaEmpresa(nuevaFactura.terceroId(), empresa.id());
         Factura factura = FacturaDtoConverter.aDominio(nuevaFactura, empresa, tercero);
         exigirCondicionDelTercero(factura.tipo(), tercero);
-        if (repository.existePorNumero(factura.numero())) {
+        exigirNumeroLibre(factura);
+        return FacturaDtoConverter.aDto(repository.guardar(factura));
+    }
+
+    private void exigirNumeroLibre(Factura factura) {
+        boolean duplicado = factura.tipo() == TipoFactura.EMITIDA
+                ? repository.existeEmitidaPorNumero(factura.empresaId(), factura.numero())
+                : repository.existeRecibidaPorNumero(factura.empresaId(), factura.terceroId(), factura.numero());
+        if (duplicado) {
             throw new NumeroFacturaDuplicadoException(factura.numero());
         }
-        return FacturaDtoConverter.aDto(repository.guardar(factura));
     }
 
     private EmpresaDto empresaActiva(Long empresaId) {

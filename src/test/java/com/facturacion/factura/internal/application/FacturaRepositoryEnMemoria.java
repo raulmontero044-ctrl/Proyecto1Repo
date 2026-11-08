@@ -1,12 +1,14 @@
 package com.facturacion.factura.internal.application;
 
 import com.facturacion.factura.internal.domain.model.Factura;
+import com.facturacion.factura.internal.domain.model.TipoFactura;
 import com.facturacion.factura.internal.domain.repository.FacturaRepository;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 class FacturaRepositoryEnMemoria implements FacturaRepository {
@@ -53,7 +55,17 @@ class FacturaRepositoryEnMemoria implements FacturaRepository {
     }
 
     @Override
-    public boolean existePorNumero(String numero) {
-        return facturas.values().stream().anyMatch(factura -> factura.numero().equals(numero));
+    public boolean existeEmitidaPorNumero(Long empresaId, String numero) {
+        return facturas.values().stream().anyMatch(factura -> factura.tipo() == TipoFactura.EMITIDA
+                && Objects.equals(factura.empresaId(), empresaId)
+                && factura.numero().equals(numero));
+    }
+
+    @Override
+    public boolean existeRecibidaPorNumero(Long empresaId, Long terceroId, String numero) {
+        return facturas.values().stream().anyMatch(factura -> factura.tipo() == TipoFactura.RECIBIDA
+                && Objects.equals(factura.empresaId(), empresaId)
+                && Objects.equals(factura.terceroId(), terceroId)
+                && factura.numero().equals(numero));
     }
 }
