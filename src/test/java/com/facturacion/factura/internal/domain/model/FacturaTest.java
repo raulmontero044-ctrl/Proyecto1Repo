@@ -21,7 +21,7 @@ class FacturaTest {
 
     private static Factura nueva(
             String numero, LocalDate fecha, String nombre, String nif, BigDecimal iva, List<LineaFactura> lineas) {
-        return Factura.nueva(numero, TipoFactura.EMITIDA, fecha, null, nombre, nif, iva, lineas);
+        return Factura.nueva(numero, TipoFactura.EMITIDA, fecha, null, 1L, 10L, nombre, nif, iva, lineas);
     }
 
     private static Factura factura(String iva, List<LineaFactura> lineas) {
@@ -31,14 +31,14 @@ class FacturaTest {
     @Test
     void conservaElTipoDeLaFactura() {
         Factura recibida = Factura.nueva(
-                "F-1", TipoFactura.RECIBIDA, FECHA, null, "Cliente", "NIF", BigDecimal.TEN, List.of(linea("1", "1")));
+                "F-1", TipoFactura.RECIBIDA, FECHA, null, 1L, 10L, "Cliente", "NIF", BigDecimal.TEN, List.of(linea("1", "1")));
 
         assertThat(recibida.tipo()).isEqualTo(TipoFactura.RECIBIDA);
     }
 
     private static Factura conVencimiento(LocalDate fechaVencimiento) {
         return Factura.nueva(
-                "F-1", TipoFactura.EMITIDA, FECHA, fechaVencimiento, "Cliente", "NIF", BigDecimal.TEN,
+                "F-1", TipoFactura.EMITIDA, FECHA, fechaVencimiento, 1L, 10L, "Cliente", "NIF", BigDecimal.TEN,
                 List.of(linea("1", "1")));
     }
 
@@ -57,9 +57,33 @@ class FacturaTest {
     }
 
     @Test
+    void nuevaExigeEmpresaYTercero() {
+        List<LineaFactura> lineas = List.of(linea("1", "1"));
+
+        assertThatThrownBy(() -> Factura.nueva(
+                "F-1", TipoFactura.EMITIDA, FECHA, null, null, 10L, "Cliente", "NIF", BigDecimal.TEN, lineas))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("La empresa de la factura es obligatoria");
+        assertThatThrownBy(() -> Factura.nueva(
+                "F-1", TipoFactura.EMITIDA, FECHA, null, 1L, null, "Cliente", "NIF", BigDecimal.TEN, lineas))
+                .isInstanceOf(FacturaInvalidaException.class)
+                .hasMessage("El tercero de la factura es obligatorio");
+    }
+
+    @Test
+    void laReconstruccionToleraFilasAnterioresSinEmpresaNiTercero() {
+        Factura anterior = new Factura(
+                3L, "F-3", TipoFactura.EMITIDA, FECHA, null, null, null, "Cliente", "NIF", BigDecimal.TEN,
+                List.of(linea("1", "1")));
+
+        assertThat(anterior.empresaId()).isNull();
+        assertThat(anterior.terceroId()).isNull();
+    }
+
+    @Test
     void rechazaFacturaSinTipo() {
         assertThatThrownBy(() -> Factura.nueva(
-                "F-1", null, FECHA, null, "Cliente", "NIF", BigDecimal.TEN, List.of(linea("1", "1"))))
+                "F-1", null, FECHA, null, 1L, 10L, "Cliente", "NIF", BigDecimal.TEN, List.of(linea("1", "1"))))
                 .isInstanceOf(FacturaInvalidaException.class)
                 .hasMessage("El tipo de factura es obligatorio");
     }

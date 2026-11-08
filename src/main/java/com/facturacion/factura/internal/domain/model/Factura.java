@@ -13,6 +13,8 @@ public record Factura(
         TipoFactura tipo,
         LocalDate fecha,
         LocalDate fechaVencimiento,
+        Long empresaId,
+        Long terceroId,
         String clienteNombre,
         String clienteNif,
         BigDecimal porcentajeIva,
@@ -54,10 +56,29 @@ public record Factura(
             TipoFactura tipo,
             LocalDate fecha,
             LocalDate fechaVencimiento,
+            Long empresaId,
+            Long terceroId,
             String clienteNombre,
             String clienteNif,
             BigDecimal porcentajeIva,
             List<LineaFactura> lineas) {
-        return new Factura(null, numero, tipo, fecha, fechaVencimiento, clienteNombre, clienteNif, porcentajeIva, lineas);
+        if (empresaId == null) {
+            throw new FacturaInvalidaException("La empresa de la factura es obligatoria");
+        }
+        if (terceroId == null) {
+            throw new FacturaInvalidaException("El tercero de la factura es obligatorio");
+        }
+        return new Factura(
+                null,
+                numero,
+                tipo,
+                fecha,
+                fechaVencimiento,
+                empresaId,
+                terceroId,
+                clienteNombre,
+                clienteNif,
+                porcentajeIva,
+                lineas);
     }
 }

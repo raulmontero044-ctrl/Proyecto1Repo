@@ -19,8 +19,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class FacturaFacadeImplTest {
 
     private final FacturaRepositoryEnMemoria repository = new FacturaRepositoryEnMemoria();
+    private final EmpresasYTercerosEnMemoria directorio = new EmpresasYTercerosEnMemoria();
     private final FacturaFacade facade = new FacturaFacadeImpl(
-            new CrearFactura(repository),
+            new CrearFactura(repository, directorio.empresaFacade(), directorio.terceroFacade()),
             new ObtenerFactura(repository),
             new ListarFacturas(repository),
             new EliminarFactura(repository, evento -> { }),
@@ -32,6 +33,8 @@ class FacturaFacadeImplTest {
                 "EMITIDA",
                 LocalDate.of(2026, 11, 3),
                 null,
+                1L,
+                10L,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21"),

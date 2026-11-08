@@ -20,7 +20,7 @@ class CalculadoraFacturaTest {
     }
 
     private static Factura factura(String iva, List<LineaFactura> lineas) {
-        return Factura.nueva("F-001", TipoFactura.EMITIDA, FECHA, null, "Cliente SL", "B12345678", new BigDecimal(iva), lineas);
+        return Factura.nueva("F-001", TipoFactura.EMITIDA, FECHA, null, 1L, 10L, "Cliente SL", "B12345678", new BigDecimal(iva), lineas);
     }
 
     @Test

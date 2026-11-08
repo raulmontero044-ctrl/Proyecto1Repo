@@ -23,6 +23,8 @@ class FacturaRepositoryEnMemoria implements FacturaRepository {
                 factura.tipo(),
                 factura.fecha(),
                 factura.fechaVencimiento(),
+                factura.empresaId(),
+                factura.terceroId(),
                 factura.clienteNombre(),
                 factura.clienteNif(),
                 factura.porcentajeIva(),

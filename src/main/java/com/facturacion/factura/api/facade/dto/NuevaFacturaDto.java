@@ -9,6 +9,8 @@ public record NuevaFacturaDto(
         String tipo,
         LocalDate fecha,
         LocalDate fechaVencimiento,
+        Long empresaId,
+        Long terceroId,
         String clienteNombre,
         String clienteNif,
         BigDecimal porcentajeIva,

@@ -41,7 +41,7 @@ class FacturaControllerTest {
 
     private static final String PETICION_VALIDA = """
             {
-              "numero": "F-001", "tipo": "EMITIDA",
+              "numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10,
               "fecha": "2026-11-03",
               "clienteNombre": "Cliente SL",
               "clienteNif": "B12345678",
@@ -74,6 +74,8 @@ class FacturaControllerTest {
                 "EMITIDA",
                 LocalDate.of(2026, 11, 3),
                 null,
+                1L,
+                10L,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21"),
@@ -97,7 +99,7 @@ class FacturaControllerTest {
     @Test
     void rechazaPeticionInvalidaCon400SinInvocarCasoDeUso() throws Exception {
         String invalida = """
-                {"numero": "", "tipo": "EMITIDA", "fecha": "2026-11-03", "clienteNombre": "Cliente SL",
+                {"numero": "", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10, "fecha": "2026-11-03", "clienteNombre": "Cliente SL",
                  "clienteNif": "B12345678", "porcentajeIva": -1, "lineas": []}
                 """;
 
@@ -121,7 +123,7 @@ class FacturaControllerTest {
             String numero, String clienteNombre, String clienteNif, String porcentajeIva,
             String concepto, String cantidad, String precioUnitario) {
         return """
-                {"numero": "%s", "tipo": "EMITIDA", "fecha": "2026-11-03", "clienteNombre": "%s", "clienteNif": "%s",
+                {"numero": "%s", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10, "fecha": "2026-11-03", "clienteNombre": "%s", "clienteNif": "%s",
                  "porcentajeIva": %s,
                  "lineas": [{"concepto": "%s", "cantidad": %s, "precioUnitario": %s}]}
                 """.formatted(numero, clienteNombre, clienteNif, porcentajeIva, concepto, cantidad, precioUnitario);
@@ -168,19 +170,19 @@ class FacturaControllerTest {
     @Test
     void rechazaCamposObligatoriosAusentes() throws Exception {
         esperarRechazo("""
-                {"numero": "F-001", "tipo": "EMITIDA", "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
+                {"numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10, "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
                  "porcentajeIva": 21, "lineas": [{"concepto": "Servicio", "cantidad": 1, "precioUnitario": 1}]}
                 """);
         esperarRechazo("""
-                {"numero": "F-001", "tipo": "EMITIDA", "fecha": "2026-11-03", "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
+                {"numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10, "fecha": "2026-11-03", "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
                  "lineas": [{"concepto": "Servicio", "cantidad": 1, "precioUnitario": 1}]}
                 """);
         esperarRechazo("""
-                {"numero": "F-001", "tipo": "EMITIDA", "fecha": "2026-11-03", "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
+                {"numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10, "fecha": "2026-11-03", "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
                  "porcentajeIva": 21, "lineas": [{"concepto": "Servicio", "cantidad": 1}]}
                 """);
         esperarRechazo("""
-                {"numero": "F-001", "tipo": "EMITIDA", "fecha": "2026-11-03", "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
+                {"numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10, "fecha": "2026-11-03", "clienteNombre": "Cliente SL", "clienteNif": "B12345678",
                  "porcentajeIva": 21, "lineas": [null]}
                 """);
 
@@ -194,6 +196,16 @@ class FacturaControllerTest {
         esperarRechazo(PETICION_VALIDA.replace("\"tipo\": \"EMITIDA\"", "\"tipo\": \"ABONO\""));
         esperarRechazo(PETICION_VALIDA.replace("\"tipo\": \"EMITIDA\"", "\"tipo\": \"emitida\""));
         esperarRechazo(PETICION_VALIDA.replace("\"tipo\": \"EMITIDA\"", "\"tipo\": \"EMITIDA \""));
+
+        verify(crearFactura, never()).ejecutar(any());
+    }
+
+    @Test
+    void rechazaEmpresaOTerceroAusentesONoNumericos() throws Exception {
+        esperarRechazo(PETICION_VALIDA.replace("\"empresaId\": 1,", ""));
+        esperarRechazo(PETICION_VALIDA.replace("\"terceroId\": 10,", ""));
+        esperarRechazo(PETICION_VALIDA.replace("\"empresaId\": 1,", "\"empresaId\": null,"));
+        esperarRechazo(PETICION_VALIDA.replace("\"terceroId\": 10,", "\"terceroId\": \"diez\","));
 
         verify(crearFactura, never()).ejecutar(any());
     }
@@ -245,6 +257,8 @@ class FacturaControllerTest {
                 "EMITIDA",
                 LocalDate.of(2026, 11, 3),
                 null,
+                1L,
+                10L,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21"),

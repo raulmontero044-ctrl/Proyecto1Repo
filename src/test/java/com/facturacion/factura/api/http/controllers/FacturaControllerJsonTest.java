@@ -30,7 +30,7 @@ class FacturaControllerJsonTest {
 
     private static final String PETICION_VALIDA = """
             {
-              "numero": "F-001", "tipo": "EMITIDA",
+              "numero": "F-001", "tipo": "EMITIDA", "empresaId": 1, "terceroId": 10,
               "fecha": "2026-11-03",
               "clienteNombre": "Cliente SL",
               "clienteNif": "B12345678",
@@ -64,6 +64,8 @@ class FacturaControllerJsonTest {
                 "EMITIDA",
                 LocalDate.of(2026, 11, 3),
                 LocalDate.of(2026, 12, 3),
+                1L,
+                10L,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21"),
@@ -76,7 +78,7 @@ class FacturaControllerJsonTest {
     }
 
     private static String json(Long id, String numero) {
-        return "{\"id\":" + id + ",\"numero\":\"" + numero + "\",\"tipo\":\"EMITIDA\",\"fecha\":\"2026-11-03\",\"fechaVencimiento\":\"2026-12-03\","
+        return "{\"id\":" + id + ",\"numero\":\"" + numero + "\",\"tipo\":\"EMITIDA\",\"fecha\":\"2026-11-03\",\"fechaVencimiento\":\"2026-12-03\",\"empresaId\":1,\"terceroId\":10,"
                 + "\"clienteNombre\":\"Cliente SL\",\"clienteNif\":\"B12345678\",\"porcentajeIva\":21,"
                 + "\"lineas\":["
                 + "{\"concepto\":\"Primera\",\"cantidad\":2,\"precioUnitario\":10.50,\"importe\":21.00},"

@@ -21,7 +21,7 @@ class FacturaMapperTest {
 
     private static FacturaEntity entidadValida(Long id, String numero) {
         return new FacturaEntity(
-                id, numero, "EMITIDA", LocalDate.of(2026, 11, 3), null, "Cliente SL", "B12345678", new BigDecimal("21.00"));
+                id, numero, "EMITIDA", LocalDate.of(2026, 11, 3), null, 1L, 10L, "Cliente SL", "B12345678", new BigDecimal("21.00"));
     }
 
     @Test
@@ -32,6 +32,8 @@ class FacturaMapperTest {
                 TipoFactura.RECIBIDA,
                 LocalDate.of(2026, 11, 3),
                 LocalDate.of(2026, 12, 3),
+                1L,
+                10L,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("21.00"),
@@ -72,12 +74,29 @@ class FacturaMapperTest {
     }
 
     @Test
+    void aDominioToleraLosNulosDeLasFilasAnterioresALaAmpliacion() {
+        FacturaEntity anterior = new FacturaEntity(
+                9L, "F-009", "EMITIDA", LocalDate.of(2026, 11, 3), null, null, null,
+                "Cliente SL", "B12345678", new BigDecimal("21.00"));
+        anterior.agregarLinea(new LineaFacturaEntity(0, "Servicio", BigDecimal.ONE, BigDecimal.ONE));
+
+        Factura factura = mapper.aDominio(anterior);
+
+        assertThat(factura.tipo()).isEqualTo(TipoFactura.EMITIDA);
+        assertThat(factura.fechaVencimiento()).isNull();
+        assertThat(factura.empresaId()).isNull();
+        assertThat(factura.terceroId()).isNull();
+    }
+
+    @Test
     void facturaNuevaGeneraEntidadSinIdYConDatosCopiados() {
         Factura nueva = Factura.nueva(
                 "F-002",
                 TipoFactura.EMITIDA,
                 LocalDate.of(2026, 11, 3),
                 null,
+                1L,
+                10L,
                 "Cliente SL",
                 "B12345678",
                 new BigDecimal("10.50"),
@@ -90,6 +109,8 @@ class FacturaMapperTest {
         assertThat(entidad.getTipo()).isEqualTo("EMITIDA");
         assertThat(entidad.getFecha()).isEqualTo(LocalDate.of(2026, 11, 3));
         assertThat(entidad.getFechaVencimiento()).isNull();
+        assertThat(entidad.getEmpresaId()).isEqualTo(1L);
+        assertThat(entidad.getTerceroId()).isEqualTo(10L);
         assertThat(entidad.getClienteNombre()).isEqualTo("Cliente SL");
         assertThat(entidad.getClienteNif()).isEqualTo("B12345678");
         assertThat(entidad.getPorcentajeIva()).isEqualByComparingTo("10.50");
