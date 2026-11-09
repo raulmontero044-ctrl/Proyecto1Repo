@@ -110,4 +110,21 @@ class ModulosTest {
 
         assertThat(informes.getNamedInterfaces().stream().filter(interfaz -> !interfaz.isUnnamed())).isEmpty();
     }
+
+    @Test
+    void informesSoloDependeDeFacturaYPagos() {
+        ApplicationModule informes = MODULOS.getModuleByName("informes").orElseThrow();
+
+        assertThat(informes.getDirectDependencies(MODULOS).uniqueModules().map(ApplicationModule::getName))
+                .containsExactlyInAnyOrder("factura", "pagos");
+    }
+
+    @Test
+    void ningunModuloDependeDeInformes() {
+        assertThat(MODULOS.stream()
+                .filter(modulo -> modulo.getDirectDependencies(MODULOS).uniqueModules()
+                        .anyMatch(dependencia -> dependencia.getName().equals("informes")))
+                .map(ApplicationModule::getName))
+                .isEmpty();
+    }
 }
