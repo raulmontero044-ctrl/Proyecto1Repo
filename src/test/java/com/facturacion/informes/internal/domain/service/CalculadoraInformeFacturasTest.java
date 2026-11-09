@@ -1,9 +1,13 @@
 package com.facturacion.informes.internal.domain.service;
 
+import com.facturacion.informes.internal.domain.model.Agrupacion;
+import com.facturacion.informes.internal.domain.model.EstadisticaPeriodo;
 import com.facturacion.informes.internal.domain.model.FacturaResumida;
 import com.facturacion.informes.internal.domain.model.IngresosGastos;
 import com.facturacion.informes.internal.domain.model.ResumenFacturas;
+import com.facturacion.informes.internal.domain.model.ResumenImpuestos;
 import com.facturacion.informes.internal.domain.model.TipoFactura;
+import com.facturacion.informes.internal.domain.model.TramoIva;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -141,6 +145,151 @@ class CalculadoraInformeFacturasTest {
         IngresosGastos resultado = CalculadoraInformeFacturas.ingresosGastos(facturas);
 
         assertThat(resultado.resultado().toPlainString()).isEqualTo("-15.10");
+    }
+
+    @Test
+    void agrupaElIvaRepercutidoYElSoportadoPorPorcentajeOrdenadoDeMenorAMayor() {
+        List<FacturaResumida> facturas = List.of(
+                factura(1L, EMITIDA, dia(1, 1), "21.00", "100.00", "21.00", "121.00"),
+                factura(2L, EMITIDA, dia(1, 2), "10.00", "50.00", "5.00", "55.00"),
+                factura(3L, EMITIDA, dia(1, 3), "21", "200.00", "42.00", "242.00"),
+                factura(4L, RECIBIDA, dia(1, 4), "4.00", "25.00", "1.00", "26.00"),
+                factura(5L, RECIBIDA, dia(1, 5), "21.00", "10.00", "2.10", "12.10"));
+
+        ResumenImpuestos impuestos = CalculadoraInformeFacturas.impuestos(facturas);
+
+        assertThat(impuestos.repercutido()).containsExactly(
+                new TramoIva(new BigDecimal("10.00"), new BigDecimal("50.00"), new BigDecimal("5.00")),
+                new TramoIva(new BigDecimal("21.00"), new BigDecimal("300.00"), new BigDecimal("63.00")));
+        assertThat(impuestos.soportado()).containsExactly(
+                new TramoIva(new BigDecimal("4.00"), new BigDecimal("25.00"), new BigDecimal("1.00")),
+                new TramoIva(new BigDecimal("21.00"), new BigDecimal("10.00"), new BigDecimal("2.10")));
+        assertThat(impuestos.cuotaRepercutida().toPlainString()).isEqualTo("68.00");
+        assertThat(impuestos.cuotaSoportada().toPlainString()).isEqualTo("3.10");
+        assertThat(impuestos.resultado().toPlainString()).isEqualTo("64.90");
+    }
+
+    @Test
+    void elResultadoDeImpuestosEsNegativoSiElSoportadoSuperaAlRepercutido() {
+        List<FacturaResumida> facturas = List.of(
+                factura(1L, EMITIDA, dia(1, 1), "21.00", "10.00", "2.10", "12.10"),
+                factura(2L, RECIBIDA, dia(1, 2), "21.00", "100.00", "21.00", "121.00"));
+
+        ResumenImpuestos impuestos = CalculadoraInformeFacturas.impuestos(facturas);
+
+        assertThat(impuestos.resultado().toPlainString()).isEqualTo("-18.90");
+    }
+
+    @Test
+    void elPorcentajeCeroFormaSuPropioTramo() {
+        ResumenImpuestos impuestos = CalculadoraInformeFacturas.impuestos(
+                List.of(factura(1L, EMITIDA, dia(1, 1), "0", "80.00", "0.00", "80.00")));
+
+        assertThat(impuestos.repercutido()).singleElement().satisfies(tramo -> {
+            assertThat(tramo.porcentajeIva().toPlainString()).isEqualTo("0.00");
+            assertThat(tramo.base().toPlainString()).isEqualTo("80.00");
+            assertThat(tramo.cuota().toPlainString()).isEqualTo("0.00");
+        });
+    }
+
+    @Test
+    void sinFacturasLosImpuestosNoTienenTramosYSonCeroConEscalaDos() {
+        ResumenImpuestos impuestos = CalculadoraInformeFacturas.impuestos(List.of());
+
+        assertThat(impuestos.repercutido()).isEmpty();
+        assertThat(impuestos.soportado()).isEmpty();
+        assertThat(impuestos.cuotaRepercutida().toPlainString()).isEqualTo("0.00");
+        assertThat(impuestos.cuotaSoportada().toPlainString()).isEqualTo("0.00");
+        assertThat(impuestos.resultado().toPlainString()).isEqualTo("0.00");
+    }
+
+    @Test
+    void losTramosRedondeanSusSumasConHalfUp() {
+        List<FacturaResumida> facturas = List.of(
+                factura(1L, EMITIDA, dia(1, 1), "21.00", "1.115", "0.105", "1.22"),
+                factura(2L, EMITIDA, dia(1, 2), "21.00", "1.110", "0.120", "1.23"));
+
+        ResumenImpuestos impuestos = CalculadoraInformeFacturas.impuestos(facturas);
+
+        assertThat(impuestos.repercutido()).singleElement().satisfies(tramo -> {
+            assertThat(tramo.base().toPlainString()).isEqualTo("2.23");
+            assertThat(tramo.cuota().toPlainString()).isEqualTo("0.23");
+        });
+    }
+
+    @Test
+    void lasEstadisticasMensualesCuentanYSumanEmitidasYRecibidasPorMes() {
+        List<FacturaResumida> facturas = List.of(
+                factura(1L, EMITIDA, dia(3, 31), "21.00", "100.00", "21.00", "121.00"),
+                factura(2L, EMITIDA, dia(3, 1), "21.00", "10.00", "2.10", "12.10"),
+                factura(3L, RECIBIDA, dia(3, 15), "21.00", "50.00", "10.50", "60.50"),
+                factura(4L, RECIBIDA, dia(1, 10), "21.00", "20.00", "4.20", "24.20"));
+
+        List<EstadisticaPeriodo> estadisticas = CalculadoraInformeFacturas.estadisticas(facturas, Agrupacion.MES);
+
+        assertThat(estadisticas).containsExactly(
+                new EstadisticaPeriodo("2026-01", 0, new BigDecimal("0.00"), 1, new BigDecimal("24.20")),
+                new EstadisticaPeriodo("2026-03", 2, new BigDecimal("133.10"), 1, new BigDecimal("60.50")));
+    }
+
+    @Test
+    void lasEstadisticasNoIncluyenPeriodosSinFacturas() {
+        List<FacturaResumida> facturas = List.of(
+                factura(1L, EMITIDA, dia(1, 5), "10.00"),
+                factura(2L, EMITIDA, dia(6, 5), "10.00"));
+
+        List<EstadisticaPeriodo> estadisticas = CalculadoraInformeFacturas.estadisticas(facturas, Agrupacion.MES);
+
+        assertThat(estadisticas).extracting(EstadisticaPeriodo::periodo).containsExactly("2026-01", "2026-06");
+    }
+
+    @Test
+    void lasEstadisticasTrimestralesAgrupanCadaTresMeses() {
+        List<FacturaResumida> facturas = List.of(
+                factura(1L, EMITIDA, dia(1, 1), "1.00"),
+                factura(2L, EMITIDA, dia(3, 31), "2.00"),
+                factura(3L, RECIBIDA, dia(4, 1), "4.00"),
+                factura(4L, EMITIDA, dia(12, 31), "8.00"));
+
+        List<EstadisticaPeriodo> estadisticas =
+                CalculadoraInformeFacturas.estadisticas(facturas, Agrupacion.TRIMESTRE);
+
+        assertThat(estadisticas).containsExactly(
+                new EstadisticaPeriodo("2026-T1", 2, new BigDecimal("3.00"), 0, new BigDecimal("0.00")),
+                new EstadisticaPeriodo("2026-T2", 0, new BigDecimal("0.00"), 1, new BigDecimal("4.00")),
+                new EstadisticaPeriodo("2026-T4", 1, new BigDecimal("8.00"), 0, new BigDecimal("0.00")));
+    }
+
+    @Test
+    void lasEstadisticasDeUnPeriodoQueCruzaElAnioSeOrdenanCronologicamente() {
+        List<FacturaResumida> facturas = List.of(
+                factura(1L, EMITIDA, LocalDate.of(2027, 1, 2), "1.00"),
+                factura(2L, EMITIDA, LocalDate.of(2026, 12, 30), "2.00"),
+                factura(3L, RECIBIDA, LocalDate.of(2026, 11, 30), "4.00"));
+
+        assertThat(CalculadoraInformeFacturas.estadisticas(facturas, Agrupacion.MES))
+                .extracting(EstadisticaPeriodo::periodo).containsExactly("2026-11", "2026-12", "2027-01");
+        assertThat(CalculadoraInformeFacturas.estadisticas(facturas, Agrupacion.TRIMESTRE))
+                .extracting(EstadisticaPeriodo::periodo).containsExactly("2026-T4", "2027-T1");
+        assertThat(CalculadoraInformeFacturas.estadisticas(facturas, Agrupacion.ANIO)).containsExactly(
+                new EstadisticaPeriodo("2026", 1, new BigDecimal("2.00"), 1, new BigDecimal("4.00")),
+                new EstadisticaPeriodo("2027", 1, new BigDecimal("1.00"), 0, new BigDecimal("0.00")));
+    }
+
+    @Test
+    void lasEstadisticasUsanElTotalYNoLaBase() {
+        List<FacturaResumida> facturas = List.of(
+                factura(1L, EMITIDA, dia(1, 1), "21.00", "100.00", "21.00", "121.00"));
+
+        assertThat(CalculadoraInformeFacturas.estadisticas(facturas, Agrupacion.ANIO))
+                .singleElement()
+                .satisfies(estadistica -> assertThat(estadistica.totalEmitidas().toPlainString())
+                        .isEqualTo("121.00"));
+    }
+
+    @Test
+    void sinFacturasNoHayEstadisticas() {
+        assertThat(CalculadoraInformeFacturas.estadisticas(List.of(), Agrupacion.ANIO)).isEmpty();
     }
 
     @Test
