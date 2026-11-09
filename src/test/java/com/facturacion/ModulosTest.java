@@ -17,10 +17,10 @@ class ModulosTest {
     }
 
     @Test
-    void detectaComoModulosAppFacturaEmpresasUsuariosTercerosPagosYDocumentos() {
+    void detectaComoModulosAppFacturaEmpresasUsuariosTercerosPagosDocumentosEInformes() {
         assertThat(MODULOS.stream().map(ApplicationModule::getName))
                 .containsExactlyInAnyOrder(
-                        "app", "factura", "empresas", "usuarios", "terceros", "pagos", "documentos");
+                        "app", "factura", "empresas", "usuarios", "terceros", "pagos", "documentos", "informes");
     }
 
     @Test
@@ -102,5 +102,29 @@ class ModulosTest {
 
         assertThat(documentos.getDirectDependencies(MODULOS).uniqueModules().map(ApplicationModule::getName))
                 .containsExactlyInAnyOrder("factura", "empresas", "terceros", "pagos");
+    }
+
+    @Test
+    void informesNoExponeNingunaInterfazConNombre() {
+        ApplicationModule informes = MODULOS.getModuleByName("informes").orElseThrow();
+
+        assertThat(informes.getNamedInterfaces().stream().filter(interfaz -> !interfaz.isUnnamed())).isEmpty();
+    }
+
+    @Test
+    void informesSoloDependeDeFacturaYPagos() {
+        ApplicationModule informes = MODULOS.getModuleByName("informes").orElseThrow();
+
+        assertThat(informes.getDirectDependencies(MODULOS).uniqueModules().map(ApplicationModule::getName))
+                .containsExactlyInAnyOrder("factura", "pagos");
+    }
+
+    @Test
+    void ningunModuloDependeDeInformes() {
+        assertThat(MODULOS.stream()
+                .filter(modulo -> modulo.getDirectDependencies(MODULOS).uniqueModules()
+                        .anyMatch(dependencia -> dependencia.getName().equals("informes")))
+                .map(ApplicationModule::getName))
+                .isEmpty();
     }
 }
