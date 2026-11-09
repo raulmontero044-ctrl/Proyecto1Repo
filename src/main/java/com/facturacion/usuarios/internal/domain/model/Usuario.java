@@ -31,6 +31,10 @@ public record Usuario(
         return new Usuario(null, email, nombre, passwordHash, true, false, accesos);
     }
 
+    public static Usuario nuevoAdministrador(String email, String nombre, String passwordHash) {
+        return new Usuario(null, email, nombre, passwordHash, true, true, List.of());
+    }
+
     public static String normalizarEmail(String email) {
         return email == null ? null : email.toLowerCase(Locale.ROOT);
     }

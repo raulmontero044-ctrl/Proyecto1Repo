@@ -121,4 +121,13 @@ class JpaUsuarioRepositoryTest {
         assertThat(repository.existePorEmailEnOtroUsuario("ana@empresa.es", 2L)).isFalse();
         verify(dao, never()).existsByEmail(anyString());
     }
+
+    @Test
+    void existeAlgunoConsultaElRecuentoDelDao() {
+        when(dao.count()).thenReturn(0L);
+        assertThat(repository.existeAlguno()).isFalse();
+
+        when(dao.count()).thenReturn(1L);
+        assertThat(repository.existeAlguno()).isTrue();
+    }
 }

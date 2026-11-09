@@ -243,4 +243,22 @@ class UsuarioTest {
 
         assertThat(administrador.toString()).contains("administrador=true").doesNotContain(HASH);
     }
+
+    @Test
+    void nuevoAdministradorCreaUnAdministradorActivoSinEmpresasNiIdentificador() {
+        Usuario administrador = Usuario.nuevoAdministrador("Admin@Empresa.ES", "Administrador", HASH);
+
+        assertThat(administrador).isEqualTo(
+                new Usuario(null, "admin@empresa.es", "Administrador", HASH, true, true, List.of()));
+    }
+
+    @Test
+    void nuevoAdministradorAplicaLasInvariantes() {
+        assertThatThrownBy(() -> Usuario.nuevoAdministrador(" ", "Administrador", HASH))
+                .isInstanceOf(UsuarioInvalidoException.class)
+                .hasMessage("El email del usuario es obligatorio");
+        assertThatThrownBy(() -> Usuario.nuevoAdministrador("admin@empresa.es", "Administrador", null))
+                .isInstanceOf(UsuarioInvalidoException.class)
+                .hasMessage("La contraseña cifrada del usuario es obligatoria");
+    }
 }
