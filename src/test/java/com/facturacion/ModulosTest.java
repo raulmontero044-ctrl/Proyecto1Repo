@@ -128,4 +128,35 @@ class ModulosTest {
                 .map(ApplicationModule::getName))
                 .isEmpty();
     }
+
+    @Test
+    void authNoExponeNingunaInterfazConNombre() {
+        ApplicationModule auth = MODULOS.getModuleByName("auth").orElseThrow();
+
+        assertThat(auth.getNamedInterfaces().stream().filter(interfaz -> !interfaz.isUnnamed())).isEmpty();
+    }
+
+    @Test
+    void authSoloDependeDeUsuarios() {
+        ApplicationModule auth = MODULOS.getModuleByName("auth").orElseThrow();
+
+        assertThat(auth.getDirectDependencies(MODULOS).uniqueModules().map(ApplicationModule::getName))
+                .containsExactlyInAnyOrder("usuarios");
+    }
+
+    @Test
+    void ningunModuloDependeDeAuth() {
+        assertThat(MODULOS.stream()
+                .filter(modulo -> modulo.getDirectDependencies(MODULOS).uniqueModules()
+                        .anyMatch(dependencia -> dependencia.getName().equals("auth")))
+                .map(ApplicationModule::getName))
+                .isEmpty();
+    }
+
+    @Test
+    void appNoDependeDeNingunModulo() {
+        ApplicationModule app = MODULOS.getModuleByName("app").orElseThrow();
+
+        assertThat(app.getDirectDependencies(MODULOS).uniqueModules()).isEmpty();
+    }
 }
