@@ -12,11 +12,13 @@ import com.facturacion.informes.internal.application.ResumenFacturasDto;
 import com.facturacion.informes.internal.application.ResumenImpuestosDto;
 import com.facturacion.informes.internal.application.ResumenPendientesDto;
 import com.facturacion.informes.internal.application.ResumenTesoreriaDto;
+import com.facturacion.informes.internal.domain.exception.InformeInvalidoException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -31,6 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -198,6 +201,64 @@ class InformeControllerTest {
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(consultarIngresosGastos);
+    }
+
+    @Test
+    void facturasConUnTipoDesconocidoDevuelve400ConProblemDetail() throws Exception {
+        when(consultarLibroFacturas.ejecutar(3L, DESDE, HASTA, "PROFORMA"))
+                .thenThrow(new InformeInvalidoException("El tipo de la factura debe ser EMITIDA o RECIBIDA"));
+
+        mockMvc.perform(conPeriodo("/api/informes/facturas").param("tipo", "PROFORMA"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").value("El tipo de la factura debe ser EMITIDA o RECIBIDA"));
+    }
+
+    @Test
+    void estadisticasConUnaAgrupacionDesconocidaDevuelve400ConProblemDetail() throws Exception {
+        when(consultarEstadisticas.ejecutar(3L, DESDE, HASTA, "SEMANA"))
+                .thenThrow(new InformeInvalidoException("La agrupación del informe debe ser MES, TRIMESTRE o ANIO"));
+
+        mockMvc.perform(conPeriodo("/api/informes/estadisticas").param("agrupacion", "SEMANA"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").value("La agrupación del informe debe ser MES, TRIMESTRE o ANIO"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"facturas", "ingresos-gastos", "impuestos", "estadisticas", "tesoreria"})
+    void unPeriodoConDesdePosteriorAHastaDevuelve400ConProblemDetail(String informe) throws Exception {
+        String detalle = "La fecha desde del informe no puede ser posterior a la fecha hasta";
+        InformeInvalidoException periodoInvalido = new InformeInvalidoException(detalle);
+        when(consultarLibroFacturas.ejecutar(any(), any(), any(), any())).thenThrow(periodoInvalido);
+        when(consultarIngresosGastos.ejecutar(any(), any(), any())).thenThrow(periodoInvalido);
+        when(consultarImpuestos.ejecutar(any(), any(), any())).thenThrow(periodoInvalido);
+        when(consultarEstadisticas.ejecutar(any(), any(), any(), any())).thenThrow(periodoInvalido);
+        when(consultarTesoreria.ejecutar(any(), any(), any())).thenThrow(periodoInvalido);
+
+        mockMvc.perform(get("/api/informes/" + informe)
+                        .param("empresaId", "3")
+                        .param("desde", "2026-04-01")
+                        .param("hasta", "2026-03-31")
+                        .param("tipo", "EMITIDA")
+                        .param("agrupacion", "MES"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").value(detalle));
+    }
+
+    @Test
+    void pendientesConUnInformeInvalidoDevuelve400ConProblemDetail() throws Exception {
+        when(consultarPendientes.ejecutar(3L))
+                .thenThrow(new InformeInvalidoException("El estado de la factura debe ser PENDIENTE, PARCIAL o PAGADA"));
+
+        mockMvc.perform(get("/api/informes/pendientes").param("empresaId", "3"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("El estado de la factura debe ser PENDIENTE, PARCIAL o PAGADA"));
     }
 
     private static MockHttpServletRequestBuilder sin(

@@ -96,4 +96,13 @@ class ReglaHandlersSeparadosTest {
         assertThatCode(() -> ArquitecturaTest.cadaHandlerTraduceUnaSolaExcepcion.check(clases))
                 .doesNotThrowAnyException();
     }
+
+    @Test
+    void elHandlerDeInformesTraduceUnaSolaExcepcion() {
+        JavaClasses clases = new ClassFileImporter().importPackages("com.facturacion.informes.api.http.handlers");
+
+        assertThat(clases).hasSize(1);
+        assertThatCode(() -> ArquitecturaTest.cadaHandlerTraduceUnaSolaExcepcion.check(clases))
+                .doesNotThrowAnyException();
+    }
 }
