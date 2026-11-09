@@ -17,6 +17,7 @@ public class UsuarioMapper {
                 usuario.nombre(),
                 usuario.passwordHash(),
                 usuario.activo(),
+                usuario.administrador(),
                 usuario.accesos().stream()
                         .map(acceso -> new AccesoEmpresaEmbeddable(acceso.empresaId(), acceso.rol().name()))
                         .toList());
@@ -29,6 +30,7 @@ public class UsuarioMapper {
                 entidad.getNombre(),
                 entidad.getPasswordHash(),
                 entidad.isActivo(),
+                entidad.isAdministrador(),
                 entidad.getAccesos().stream()
                         .map(acceso -> new AccesoEmpresa(acceso.getEmpresaId(), Rol.valueOf(acceso.getRol())))
                         .toList());

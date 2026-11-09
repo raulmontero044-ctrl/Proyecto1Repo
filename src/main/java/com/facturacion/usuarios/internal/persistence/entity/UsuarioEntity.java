@@ -35,6 +35,9 @@ public class UsuarioEntity {
     @Column(name = "activo", nullable = false)
     private boolean activo;
 
+    @Column(name = "administrador", nullable = false)
+    private boolean administrador;
+
     @ElementCollection
     @CollectionTable(name = "usuario_empresa", joinColumns = @JoinColumn(name = "usuario_id"))
     @OrderBy("empresaId ASC")
@@ -49,12 +52,14 @@ public class UsuarioEntity {
             String nombre,
             String passwordHash,
             boolean activo,
+            boolean administrador,
             List<AccesoEmpresaEmbeddable> accesos) {
         this.id = id;
         this.email = email;
         this.nombre = nombre;
         this.passwordHash = passwordHash;
         this.activo = activo;
+        this.administrador = administrador;
         this.accesos = new LinkedHashSet<>(accesos);
     }
 
@@ -76,6 +81,10 @@ public class UsuarioEntity {
 
     public boolean isActivo() {
         return activo;
+    }
+
+    public boolean isAdministrador() {
+        return administrador;
     }
 
     public List<AccesoEmpresaEmbeddable> getAccesos() {

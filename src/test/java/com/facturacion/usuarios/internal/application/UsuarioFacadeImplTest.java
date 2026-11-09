@@ -27,7 +27,7 @@ class UsuarioFacadeImplTest {
 
     private Long guardado(String email, boolean activo) {
         return repository.guardar(new Usuario(
-                null, email, "Ana", CifradorPasswordFalso.hashDe("secreta123"), activo,
+                null, email, "Ana", CifradorPasswordFalso.hashDe("secreta123"), activo, false,
                 List.of(new AccesoEmpresa(3L, Rol.ADMINISTRADOR)))).id();
     }
 
@@ -36,7 +36,19 @@ class UsuarioFacadeImplTest {
         Long id = guardado("ana@empresa.es", false);
 
         assertThat(facade.buscar(id)).contains(new UsuarioDto(
-                id, "ana@empresa.es", "Ana", false, List.of(new AccesoEmpresaDto(3L, "ADMINISTRADOR"))));
+                id, "ana@empresa.es", "Ana", false, false, List.of(new AccesoEmpresaDto(3L, "ADMINISTRADOR"))));
+    }
+
+    @Test
+    void buscarYVerificarCredencialesIncluyenLaMarcaDeAdministrador() {
+        Long id = repository.guardar(new Usuario(
+                null, "admin@empresa.es", "Administrador", CifradorPasswordFalso.hashDe("secreta123"), true, true,
+                List.of())).id();
+
+        UsuarioDto esperado = new UsuarioDto(id, "admin@empresa.es", "Administrador", true, true, List.of());
+        assertThat(facade.buscar(id)).contains(esperado);
+        assertThat(facade.buscarPorEmail("admin@empresa.es")).contains(esperado);
+        assertThat(facade.verificarCredenciales("admin@empresa.es", "secreta123")).contains(esperado);
     }
 
     @Test

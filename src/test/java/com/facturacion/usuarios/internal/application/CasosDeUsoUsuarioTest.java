@@ -62,7 +62,7 @@ class CasosDeUsoUsuarioTest {
 
     private Long guardado(String email, boolean activo, AccesoEmpresa... accesos) {
         return repository.guardar(new Usuario(
-                null, email, "Ana", CifradorPasswordFalso.hashDe("secreta123"), activo, List.of(accesos))).id();
+                null, email, "Ana", CifradorPasswordFalso.hashDe("secreta123"), activo, false, List.of(accesos))).id();
     }
 
     @Test
@@ -71,7 +71,7 @@ class CasosDeUsoUsuarioTest {
                 "Ana@Empresa.es", "Ana", "secreta123",
                 List.of(new AccesoEmpresaDto(1L, "ADMINISTRADOR"), new AccesoEmpresaDto(2L, "CONSULTA"))));
 
-        assertThat(creado).isEqualTo(new UsuarioDto(1L, "ana@empresa.es", "Ana", true, List.of(
+        assertThat(creado).isEqualTo(new UsuarioDto(1L, "ana@empresa.es", "Ana", true, false, List.of(
                 new AccesoEmpresaDto(1L, "ADMINISTRADOR"), new AccesoEmpresaDto(2L, "CONSULTA"))));
         assertThat(repository.buscarPorId(1L)).map(Usuario::passwordHash).contains("hash:secreta123");
         assertThat(empresasConsultadas).containsExactly(1L, 2L);
@@ -167,7 +167,7 @@ class CasosDeUsoUsuarioTest {
         Long id = guardado("ana@empresa.es", true, new AccesoEmpresa(1L, Rol.GESTOR));
 
         assertThat(obtenerUsuario.ejecutar(id)).isEqualTo(new UsuarioDto(
-                id, "ana@empresa.es", "Ana", true, List.of(new AccesoEmpresaDto(1L, "GESTOR"))));
+                id, "ana@empresa.es", "Ana", true, false, List.of(new AccesoEmpresaDto(1L, "GESTOR"))));
     }
 
     @Test
@@ -204,7 +204,7 @@ class CasosDeUsoUsuarioTest {
         UsuarioDto modificado = modificarUsuario.ejecutar(id, new DatosUsuarioDto("Ana María", "ANA.MARIA@empresa.es"));
 
         assertThat(modificado).isEqualTo(new UsuarioDto(
-                id, "ana.maria@empresa.es", "Ana María", true, List.of(new AccesoEmpresaDto(1L, "GESTOR"))));
+                id, "ana.maria@empresa.es", "Ana María", true, false, List.of(new AccesoEmpresaDto(1L, "GESTOR"))));
         assertThat(repository.buscarPorId(id)).map(Usuario::passwordHash).contains("hash:secreta123");
     }
 

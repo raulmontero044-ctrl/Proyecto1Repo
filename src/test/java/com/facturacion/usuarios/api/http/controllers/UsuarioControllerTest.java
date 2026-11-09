@@ -88,7 +88,7 @@ class UsuarioControllerTest {
     private RetirarEmpresaUsuario retirarEmpresaUsuario;
 
     private static UsuarioDto usuario(Long id, String email) {
-        return new UsuarioDto(id, email, "Ana", true, List.of(
+        return new UsuarioDto(id, email, "Ana", true, false, List.of(
                 new AccesoEmpresaDto(1L, "ADMINISTRADOR"), new AccesoEmpresaDto(2L, "CONSULTA")));
     }
 

@@ -31,6 +31,7 @@ final class UsuarioDtoConverter {
                 usuario.email(),
                 usuario.nombre(),
                 usuario.activo(),
+                usuario.administrador(),
                 usuario.accesos().stream()
                         .map(acceso -> new AccesoEmpresaDto(acceso.empresaId(), acceso.rol().name()))
                         .toList());

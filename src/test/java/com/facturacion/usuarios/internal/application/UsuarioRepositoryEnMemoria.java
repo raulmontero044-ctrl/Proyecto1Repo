@@ -18,7 +18,7 @@ class UsuarioRepositoryEnMemoria implements UsuarioRepository {
     public Usuario guardar(Usuario usuario) {
         Long id = usuario.id() != null ? usuario.id() : siguienteId++;
         Usuario guardado = new Usuario(
-                id, usuario.email(), usuario.nombre(), usuario.passwordHash(), usuario.activo(), usuario.accesos());
+                id, usuario.email(), usuario.nombre(), usuario.passwordHash(), usuario.activo(), usuario.administrador(), usuario.accesos());
         usuarios.put(id, guardado);
         return guardado;
     }

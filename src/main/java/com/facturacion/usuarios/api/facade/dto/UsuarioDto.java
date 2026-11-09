@@ -7,5 +7,6 @@ public record UsuarioDto(
         String email,
         String nombre,
         boolean activo,
+        boolean administrador,
         List<AccesoEmpresaDto> accesos) {
 }
