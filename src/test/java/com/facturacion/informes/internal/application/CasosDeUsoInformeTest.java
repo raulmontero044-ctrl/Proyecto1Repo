@@ -299,6 +299,26 @@ class CasosDeUsoInformeTest {
     }
 
     @Test
+    void losPendientesDeUnaEmpresaSinFacturasSonCeroConEscalaDos() {
+        FacadesEnMemoria vacias = new FacadesEnMemoria();
+
+        ResumenPendientesDto pendientes = new ConsultarPendientes(vacias.pagoFacade()).ejecutar(EMPRESA);
+
+        assertThat(pendientes).isEqualTo(new ResumenPendientesDto(
+                new BigDecimal("0.00"), new BigDecimal("0.00"), new BigDecimal("0.00"), new BigDecimal("0.00"),
+                List.of()));
+    }
+
+    @Test
+    void unaFacturaDeTipoDesconocidoQueLlegaDeLaFacadeSeRechaza() {
+        facades.registrar(factura(6L, "PROFORMA", LocalDate.of(2026, 2, 2), "21.00", "1.00", "0.21", "1.21"));
+
+        assertThatThrownBy(() -> consultarIngresosGastos.ejecutar(EMPRESA, DESDE, HASTA))
+                .isInstanceOf(InformeInvalidoException.class)
+                .hasMessage("El tipo de la factura debe ser EMITIDA o RECIBIDA");
+    }
+
+    @Test
     void losPendientesRechazanQueFalteLaEmpresaSinConsultarPagos() {
         assertThatThrownBy(() -> consultarPendientes.ejecutar(null))
                 .isInstanceOf(InformeInvalidoException.class)
