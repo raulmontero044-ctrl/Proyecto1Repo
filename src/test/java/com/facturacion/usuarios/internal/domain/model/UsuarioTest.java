@@ -19,7 +19,7 @@ class UsuarioTest {
     private static final String HASH = "$2a$10$abcdefghijklmnopqrstuuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012";
 
     private static Usuario usuario(List<AccesoEmpresa> accesos) {
-        return new Usuario(7L, "ana@empresa.es", "Ana", HASH, true, accesos);
+        return new Usuario(7L, "ana@empresa.es", "Ana", HASH, true, false, accesos);
     }
 
     private static AccesoEmpresa acceso(Long empresaId, Rol rol) {
@@ -129,7 +129,7 @@ class UsuarioTest {
         Usuario modificado = original.conDatos("Ana María", "ANA.MARIA@empresa.es");
 
         assertThat(modificado).isEqualTo(new Usuario(
-                7L, "ana.maria@empresa.es", "Ana María", HASH, true, List.of(acceso(1L, Rol.GESTOR))));
+                7L, "ana.maria@empresa.es", "Ana María", HASH, true, false, List.of(acceso(1L, Rol.GESTOR))));
     }
 
     @Test
@@ -145,7 +145,7 @@ class UsuarioTest {
     void conPasswordHashSoloCambiaElHash() {
         Usuario modificado = usuario(List.of()).conPasswordHash("otroHash");
 
-        assertThat(modificado).isEqualTo(new Usuario(7L, "ana@empresa.es", "Ana", "otroHash", true, List.of()));
+        assertThat(modificado).isEqualTo(new Usuario(7L, "ana@empresa.es", "Ana", "otroHash", true, false, List.of()));
     }
 
     @Test
@@ -206,5 +206,59 @@ class UsuarioTest {
         String texto = usuario(List.of(acceso(1L, Rol.GESTOR))).toString();
 
         assertThat(texto).doesNotContain(HASH).contains("ana@empresa.es").contains("Ana");
+    }
+
+    @Test
+    void nuevoNoEsAdministrador() {
+        Usuario usuario = Usuario.nuevo("ana@empresa.es", "Ana", HASH, List.of(acceso(1L, Rol.ADMINISTRADOR)));
+
+        assertThat(usuario.administrador()).isFalse();
+    }
+
+    @Test
+    void lasModificacionesConservanLaMarcaDeAdministrador() {
+        Usuario administrador = new Usuario(7L, "ana@empresa.es", "Ana", HASH, true, true, List.of());
+
+        assertThat(administrador.conDatos("Ana María", "ana.maria@empresa.es").administrador()).isTrue();
+        assertThat(administrador.conPasswordHash("otroHash").administrador()).isTrue();
+        assertThat(administrador.desactivado().administrador()).isTrue();
+        assertThat(administrador.conAcceso(acceso(1L, Rol.GESTOR)).administrador()).isTrue();
+        assertThat(administrador.conAcceso(acceso(1L, Rol.GESTOR)).sinAccesoA(1L).administrador()).isTrue();
+    }
+
+    @Test
+    void lasModificacionesDeUnUsuarioNoAdministradorNoLoConviertenEnAdministrador() {
+        Usuario usuario = usuario(List.of(acceso(1L, Rol.GESTOR)));
+
+        assertThat(usuario.conDatos("Ana María", "ana.maria@empresa.es").administrador()).isFalse();
+        assertThat(usuario.conPasswordHash("otroHash").administrador()).isFalse();
+        assertThat(usuario.desactivado().administrador()).isFalse();
+        assertThat(usuario.conAcceso(acceso(2L, Rol.CONSULTA)).administrador()).isFalse();
+        assertThat(usuario.sinAccesoA(1L).administrador()).isFalse();
+    }
+
+    @Test
+    void toStringIncluyeLaMarcaDeAdministrador() {
+        Usuario administrador = new Usuario(7L, "ana@empresa.es", "Ana", HASH, true, true, List.of());
+
+        assertThat(administrador.toString()).contains("administrador=true").doesNotContain(HASH);
+    }
+
+    @Test
+    void nuevoAdministradorCreaUnAdministradorActivoSinEmpresasNiIdentificador() {
+        Usuario administrador = Usuario.nuevoAdministrador("Admin@Empresa.ES", "Administrador", HASH);
+
+        assertThat(administrador).isEqualTo(
+                new Usuario(null, "admin@empresa.es", "Administrador", HASH, true, true, List.of()));
+    }
+
+    @Test
+    void nuevoAdministradorAplicaLasInvariantes() {
+        assertThatThrownBy(() -> Usuario.nuevoAdministrador(" ", "Administrador", HASH))
+                .isInstanceOf(UsuarioInvalidoException.class)
+                .hasMessage("El email del usuario es obligatorio");
+        assertThatThrownBy(() -> Usuario.nuevoAdministrador("admin@empresa.es", "Administrador", null))
+                .isInstanceOf(UsuarioInvalidoException.class)
+                .hasMessage("La contraseña cifrada del usuario es obligatoria");
     }
 }

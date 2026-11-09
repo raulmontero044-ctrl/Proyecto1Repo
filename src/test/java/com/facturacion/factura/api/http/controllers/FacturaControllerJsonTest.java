@@ -1,5 +1,7 @@
 package com.facturacion.factura.api.http.controllers;
 
+import com.facturacion.app.ConfiguracionReloj;
+import com.facturacion.app.ConfiguracionSeguridad;
 import com.facturacion.factura.api.facade.dto.FacturaDto;
 import com.facturacion.factura.api.facade.dto.LineaFacturaDto;
 import com.facturacion.factura.api.facade.dto.NuevaFacturaDto;
@@ -10,7 +12,9 @@ import com.facturacion.factura.internal.application.ObtenerFactura;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,6 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(FacturaController.class)
+@Import({ConfiguracionSeguridad.class, ConfiguracionReloj.class})
+@WithMockUser(roles = "GESTOR")
 class FacturaControllerJsonTest {
 
     private static final String PETICION_VALIDA = """

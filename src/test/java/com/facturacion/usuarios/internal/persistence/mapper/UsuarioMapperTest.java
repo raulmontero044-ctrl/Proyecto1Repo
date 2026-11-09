@@ -20,7 +20,7 @@ class UsuarioMapperTest {
     @Test
     void idaYVueltaConservaTodosLosCamposYElOrdenDeLosAccesos() {
         Usuario original = new Usuario(
-                4L, "ana@empresa.es", "Ana", "hash", false,
+                4L, "ana@empresa.es", "Ana", "hash", false, false,
                 List.of(new AccesoEmpresa(2L, Rol.ADMINISTRADOR), new AccesoEmpresa(1L, Rol.CONSULTA)));
 
         Usuario reconstruido = mapper.aDominio(mapper.aEntidad(original));
@@ -47,21 +47,21 @@ class UsuarioMapperTest {
 
     @Test
     void aDominioSinAccesosDevuelveUnaListaVacia() {
-        UsuarioEntity entidad = new UsuarioEntity(1L, "ana@empresa.es", "Ana", "hash", true, List.of());
+        UsuarioEntity entidad = new UsuarioEntity(1L, "ana@empresa.es", "Ana", "hash", true, false, List.of());
 
         assertThat(mapper.aDominio(entidad).accesos()).isEmpty();
     }
 
     @Test
     void aDominioReconstruyeConElConstructorYAplicaLasInvariantes() {
-        UsuarioEntity entidad = new UsuarioEntity(1L, "ana@empresa.es", " ", "hash", true, List.of());
+        UsuarioEntity entidad = new UsuarioEntity(1L, "ana@empresa.es", " ", "hash", true, false, List.of());
 
         assertThatThrownBy(() -> mapper.aDominio(entidad)).isInstanceOf(UsuarioInvalidoException.class);
     }
 
     @Test
     void aDominioConvierteCadaRol() {
-        UsuarioEntity entidad = new UsuarioEntity(1L, "ana@empresa.es", "Ana", "hash", true, List.of(
+        UsuarioEntity entidad = new UsuarioEntity(1L, "ana@empresa.es", "Ana", "hash", true, false, List.of(
                 new AccesoEmpresaEmbeddable(1L, "ADMINISTRADOR"),
                 new AccesoEmpresaEmbeddable(2L, "GESTOR"),
                 new AccesoEmpresaEmbeddable(3L, "CONSULTA")));
@@ -70,5 +70,29 @@ class UsuarioMapperTest {
                 new AccesoEmpresa(1L, Rol.ADMINISTRADOR),
                 new AccesoEmpresa(2L, Rol.GESTOR),
                 new AccesoEmpresa(3L, Rol.CONSULTA));
+    }
+
+    @Test
+    void idaYVueltaConservaLaMarcaDeAdministrador() {
+        Usuario original = new Usuario(4L, "admin@empresa.es", "Administrador", "hash", true, true, List.of());
+
+        UsuarioEntity entidad = mapper.aEntidad(original);
+
+        assertThat(entidad.isAdministrador()).isTrue();
+        assertThat(mapper.aDominio(entidad)).isEqualTo(original);
+    }
+
+    @Test
+    void aEntidadTrasladaQueNoEsAdministrador() {
+        Usuario usuario = Usuario.nuevo("ana@empresa.es", "Ana", "hash", List.of());
+
+        assertThat(mapper.aEntidad(usuario).isAdministrador()).isFalse();
+    }
+
+    @Test
+    void aDominioTrasladaLaMarcaDeAdministradorDeLaEntidad() {
+        UsuarioEntity entidad = new UsuarioEntity(1L, "admin@empresa.es", "Administrador", "hash", true, true, List.of());
+
+        assertThat(mapper.aDominio(entidad).administrador()).isTrue();
     }
 }

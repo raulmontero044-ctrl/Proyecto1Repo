@@ -1,5 +1,7 @@
 package com.facturacion.usuarios.api.http.controllers;
 
+import com.facturacion.app.ConfiguracionReloj;
+import com.facturacion.app.ConfiguracionSeguridad;
 import com.facturacion.usuarios.api.facade.dto.AccesoEmpresaDto;
 import com.facturacion.usuarios.api.facade.dto.DatosUsuarioDto;
 import com.facturacion.usuarios.api.facade.dto.NuevoUsuarioDto;
@@ -22,7 +24,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -48,6 +52,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UsuarioController.class)
+@Import({ConfiguracionSeguridad.class, ConfiguracionReloj.class})
+@WithMockUser(roles = "ADMINISTRADOR")
 class UsuarioControllerTest {
 
     private static final String PETICION_VALIDA = """
@@ -88,7 +94,7 @@ class UsuarioControllerTest {
     private RetirarEmpresaUsuario retirarEmpresaUsuario;
 
     private static UsuarioDto usuario(Long id, String email) {
-        return new UsuarioDto(id, email, "Ana", true, List.of(
+        return new UsuarioDto(id, email, "Ana", true, false, List.of(
                 new AccesoEmpresaDto(1L, "ADMINISTRADOR"), new AccesoEmpresaDto(2L, "CONSULTA")));
     }
 

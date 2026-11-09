@@ -23,6 +23,9 @@ services:
       DB_URL: jdbc:mariadb://mariadb:3306/facturacion
       DB_USERNAME: facturacion
       DB_PASSWORD: facturacion
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     ports:
       - "8080:8080"
     depends_on:

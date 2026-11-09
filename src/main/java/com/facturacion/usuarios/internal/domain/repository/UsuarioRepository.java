@@ -20,4 +20,6 @@ public interface UsuarioRepository {
     boolean existePorEmail(String email);
 
     boolean existePorEmailEnOtroUsuario(String email, Long id);
+
+    boolean existeAlguno();
 }

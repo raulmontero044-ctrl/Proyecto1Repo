@@ -1,5 +1,7 @@
 package com.facturacion.documentos.api.http.controllers;
 
+import com.facturacion.app.ConfiguracionReloj;
+import com.facturacion.app.ConfiguracionSeguridad;
 import com.facturacion.documentos.internal.application.AdjuntarDocumento;
 import com.facturacion.documentos.internal.application.DescargarDocumento;
 import com.facturacion.documentos.internal.application.DocumentoDto;
@@ -11,7 +13,9 @@ import com.facturacion.documentos.internal.application.ObtenerDocumento;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -27,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(DocumentoController.class)
+@Import({ConfiguracionSeguridad.class, ConfiguracionReloj.class})
+@WithMockUser(roles = "GESTOR")
 class DocumentoControllerJsonTest {
 
     private static final Instant CREADO_EN = Instant.parse("2026-11-08T11:00:00Z");

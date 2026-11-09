@@ -16,6 +16,7 @@ public record Usuario(
         String nombre,
         String passwordHash,
         boolean activo,
+        boolean administrador,
         List<AccesoEmpresa> accesos) {
 
     public Usuario {
@@ -27,7 +28,11 @@ public record Usuario(
     }
 
     public static Usuario nuevo(String email, String nombre, String passwordHash, List<AccesoEmpresa> accesos) {
-        return new Usuario(null, email, nombre, passwordHash, true, accesos);
+        return new Usuario(null, email, nombre, passwordHash, true, false, accesos);
+    }
+
+    public static Usuario nuevoAdministrador(String email, String nombre, String passwordHash) {
+        return new Usuario(null, email, nombre, passwordHash, true, true, List.of());
     }
 
     public static String normalizarEmail(String email) {
@@ -35,15 +40,15 @@ public record Usuario(
     }
 
     public Usuario conDatos(String nuevoNombre, String nuevoEmail) {
-        return new Usuario(id, nuevoEmail, nuevoNombre, passwordHash, activo, accesos);
+        return new Usuario(id, nuevoEmail, nuevoNombre, passwordHash, activo, administrador, accesos);
     }
 
     public Usuario conPasswordHash(String nuevoPasswordHash) {
-        return new Usuario(id, email, nombre, nuevoPasswordHash, activo, accesos);
+        return new Usuario(id, email, nombre, nuevoPasswordHash, activo, administrador, accesos);
     }
 
     public Usuario desactivado() {
-        return new Usuario(id, email, nombre, passwordHash, false, accesos);
+        return new Usuario(id, email, nombre, passwordHash, false, administrador, accesos);
     }
 
     public Usuario conAcceso(AccesoEmpresa acceso) {
@@ -57,7 +62,7 @@ public record Usuario(
         } else {
             nuevos.set(posicion, acceso);
         }
-        return new Usuario(id, email, nombre, passwordHash, activo, nuevos);
+        return new Usuario(id, email, nombre, passwordHash, activo, administrador, nuevos);
     }
 
     public Usuario sinAccesoA(Long empresaId) {
@@ -67,13 +72,13 @@ public record Usuario(
         }
         List<AccesoEmpresa> restantes = new ArrayList<>(accesos);
         restantes.remove(posicion);
-        return new Usuario(id, email, nombre, passwordHash, activo, restantes);
+        return new Usuario(id, email, nombre, passwordHash, activo, administrador, restantes);
     }
 
     @Override
     public String toString() {
         return "Usuario[id=" + id + ", email=" + email + ", nombre=" + nombre
-                + ", activo=" + activo + ", accesos=" + accesos + "]";
+                + ", activo=" + activo + ", administrador=" + administrador + ", accesos=" + accesos + "]";
     }
 
     private int posicionDelAccesoA(Long empresaId) {

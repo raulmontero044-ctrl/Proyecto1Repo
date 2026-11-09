@@ -48,6 +48,7 @@ class CasosDeUsoUsuarioTest {
     private final BuscarUsuario buscarUsuario = new BuscarUsuario(repository);
     private final BuscarUsuarioPorEmail buscarUsuarioPorEmail = new BuscarUsuarioPorEmail(repository);
     private final VerificarCredencialesUsuario verificarCredenciales = new VerificarCredencialesUsuario(repository, cifrador);
+    private final CrearAdministradorInicial crearAdministradorInicial = new CrearAdministradorInicial(repository, cifrador);
     private final CambiarPasswordUsuario cambiarPassword = new CambiarPasswordUsuario(repository, cifrador);
 
     private static EmpresaDto empresa(Long id) {
@@ -62,7 +63,7 @@ class CasosDeUsoUsuarioTest {
 
     private Long guardado(String email, boolean activo, AccesoEmpresa... accesos) {
         return repository.guardar(new Usuario(
-                null, email, "Ana", CifradorPasswordFalso.hashDe("secreta123"), activo, List.of(accesos))).id();
+                null, email, "Ana", CifradorPasswordFalso.hashDe("secreta123"), activo, false, List.of(accesos))).id();
     }
 
     @Test
@@ -71,7 +72,7 @@ class CasosDeUsoUsuarioTest {
                 "Ana@Empresa.es", "Ana", "secreta123",
                 List.of(new AccesoEmpresaDto(1L, "ADMINISTRADOR"), new AccesoEmpresaDto(2L, "CONSULTA"))));
 
-        assertThat(creado).isEqualTo(new UsuarioDto(1L, "ana@empresa.es", "Ana", true, List.of(
+        assertThat(creado).isEqualTo(new UsuarioDto(1L, "ana@empresa.es", "Ana", true, false, List.of(
                 new AccesoEmpresaDto(1L, "ADMINISTRADOR"), new AccesoEmpresaDto(2L, "CONSULTA"))));
         assertThat(repository.buscarPorId(1L)).map(Usuario::passwordHash).contains("hash:secreta123");
         assertThat(empresasConsultadas).containsExactly(1L, 2L);
@@ -167,7 +168,7 @@ class CasosDeUsoUsuarioTest {
         Long id = guardado("ana@empresa.es", true, new AccesoEmpresa(1L, Rol.GESTOR));
 
         assertThat(obtenerUsuario.ejecutar(id)).isEqualTo(new UsuarioDto(
-                id, "ana@empresa.es", "Ana", true, List.of(new AccesoEmpresaDto(1L, "GESTOR"))));
+                id, "ana@empresa.es", "Ana", true, false, List.of(new AccesoEmpresaDto(1L, "GESTOR"))));
     }
 
     @Test
@@ -204,7 +205,7 @@ class CasosDeUsoUsuarioTest {
         UsuarioDto modificado = modificarUsuario.ejecutar(id, new DatosUsuarioDto("Ana María", "ANA.MARIA@empresa.es"));
 
         assertThat(modificado).isEqualTo(new UsuarioDto(
-                id, "ana.maria@empresa.es", "Ana María", true, List.of(new AccesoEmpresaDto(1L, "GESTOR"))));
+                id, "ana.maria@empresa.es", "Ana María", true, false, List.of(new AccesoEmpresaDto(1L, "GESTOR"))));
         assertThat(repository.buscarPorId(id)).map(Usuario::passwordHash).contains("hash:secreta123");
     }
 
@@ -392,5 +393,72 @@ class CasosDeUsoUsuarioTest {
     void cambiarPasswordDeUnUsuarioInexistenteLanzaExcepcion() {
         assertThatThrownBy(() -> cambiarPassword.ejecutar(99L, "nuevaClave1"))
                 .isInstanceOf(UsuarioNoEncontradoException.class);
+    }
+
+    @Test
+    void crearAdministradorInicialSinUsuariosCreaUnAdministradorActivoSinEmpresas() {
+        crearAdministradorInicial.ejecutar("Admin@Empresa.es", "secreta123");
+
+        assertThat(repository.listar()).singleElement().satisfies(usuario -> {
+            assertThat(usuario.id()).isEqualTo(1L);
+            assertThat(usuario.email()).isEqualTo("admin@empresa.es");
+            assertThat(usuario.nombre()).isEqualTo("Administrador");
+            assertThat(usuario.passwordHash()).isEqualTo("hash:secreta123");
+            assertThat(usuario.activo()).isTrue();
+            assertThat(usuario.administrador()).isTrue();
+            assertThat(usuario.accesos()).isEmpty();
+        });
+    }
+
+    @Test
+    void elAdministradorInicialPuedeAutenticarse() {
+        crearAdministradorInicial.ejecutar("admin@empresa.es", "secreta123");
+
+        assertThat(verificarCredenciales.ejecutar("admin@empresa.es", "secreta123"))
+                .map(UsuarioDto::administrador)
+                .contains(true);
+    }
+
+    @Test
+    void crearAdministradorInicialConUsuariosExistentesNoHaceNada() {
+        Long id = guardado("ana@empresa.es", false);
+
+        crearAdministradorInicial.ejecutar("admin@empresa.es", "secreta123");
+
+        assertThat(repository.listar()).extracting(Usuario::id).containsExactly(id);
+        assertThat(repository.existePorEmail("admin@empresa.es")).isFalse();
+    }
+
+    @Test
+    void crearAdministradorInicialSinEmailNoHaceNada() {
+        crearAdministradorInicial.ejecutar(null, "secreta123");
+        crearAdministradorInicial.ejecutar("", "secreta123");
+        crearAdministradorInicial.ejecutar("   ", "secreta123");
+
+        assertThat(repository.listar()).isEmpty();
+    }
+
+    @Test
+    void crearAdministradorInicialSinPasswordNoHaceNada() {
+        crearAdministradorInicial.ejecutar("admin@empresa.es", null);
+        crearAdministradorInicial.ejecutar("admin@empresa.es", "");
+        crearAdministradorInicial.ejecutar("admin@empresa.es", "   ");
+
+        assertThat(repository.listar()).isEmpty();
+    }
+
+    @Test
+    void crearAdministradorInicialAplicaLasReglasDeLaContrasena() {
+        assertThatThrownBy(() -> crearAdministradorInicial.ejecutar("admin@empresa.es", "corta12"))
+                .isInstanceOf(UsuarioInvalidoException.class)
+                .hasMessage("La contraseña debe tener entre 8 y 72 caracteres");
+        assertThat(repository.listar()).isEmpty();
+    }
+
+    @Test
+    void crearAdministradorInicialAceptaLaLongitudMinimaDeContrasena() {
+        crearAdministradorInicial.ejecutar("admin@empresa.es", "12345678");
+
+        assertThat(repository.buscarPorEmail("admin@empresa.es")).map(Usuario::passwordHash).contains("hash:12345678");
     }
 }

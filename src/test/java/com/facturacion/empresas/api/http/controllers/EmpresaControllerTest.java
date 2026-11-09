@@ -1,5 +1,7 @@
 package com.facturacion.empresas.api.http.controllers;
 
+import com.facturacion.app.ConfiguracionReloj;
+import com.facturacion.app.ConfiguracionSeguridad;
 import com.facturacion.empresas.api.facade.dto.ContactoEmpresaDto;
 import com.facturacion.empresas.api.facade.dto.DatosFiscalesEmpresaDto;
 import com.facturacion.empresas.api.facade.dto.EmpresaDto;
@@ -15,7 +17,9 @@ import com.facturacion.empresas.internal.domain.exception.NifEmpresaDuplicadoExc
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -35,6 +39,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(EmpresaController.class)
+@Import({ConfiguracionSeguridad.class, ConfiguracionReloj.class})
+@WithMockUser(roles = "ADMINISTRADOR")
 class EmpresaControllerTest {
 
     private static final String PETICION_VALIDA = """

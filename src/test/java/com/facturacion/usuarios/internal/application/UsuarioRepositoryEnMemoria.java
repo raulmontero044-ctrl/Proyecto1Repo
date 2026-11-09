@@ -18,7 +18,8 @@ class UsuarioRepositoryEnMemoria implements UsuarioRepository {
     public Usuario guardar(Usuario usuario) {
         Long id = usuario.id() != null ? usuario.id() : siguienteId++;
         Usuario guardado = new Usuario(
-                id, usuario.email(), usuario.nombre(), usuario.passwordHash(), usuario.activo(), usuario.accesos());
+                id, usuario.email(), usuario.nombre(), usuario.passwordHash(), usuario.activo(),
+                usuario.administrador(), usuario.accesos());
         usuarios.put(id, guardado);
         return guardado;
     }
@@ -54,5 +55,10 @@ class UsuarioRepositoryEnMemoria implements UsuarioRepository {
     public boolean existePorEmailEnOtroUsuario(String email, Long id) {
         return usuarios.values().stream()
                 .anyMatch(usuario -> usuario.email().equals(email) && !usuario.id().equals(id));
+    }
+
+    @Override
+    public boolean existeAlguno() {
+        return !usuarios.isEmpty();
     }
 }

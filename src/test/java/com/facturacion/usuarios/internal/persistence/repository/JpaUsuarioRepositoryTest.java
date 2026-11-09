@@ -28,7 +28,7 @@ class JpaUsuarioRepositoryTest {
     private final JpaUsuarioRepository repository = new JpaUsuarioRepository(dao, new UsuarioMapper());
 
     private static UsuarioEntity entidad(Long id, String email) {
-        return new UsuarioEntity(id, email, "Ana", "hash", true, List.of(new AccesoEmpresaEmbeddable(3L, "GESTOR")));
+        return new UsuarioEntity(id, email, "Ana", "hash", true, false, List.of(new AccesoEmpresaEmbeddable(3L, "GESTOR")));
     }
 
     @Test
@@ -51,7 +51,7 @@ class JpaUsuarioRepositoryTest {
     void guardarUnUsuarioExistenteEnviaSuIdentificador() {
         when(dao.save(any(UsuarioEntity.class))).thenReturn(entidad(5L, "otro@empresa.es"));
 
-        repository.guardar(new Usuario(5L, "otro@empresa.es", "Ana", "hash", false, List.of()));
+        repository.guardar(new Usuario(5L, "otro@empresa.es", "Ana", "hash", false, false, List.of()));
 
         ArgumentCaptor<UsuarioEntity> enviada = ArgumentCaptor.forClass(UsuarioEntity.class);
         verify(dao).save(enviada.capture());
@@ -120,5 +120,14 @@ class JpaUsuarioRepositoryTest {
         assertThat(repository.existePorEmailEnOtroUsuario("ana@empresa.es", 1L)).isTrue();
         assertThat(repository.existePorEmailEnOtroUsuario("ana@empresa.es", 2L)).isFalse();
         verify(dao, never()).existsByEmail(anyString());
+    }
+
+    @Test
+    void existeAlgunoConsultaElRecuentoDelDao() {
+        when(dao.count()).thenReturn(0L);
+        assertThat(repository.existeAlguno()).isFalse();
+
+        when(dao.count()).thenReturn(1L);
+        assertThat(repository.existeAlguno()).isTrue();
     }
 }

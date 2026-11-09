@@ -54,4 +54,9 @@ public class JpaUsuarioRepository implements UsuarioRepository {
     public boolean existePorEmailEnOtroUsuario(String email, Long id) {
         return dao.existsByEmailAndIdNot(email, id);
     }
+
+    @Override
+    public boolean existeAlguno() {
+        return dao.count() > 0;
+    }
 }
