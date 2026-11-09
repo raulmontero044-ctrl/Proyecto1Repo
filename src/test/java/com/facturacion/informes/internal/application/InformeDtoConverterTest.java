@@ -2,14 +2,19 @@ package com.facturacion.informes.internal.application;
 
 import com.facturacion.factura.api.facade.dto.FacturaDto;
 import com.facturacion.informes.internal.domain.exception.InformeInvalidoException;
+import com.facturacion.informes.internal.domain.model.EstadisticaPeriodo;
 import com.facturacion.informes.internal.domain.model.EstadoCobro;
 import com.facturacion.informes.internal.domain.model.FacturaResumida;
 import com.facturacion.informes.internal.domain.model.IngresosGastos;
 import com.facturacion.informes.internal.domain.model.PagoResumido;
 import com.facturacion.informes.internal.domain.model.ResumenFacturas;
+import com.facturacion.informes.internal.domain.model.ResumenImpuestos;
+import com.facturacion.informes.internal.domain.model.ResumenPendientes;
+import com.facturacion.informes.internal.domain.model.ResumenTesoreria;
 import com.facturacion.informes.internal.domain.model.SaldoFactura;
 import com.facturacion.informes.internal.domain.model.TipoFactura;
 import com.facturacion.informes.internal.domain.model.TipoPago;
+import com.facturacion.informes.internal.domain.model.TramoIva;
 import com.facturacion.pagos.api.facade.dto.EstadoFacturaDto;
 import com.facturacion.pagos.api.facade.dto.PagoDto;
 import org.junit.jupiter.api.Test;
@@ -124,6 +129,59 @@ class InformeDtoConverterTest {
                 new BigDecimal("10.00"), new BigDecimal("4.00"), new BigDecimal("6.00"));
 
         assertThat(InformeDtoConverter.aDto(ingresosGastos)).isEqualTo(new IngresosGastosDto(
+                new BigDecimal("10.00"), new BigDecimal("4.00"), new BigDecimal("6.00")));
+    }
+
+    @Test
+    void convierteElResumenDeImpuestosConSusTramos() {
+        ResumenImpuestos impuestos = new ResumenImpuestos(
+                List.of(new TramoIva(new BigDecimal("21.00"), new BigDecimal("100.00"), new BigDecimal("21.00"))),
+                new BigDecimal("21.00"),
+                List.of(new TramoIva(new BigDecimal("4.00"), new BigDecimal("10.00"), new BigDecimal("0.40"))),
+                new BigDecimal("0.40"),
+                new BigDecimal("20.60"));
+
+        assertThat(InformeDtoConverter.aDto(impuestos)).isEqualTo(new ResumenImpuestosDto(
+                List.of(new TramoIvaDto(new BigDecimal("21.00"), new BigDecimal("100.00"), new BigDecimal("21.00"))),
+                new BigDecimal("21.00"),
+                List.of(new TramoIvaDto(new BigDecimal("4.00"), new BigDecimal("10.00"), new BigDecimal("0.40"))),
+                new BigDecimal("0.40"),
+                new BigDecimal("20.60")));
+    }
+
+    @Test
+    void convierteLasEstadisticasConservandoElOrden() {
+        List<EstadisticaPeriodo> estadisticas = List.of(
+                new EstadisticaPeriodo("2026-T1", 2, new BigDecimal("176.00"), 1, new BigDecimal("48.40")),
+                new EstadisticaPeriodo("2026-T2", 0, new BigDecimal("0.00"), 3, new BigDecimal("9.00")));
+
+        assertThat(InformeDtoConverter.aEstadisticasDto(estadisticas)).containsExactly(
+                new EstadisticaPeriodoDto("2026-T1", 2, new BigDecimal("176.00"), 1, new BigDecimal("48.40")),
+                new EstadisticaPeriodoDto("2026-T2", 0, new BigDecimal("0.00"), 3, new BigDecimal("9.00")));
+    }
+
+    @Test
+    void convierteLosPendientesConElTipoYElEstadoComoTexto() {
+        SaldoFactura saldo = new SaldoFactura(
+                7L, "F-7", TipoFactura.RECIBIDA, FECHA, null, new BigDecimal("121.00"), new BigDecimal("21.00"),
+                new BigDecimal("100.00"), EstadoCobro.PARCIAL, true);
+        ResumenPendientes pendientes = new ResumenPendientes(
+                new BigDecimal("0.00"), new BigDecimal("0.00"), new BigDecimal("100.00"), new BigDecimal("100.00"),
+                List.of(saldo));
+
+        assertThat(InformeDtoConverter.aDto(pendientes)).isEqualTo(new ResumenPendientesDto(
+                new BigDecimal("0.00"), new BigDecimal("0.00"), new BigDecimal("100.00"), new BigDecimal("100.00"),
+                List.of(new SaldoFacturaDto(
+                        7L, "F-7", "RECIBIDA", FECHA, null, new BigDecimal("121.00"), new BigDecimal("21.00"),
+                        new BigDecimal("100.00"), "PARCIAL", true))));
+    }
+
+    @Test
+    void convierteLaTesoreria() {
+        ResumenTesoreria tesoreria = new ResumenTesoreria(
+                new BigDecimal("10.00"), new BigDecimal("4.00"), new BigDecimal("6.00"));
+
+        assertThat(InformeDtoConverter.aDto(tesoreria)).isEqualTo(new ResumenTesoreriaDto(
                 new BigDecimal("10.00"), new BigDecimal("4.00"), new BigDecimal("6.00")));
     }
 }

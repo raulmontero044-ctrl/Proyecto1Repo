@@ -2,14 +2,19 @@ package com.facturacion.informes.internal.application;
 
 import com.facturacion.factura.api.facade.dto.FacturaDto;
 import com.facturacion.informes.internal.domain.exception.InformeInvalidoException;
+import com.facturacion.informes.internal.domain.model.EstadisticaPeriodo;
 import com.facturacion.informes.internal.domain.model.EstadoCobro;
 import com.facturacion.informes.internal.domain.model.FacturaResumida;
 import com.facturacion.informes.internal.domain.model.IngresosGastos;
 import com.facturacion.informes.internal.domain.model.PagoResumido;
 import com.facturacion.informes.internal.domain.model.ResumenFacturas;
+import com.facturacion.informes.internal.domain.model.ResumenImpuestos;
+import com.facturacion.informes.internal.domain.model.ResumenPendientes;
+import com.facturacion.informes.internal.domain.model.ResumenTesoreria;
 import com.facturacion.informes.internal.domain.model.SaldoFactura;
 import com.facturacion.informes.internal.domain.model.TipoFactura;
 import com.facturacion.informes.internal.domain.model.TipoPago;
+import com.facturacion.informes.internal.domain.model.TramoIva;
 import com.facturacion.pagos.api.facade.dto.EstadoFacturaDto;
 import com.facturacion.pagos.api.facade.dto.PagoDto;
 
@@ -83,6 +88,59 @@ final class InformeDtoConverter {
     static IngresosGastosDto aDto(IngresosGastos ingresosGastos) {
         return new IngresosGastosDto(
                 ingresosGastos.ingresos(), ingresosGastos.gastos(), ingresosGastos.resultado());
+    }
+
+    static ResumenImpuestosDto aDto(ResumenImpuestos impuestos) {
+        return new ResumenImpuestosDto(
+                aTramosDto(impuestos.repercutido()),
+                impuestos.cuotaRepercutida(),
+                aTramosDto(impuestos.soportado()),
+                impuestos.cuotaSoportada(),
+                impuestos.resultado());
+    }
+
+    static List<EstadisticaPeriodoDto> aEstadisticasDto(List<EstadisticaPeriodo> estadisticas) {
+        return estadisticas.stream()
+                .map(estadistica -> new EstadisticaPeriodoDto(
+                        estadistica.periodo(),
+                        estadistica.numeroEmitidas(),
+                        estadistica.totalEmitidas(),
+                        estadistica.numeroRecibidas(),
+                        estadistica.totalRecibidas()))
+                .toList();
+    }
+
+    static ResumenPendientesDto aDto(ResumenPendientes pendientes) {
+        return new ResumenPendientesDto(
+                pendientes.pendienteCobro(),
+                pendientes.vencidoCobro(),
+                pendientes.pendientePago(),
+                pendientes.vencidoPago(),
+                pendientes.facturas().stream().map(InformeDtoConverter::aDto).toList());
+    }
+
+    static ResumenTesoreriaDto aDto(ResumenTesoreria tesoreria) {
+        return new ResumenTesoreriaDto(tesoreria.cobros(), tesoreria.pagos(), tesoreria.saldoNeto());
+    }
+
+    private static List<TramoIvaDto> aTramosDto(List<TramoIva> tramos) {
+        return tramos.stream()
+                .map(tramo -> new TramoIvaDto(tramo.porcentajeIva(), tramo.base(), tramo.cuota()))
+                .toList();
+    }
+
+    private static SaldoFacturaDto aDto(SaldoFactura saldo) {
+        return new SaldoFacturaDto(
+                saldo.facturaId(),
+                saldo.numero(),
+                saldo.tipo().name(),
+                saldo.fecha(),
+                saldo.fechaVencimiento(),
+                saldo.total(),
+                saldo.pagado(),
+                saldo.pendiente(),
+                saldo.estado().name(),
+                saldo.vencida());
     }
 
     private static FacturaResumidaDto aDto(FacturaResumida factura) {
