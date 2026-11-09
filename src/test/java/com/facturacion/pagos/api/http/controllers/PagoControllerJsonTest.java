@@ -1,5 +1,7 @@
 package com.facturacion.pagos.api.http.controllers;
 
+import com.facturacion.app.ConfiguracionReloj;
+import com.facturacion.app.ConfiguracionSeguridad;
 import com.facturacion.pagos.api.facade.dto.EstadoFacturaDto;
 import com.facturacion.pagos.api.facade.dto.NuevoPagoDto;
 import com.facturacion.pagos.api.facade.dto.PagoDto;
@@ -11,7 +13,9 @@ import com.facturacion.pagos.internal.application.RegistrarPago;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -27,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PagoController.class)
+@Import({ConfiguracionSeguridad.class, ConfiguracionReloj.class})
+@WithMockUser(roles = "GESTOR")
 class PagoControllerJsonTest {
 
     @Autowired

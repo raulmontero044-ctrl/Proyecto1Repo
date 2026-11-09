@@ -1,5 +1,7 @@
 package com.facturacion.informes.api.http.controllers;
 
+import com.facturacion.app.ConfiguracionReloj;
+import com.facturacion.app.ConfiguracionSeguridad;
 import com.facturacion.informes.internal.application.ConsultarEstadisticas;
 import com.facturacion.informes.internal.application.ConsultarImpuestos;
 import com.facturacion.informes.internal.application.ConsultarIngresosGastos;
@@ -18,7 +20,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -38,6 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(InformeController.class)
+@Import({ConfiguracionSeguridad.class, ConfiguracionReloj.class})
+@WithMockUser(roles = "CONSULTA")
 class InformeControllerTest {
 
     private static final LocalDate DESDE = LocalDate.of(2026, 1, 1);

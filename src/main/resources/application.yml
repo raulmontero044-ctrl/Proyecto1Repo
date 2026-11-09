@@ -16,6 +16,8 @@ spring:
       max-file-size: 10MB
       max-request-size: 11MB
 facturacion:
+  jwt:
+    secreto: ${JWT_SECRET}
   administrador-inicial:
     email: ${ADMIN_EMAIL:}
     password: ${ADMIN_PASSWORD:}
