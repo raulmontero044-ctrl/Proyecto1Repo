@@ -1,5 +1,6 @@
 package com.facturacion.app;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import jakarta.servlet.DispatcherType;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -62,10 +63,15 @@ public class ConfiguracionSeguridad {
 
     @Bean
     public SecurityFilterChain cadenaSeguridad(
-            HttpSecurity http, JwtAuthenticationConverter conversorAutenticacion) throws Exception {
+            HttpSecurity http, JwtAuthenticationConverter conversorAutenticacion, ObjectMapper objectMapper)
+            throws Exception {
+        RespuestaErrorSeguridad respuestaError = new RespuestaErrorSeguridad(objectMapper);
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(errores -> errores
+                        .authenticationEntryPoint(respuestaError)
+                        .accessDeniedHandler(respuestaError))
                 .authorizeHttpRequests(peticiones -> peticiones
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(rutas(HttpMethod.POST, PUBLICAS)).permitAll()
@@ -78,6 +84,8 @@ public class ConfiguracionSeguridad {
                         .requestMatchers(rutas(null, "/api/usuarios/**")).hasRole(ADMINISTRADOR)
                         .anyRequest().hasRole(ADMINISTRADOR))
                 .oauth2ResourceServer(servidor -> servidor
+                        .authenticationEntryPoint(respuestaError)
+                        .accessDeniedHandler(respuestaError)
                         .bearerTokenResolver(tokenFueraDeLasRutasPublicas())
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(conversorAutenticacion)))
                 .build();

@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,6 +31,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ConfiguracionSeguridadTest.ControladorFicticio.class)
@@ -144,6 +148,30 @@ class ConfiguracionSeguridadTest {
         return token(rol, Instant.now().plusSeconds(300), otro);
     }
 
+    private static ResultMatcher[] noAutenticado(String ruta) {
+        return new ResultMatcher[] {
+                status().isUnauthorized(),
+                header().string(HttpHeaders.WWW_AUTHENTICATE, "Bearer"),
+                content().contentType(MediaType.APPLICATION_PROBLEM_JSON),
+                jsonPath("$.type").value("about:blank"),
+                jsonPath("$.title").value("Unauthorized"),
+                jsonPath("$.status").value(401),
+                jsonPath("$.detail").value("Se requiere un token de acceso válido"),
+                jsonPath("$.instance").value(ruta)};
+    }
+
+    private static ResultMatcher[] sinPermiso(String ruta) {
+        return new ResultMatcher[] {
+                status().isForbidden(),
+                header().doesNotExist(HttpHeaders.WWW_AUTHENTICATE),
+                content().contentType(MediaType.APPLICATION_PROBLEM_JSON),
+                jsonPath("$.type").value("about:blank"),
+                jsonPath("$.title").value("Forbidden"),
+                jsonPath("$.status").value(403),
+                jsonPath("$.detail").value("No tiene permiso para realizar esta operación"),
+                jsonPath("$.instance").value(ruta)};
+    }
+
     private ResultActions pedir(Fila fila, String token) throws Exception {
         if (token == null) {
             return mockMvc.perform(request(fila.metodo(), fila.ruta()));
@@ -159,38 +187,52 @@ class ConfiguracionSeguridadTest {
         if (fila.permitidos().contains(rol)) {
             respuesta.andExpect(status().isOk()).andExpect(content().string("permitido"));
         } else {
-            respuesta.andExpect(status().isForbidden());
+            respuesta.andExpectAll(sinPermiso(fila.ruta()));
         }
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("filas")
     void unUsuarioSinRolRecibe403EnTodoLoProtegido(Fila fila) throws Exception {
-        pedir(fila, tokenVigente(null)).andExpect(status().isForbidden());
+        pedir(fila, tokenVigente(null)).andExpectAll(sinPermiso(fila.ruta()));
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("filas")
     void sinTokenSeResponde401(Fila fila) throws Exception {
-        pedir(fila, null).andExpect(status().isUnauthorized());
+        pedir(fila, null).andExpectAll(noAutenticado(fila.ruta()));
     }
 
     @ParameterizedTest(name = "{0} con {1}")
     @MethodSource("filasPorRol")
     void conTokenCaducadoSeResponde401(Fila fila, String rol) throws Exception {
-        pedir(fila, tokenCaducado(rol)).andExpect(status().isUnauthorized());
+        pedir(fila, tokenCaducado(rol)).andExpectAll(noAutenticado(fila.ruta()));
     }
 
     @ParameterizedTest(name = "{0} con {1}")
     @MethodSource("filasPorRol")
     void conTokenFirmadoConOtraClaveSeResponde401(Fila fila, String rol) throws Exception {
-        pedir(fila, tokenConOtraFirma(rol)).andExpect(status().isUnauthorized());
+        pedir(fila, tokenConOtraFirma(rol)).andExpectAll(noAutenticado(fila.ruta()));
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("filas")
     void conUnTokenMalFormadoSeResponde401(Fila fila) throws Exception {
-        pedir(fila, "no-es-un-jwt").andExpect(status().isUnauthorized());
+        pedir(fila, "no-es-un-jwt").andExpectAll(noAutenticado(fila.ruta()));
+    }
+
+    @Test
+    void losCuerposDe401Y403SonProblemDetailSinCamposAdicionales() throws Exception {
+        pedir(new Fila(HttpMethod.GET, "/api/usuarios/1", SOLO_ADMINISTRADOR), null)
+                .andExpect(content().json("""
+                        {"type": "about:blank", "title": "Unauthorized", "status": 401,
+                         "detail": "Se requiere un token de acceso válido", "instance": "/api/usuarios/1"}
+                        """, true));
+        pedir(new Fila(HttpMethod.GET, "/api/usuarios/1", SOLO_ADMINISTRADOR), tokenVigente(CONSULTA))
+                .andExpect(content().json("""
+                        {"type": "about:blank", "title": "Forbidden", "status": 403,
+                         "detail": "No tiene permiso para realizar esta operación", "instance": "/api/usuarios/1"}
+                        """, true));
     }
 
     @Test
@@ -201,7 +243,7 @@ class ConfiguracionSeguridadTest {
                 .encodeToString("{\"alg\":\"none\"}".getBytes(StandardCharsets.UTF_8));
 
         pedir(new Fila(HttpMethod.GET, "/api/usuarios", SOLO_ADMINISTRADOR), cabeceraNone + "." + partes[1] + ".")
-                .andExpect(status().isUnauthorized());
+                .andExpectAll(noAutenticado("/api/usuarios"));
     }
 
     @ParameterizedTest
