@@ -44,19 +44,19 @@ Si falta alguno, DEBE preguntarse al usuario antes de crear código, listando ex
 
 ## Subagentes
 
-El hilo principal es el coordinador: NO DEBE implementar, revisar ni verificar código directamente, sino lanzar el subagente de cada paso, supervisar su informe y decidir el siguiente. Todos son `general-purpose`; los que modifican archivos se lanzan con `isolation: "worktree"` (`procedimiento-comun.md` §1.3).
+El hilo principal es el coordinador: NO DEBE implementar, revisar ni verificar código directamente, sino lanzar el subagente de cada paso, supervisar su informe y decidir el siguiente. Cada subagente tiene su definición en un archivo `subagents/<nombre>.md`: los propios de esta skill en `.claude/skills/do-crud/subagents/` y los compartidos en la skill dueña de su procedimiento. Se lanzan según `procedimiento-comun.md` §1.7; los que modifican archivos o ejecutan Maven, con `isolation: "worktree"`.
 
 | Paso | Subagente | Worktree | Paralelismo |
 |---|---|---|---|
-| 0 | Preparación Git | No | — |
-| 2 | Analizador de solo lectura | No | — |
-| 4 | Implementador backend | Sí | En paralelo con el 5 |
-| 5 | Implementador frontend (si existe) | Sí | En paralelo con el 4 |
-| 6 | Verificador de integración de solo lectura | No | — |
-| 7 | Un subagente por ciclo de `/k-crud` | Sí | Secuencial |
-| 8 | Agentes `test-*` lanzados según `/do-test` | Según `/do-test` | Según `/do-test` |
-| 9 | Verificador final de solo lectura | No | — |
-| 9 | Integrador | Sí | — |
+| 0 | `.claude/skills/do-code-impl/subagents/preparacion-git.md` | No | — |
+| 2 | `.claude/skills/k-crud/subagents/analizador.md` | Sí, sin cambios | — |
+| 4 | `.claude/skills/do-crud/subagents/implementador-backend.md` | Sí | En paralelo con el 5 |
+| 5 | `.claude/skills/do-crud/subagents/implementador-frontend.md` (si hay frontend) | Sí | En paralelo con el 4 |
+| 6 | `.claude/skills/do-crud/subagents/verificador-integracion.md` | No | — |
+| 7 | `.claude/skills/k-crud/subagents/ciclo.md`, uno nuevo por ciclo | Sí | Secuencial |
+| 8 | `.claude/skills/do-test/subagents/test-*.md`, según `/do-test` | Según `/do-test` | Según `/do-test` |
+| 9.1 | `.claude/skills/k-crud/subagents/verificador.md` | Sí, sin cambios | — |
+| 9.2 | `.claude/skills/do-code-impl/subagents/integrador.md` | Sí | — |
 
 El prompt de cada subagente DEBE incluir: tarea y requisitos sin resumir los que afecten a campos, endpoints o reglas; rama y base; «modo subagente»; rutas de este archivo, de `.claude/skills/k-crud/SKILL.md` y de `procedimiento-comun.md`; las `/k-back-*` que debe leer; el informe del analizador y el plan del paso 3; y el formato de informe que debe devolver.
 

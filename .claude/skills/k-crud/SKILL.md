@@ -48,6 +48,8 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 | `/k-back-testing` | `.claude/skills/k-back-testing/SKILL.md` | Verificaciones V1-V7 y comandos |
 | `/do-test` | `.claude/skills/do-test/SKILL.md` | Crear o reparar tests cuando hagan falta |
 | Procedimiento común | `.claude/skills/do-code-impl/procedimiento-comun.md` | Modos, subagentes y flujo Git (secciones 1 y 4) |
+| Subagentes propios | `.claude/skills/k-crud/subagents/` | `analizador.md`, `ciclo.md`, `verificador.md` |
+| Subagentes compartidos | `.claude/skills/do-code-impl/subagents/` | `preparacion-git.md`, `integrador.md` |
 
 ## Normas
 
@@ -211,14 +213,15 @@ Es la responsabilidad principal de la skill: al invocarla DEBE auditarse el CRUD
 - **Subagente**: un subagente sin herramienta `Agent`. Hace él mismo todos los pasos, uno tras otro.
 - **Sin herramienta `Agent`** en el hilo principal: se aplica `procedimiento-comun.md` §1.5. NO DEBEN simularse subagentes.
 
-7.1.2. Subagentes en modo coordinador (`general-purpose`, con la herramienta `Agent`):
+7.1.2. Subagentes en modo coordinador, lanzados según `procedimiento-comun.md` §1.7:
 
 | Paso | Subagente | Worktree | Devuelve |
 |---|---|---|---|
-| Preparación Git (solo si se invoca directamente) | Preparación, según `procedimiento-comun.md` §4.1, rama `feature/crud-auditoria-<recurso>` | No | Rama creada y hash de `origin/develop` |
-| Análisis inicial | Analizador de solo lectura (sección 1) | No | Informe de contexto: etapa, clases del CRUD por capa, convenciones, operaciones existentes, frontend sí/no, línea base de `./mvnw -B test` |
-| Cada ciclo (7.2) | **Un subagente nuevo por ciclo**, que revisa y repara | Sí, `isolation: "worktree"`, sobre la rama de trabajo | Registro del ciclo (7.4), commits y push de la rama |
-| Integración (solo si se invoca directamente) | Integrador, según `procedimiento-comun.md` §4.5 | Sí | Hash final de `origin/develop` y resultado de `./mvnw -B verify` |
+| Preparación Git (solo si se invoca directamente) | `.claude/skills/do-code-impl/subagents/preparacion-git.md`, rama `feature/crud-auditoria-<recurso>` | No | Rama creada y hash de `origin/develop` |
+| Análisis inicial (sección 1) | `.claude/skills/k-crud/subagents/analizador.md` | Sí, sin cambios (ejecuta Maven) | Informe de contexto: etapa, clases del CRUD por capa, convenciones, operaciones existentes, frontend sí/no, línea base de `./mvnw -B test` |
+| Cada ciclo (7.2) | `.claude/skills/k-crud/subagents/ciclo.md`, **un subagente nuevo por ciclo** | Sí, sobre la rama de trabajo | Registro del ciclo (7.4), commits y push de la rama |
+| Verificación final (8.1) | `.claude/skills/k-crud/subagents/verificador.md` | Sí, sin cambios | Informe de verificación |
+| Integración (solo si se invoca directamente) | `.claude/skills/do-code-impl/subagents/integrador.md` | Sí | Hash final de `origin/develop` y resultado de `./mvnw -B verify` |
 
 7.1.3. El prompt de cada subagente de ciclo DEBE incluir:
 
@@ -283,7 +286,7 @@ DEBEN hacerse como mínimo **5 ciclos completos**.
 
 ### 8. Verificación final
 
-8.1. Al terminar los ciclos, el coordinador lanza un subagente verificador de solo lectura (sin worktree, sobre la rama de trabajo) que DEBE comprobar:
+8.1. Al terminar los ciclos, el coordinador lanza el subagente `subagents/verificador.md` (con worktree, sin cambios, sobre la rama de trabajo), que DEBE comprobar:
 
 - Que las cuatro operaciones CRUD se comportan según la sección 2.
 - Los contratos HTTP (sección 4).

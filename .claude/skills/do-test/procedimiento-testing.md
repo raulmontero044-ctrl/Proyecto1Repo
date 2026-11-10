@@ -12,18 +12,18 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 
 1.2. Todas estas skills se ejecutan en el hilo principal, en modo coordinador, porque necesitan la herramienta `Agent` y los subagentes no pueden lanzar subagentes. Si `Agent` no está disponible, la skill DEBE informarlo y detenerse: cinco propuestas independientes no pueden simularse en un único hilo. NO DEBE simular agentes ni afirmar haberlos lanzado.
 
-1.3. Agentes del ecosistema, definidos en `.claude/agents/<nombre>.md`:
+1.3. Agentes del ecosistema, definidos en `.claude/skills/do-test/subagents/<nombre>.md`:
 
 | Agente | Responsabilidad | Modifica archivos | Worktree |
 |---|---|---|---|
 | `test-analyzer` | Analiza el proyecto, registra la línea base y prepara el informe de contexto | No (solo ejecuta la suite) | Sí |
 | `test-creator` | Desarrolla una propuesta CREATE completa en su rama candidata | Sí, solo tests | Sí |
-| `test-falsifier` | Verifica una única propuesta siguiendo `.claude/agents/code-falsador.md` | No (mutaciones temporales sin commit) | Sí |
+| `test-falsifier` | Verifica una única propuesta siguiendo `.claude/skills/do-test/subagents/code-falsador.md` | No (mutaciones temporales sin commit) | Sí |
 | `test-evaluator` | Compara las propuestas y sus informes y elige una ganadora | No | No |
 | `test-repairer` | Repara y refuerza la suite ganadora en su rama candidata | Sí, solo tests | Sí |
 | `test-integrator` | Integra la ganadora, valida y publica | Sí (merges) | Sí |
 
-1.4. Se lanzan con la herramienta `Agent` y `subagent_type: "<nombre>"`. Si el tipo no está disponible en la sesión (p. ej. porque los agentes se crearon después de arrancarla), se lanza `general-purpose` con un prompt que empiece por «Lee `.claude/agents/<nombre>.md` y sigue sus instrucciones como si fueran tu definición de agente», seguido del mismo contenido, y DEBE informarse en el informe final.
+1.4. Se lanzan según `.claude/skills/do-code-impl/procedimiento-comun.md` sección 1.7: herramienta `Agent` con `subagent_type: "general-purpose"` y un prompt que empieza por la instrucción de leer `.claude/skills/do-test/subagents/<nombre>.md` y limitarse a las herramientas de su campo `tools`, seguida del contenido de la sección 1.8.
 
 1.5. Los agentes que ejecutan Maven o tocan archivos DEBEN lanzarse con `isolation: "worktree"`; cada uno trabaja solo en su worktree y su rama (o en `HEAD` desacoplado si no debe commitear). Ningún agente modifica la rama de otro.
 
@@ -45,7 +45,7 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 
 Las candidatas solo se commitean en local: los worktrees comparten las referencias del repositorio, así que falsadores, evaluador e integrador las ven sin publicarlas, y se evita publicar diez ramas descartables por ejecución. NO DEBEN borrarse.
 
-2.2. Preparación. Un subagente de preparación sin worktree aplica `.claude/skills/do-code-impl/procedimiento-comun.md` sección 4.1 (repositorio limpio, `git fetch origin`, `origin/develop` existente, `develop` solo por fast-forward), comprueba que ni `<base>` ni sus candidatas existen en local ni en el remoto, y crea las ramas con `git branch <rama> <commit>` sin desprotegerlas. Devuelve los nombres y el hash del commit base. Las candidatas REPAIR se crean en una segunda preparación, tras la sección 5.
+2.2. Preparación. Un subagente de preparación sin worktree (`.claude/skills/do-test/subagents/preparacion-ramas.md`) aplica `.claude/skills/do-code-impl/procedimiento-comun.md` sección 4.1 (repositorio limpio, `git fetch origin`, `origin/develop` existente, `develop` solo por fast-forward), comprueba que ni `<base>` ni sus candidatas existen en local ni en el remoto, y crea las ramas con `git branch <rama> <commit>` sin desprotegerlas. Devuelve los nombres y el hash del commit base. Las candidatas REPAIR se crean en una segunda preparación, tras la sección 5.
 
 2.3. Cada agente que commitea hace `git switch <su rama>` en su worktree. Commits según el procedimiento común sección 4.3 (mensajes en español con prefijo `test:` o `fix:` según corresponda, línea `Co-Authored-By`, archivos añadidos por ruta). Antes de terminar, el agente DEBE dejar su worktree en `git switch --detach` para que la rama pueda desprotegerse en otro worktree.
 

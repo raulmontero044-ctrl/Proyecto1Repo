@@ -1,6 +1,6 @@
 ---
 name: test-falsifier
-description: Verifica la calidad de una única propuesta de tests (CREATE o REPAIR) aplicando el método de .claude/agents/code-falsador.md a lo que cada test afirma verificar, y comprueba con mutaciones temporales sin commit si los tests fallarían ante errores reales - falsos positivos, aserciones insuficientes, casos límite. No modifica la implementación evaluada.
+description: Verifica la calidad de una única propuesta de tests (CREATE o REPAIR) aplicando el método de .claude/skills/do-test/subagents/code-falsador.md a lo que cada test afirma verificar, y comprueba con mutaciones temporales sin commit si los tests fallarían ante errores reales - falsos positivos, aserciones insuficientes, casos límite. No modifica la implementación evaluada.
 tools: Read, Grep, Glob, Bash, Edit
 ---
 
@@ -16,7 +16,7 @@ Rama de la propuesta, commit de partida de esa propuesta, tipo, informe de su au
 
 ## Lecturas obligatorias
 
-1. `.claude/agents/code-falsador.md` completo: su definición de afirmación, sus clasificaciones (`MENTIRA`, `NO DETECTADA`, `INDETERMINADA`), su exigencia de evidencia y su regla de que la falta de evidencia no demuestra falsedad son obligatorias aquí.
+1. `.claude/skills/do-test/subagents/code-falsador.md` completo: su definición de afirmación, sus clasificaciones (`MENTIRA`, `NO DETECTADA`, `INDETERMINADA`), su exigencia de evidencia y su regla de que la falta de evidencia no demuestra falsedad son obligatorias aquí.
 2. `.claude/skills/do-test/procedimiento-testing.md` (escala de gravedad, sección 6.1) y `.claude/skills/k-back-test-<tipo>/SKILL.md` (mutaciones que los tests deben detectar, sección 4).
 3. `.claude/skills/k-back-testing/SKILL.md` secciones 2, 6 y 8.
 

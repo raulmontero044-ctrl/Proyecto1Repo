@@ -16,7 +16,7 @@ Tipo, número de propuesta, rama candidata, commit base, informe del `test-analy
 
 ## Lecturas obligatorias
 
-`.claude/skills/do-test/procedimiento-testing.md`, `.claude/skills/k-back-test-<tipo>/SKILL.md`, `.claude/skills/k-back-testing/SKILL.md`, `.claude/skills/k-back/SKILL.md` (política de comentarios y antiabstracción), las `/k-back-*` de las capas que pruebes y `.claude/agents/code-falsador.md` (tus tests serán falsados con ese método).
+`.claude/skills/do-test/procedimiento-testing.md`, `.claude/skills/k-back-test-<tipo>/SKILL.md`, `.claude/skills/k-back-testing/SKILL.md`, `.claude/skills/k-back/SKILL.md` (política de comentarios y antiabstracción), las `/k-back-*` de las capas que pruebes y `.claude/skills/do-test/subagents/code-falsador.md` (tus tests serán falsados con ese método).
 
 ## Reglas
 
