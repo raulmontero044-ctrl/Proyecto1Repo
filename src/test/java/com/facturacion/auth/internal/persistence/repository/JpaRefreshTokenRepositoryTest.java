@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,5 +62,24 @@ class JpaRefreshTokenRepositoryTest {
         when(dao.findByHash(HASH)).thenReturn(Optional.empty());
 
         assertThat(repository.buscarPorHash(HASH)).isEmpty();
+    }
+
+    @Test
+    void buscarVigentesPorUsuarioDelegaEnElDaoYDevuelveElDominio() {
+        Instant instante = Instant.parse("2026-11-09T10:00:00Z");
+        when(dao.findByUsuarioIdAndRevocadoFalseAndExpiraEnAfter(7L, instante))
+                .thenReturn(List.of(new RefreshTokenEntity(9L, 7L, HASH, CADUCIDAD, false)));
+
+        assertThat(repository.buscarVigentesPorUsuario(7L, instante))
+                .containsExactly(new RefreshToken(9L, 7L, HASH, CADUCIDAD, false));
+    }
+
+    @Test
+    void eliminarRevocadosOCaducadosDelegaEnElDaoConElInstante() {
+        Instant instante = Instant.parse("2026-11-09T10:00:00Z");
+
+        repository.eliminarRevocadosOCaducados(instante);
+
+        verify(dao).deleteRevocadosOCaducados(instante);
     }
 }

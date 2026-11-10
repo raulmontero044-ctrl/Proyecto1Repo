@@ -3,6 +3,7 @@ package com.facturacion.auth.internal.application;
 import com.facturacion.auth.internal.domain.model.RefreshToken;
 import com.facturacion.auth.internal.domain.repository.RefreshTokenRepository;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,6 +27,18 @@ class RefreshTokenRepositoryEnMemoria implements RefreshTokenRepository {
     @Override
     public Optional<RefreshToken> buscarPorHash(String hash) {
         return tokens.values().stream().filter(token -> token.hash().equals(hash)).findFirst();
+    }
+
+    @Override
+    public List<RefreshToken> buscarVigentesPorUsuario(Long usuarioId, Instant instante) {
+        return tokens.values().stream()
+                .filter(token -> token.usuarioId().equals(usuarioId) && token.vigenteEn(instante))
+                .toList();
+    }
+
+    @Override
+    public void eliminarRevocadosOCaducados(Instant instante) {
+        tokens.values().removeIf(token -> !token.vigenteEn(instante));
     }
 
     List<RefreshToken> todos() {

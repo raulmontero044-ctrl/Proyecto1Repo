@@ -6,6 +6,8 @@ import com.facturacion.auth.internal.persistence.dao.RefreshTokenDao;
 import com.facturacion.auth.internal.persistence.mapper.RefreshTokenMapper;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -27,5 +29,17 @@ public class JpaRefreshTokenRepository implements RefreshTokenRepository {
     @Override
     public Optional<RefreshToken> buscarPorHash(String hash) {
         return dao.findByHash(hash).map(mapper::aDominio);
+    }
+
+    @Override
+    public List<RefreshToken> buscarVigentesPorUsuario(Long usuarioId, Instant instante) {
+        return dao.findByUsuarioIdAndRevocadoFalseAndExpiraEnAfter(usuarioId, instante).stream()
+                .map(mapper::aDominio)
+                .toList();
+    }
+
+    @Override
+    public void eliminarRevocadosOCaducados(Instant instante) {
+        dao.deleteRevocadosOCaducados(instante);
     }
 }
