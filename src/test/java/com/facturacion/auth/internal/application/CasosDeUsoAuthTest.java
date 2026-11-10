@@ -40,7 +40,7 @@ class CasosDeUsoAuthTest {
     }
 
     private IniciarSesion iniciarSesion() {
-        return new IniciarSesion(usuarios, emisor());
+        return new IniciarSesion(repository, usuarios, emisor(), reloj);
     }
 
     private RenovarSesion renovarSesion() {
@@ -48,6 +48,10 @@ class CasosDeUsoAuthTest {
     }
 
     private final CerrarSesion cerrarSesion = new CerrarSesion(repository);
+
+    private PurgarRefreshTokens purgarRefreshTokens() {
+        return new PurgarRefreshTokens(repository, reloj);
+    }
 
     private static UsuarioDto usuario(Long id, boolean activo, boolean administrador, String... roles) {
         List<AccesoEmpresaDto> accesos = new ArrayList<>();
@@ -267,5 +271,51 @@ class CasosDeUsoAuthTest {
         cerrarSesion.ejecutar(refresh);
 
         assertThat(repository.todos()).isEqualTo(antes);
+    }
+
+    @Test
+    void iniciarSesionRevocaLosRefreshVigentesAnterioresDelUsuario() {
+        registrar(usuario(7L, true, false, "GESTOR"));
+        String anterior = iniciarSesion().ejecutar("usuario7@empresa.es", "secreta123").refreshToken();
+
+        String nuevo = iniciarSesion().ejecutar("usuario7@empresa.es", "secreta123").refreshToken();
+
+        assertThat(repository.buscarPorHash(HashRefreshToken.calcular(anterior))).map(RefreshToken::revocado).contains(true);
+        assertThat(repository.buscarPorHash(HashRefreshToken.calcular(nuevo))).map(RefreshToken::revocado).contains(false);
+        assertThatThrownBy(() -> renovarSesion().ejecutar(anterior)).isInstanceOf(RefreshTokenInvalidoException.class);
+    }
+
+    @Test
+    void iniciarSesionNoRevocaLosRefreshDeOtrosUsuarios() {
+        registrar(usuario(7L, true, false, "GESTOR"));
+        registrar(usuario(8L, true, false, "CONSULTA"));
+        String deOtro = iniciarSesion().ejecutar("usuario8@empresa.es", "secreta123").refreshToken();
+
+        iniciarSesion().ejecutar("usuario7@empresa.es", "secreta123");
+
+        assertThat(repository.buscarPorHash(HashRefreshToken.calcular(deOtro))).map(RefreshToken::revocado).contains(false);
+    }
+
+    @Test
+    void iniciarSesionConContrasenaIncorrectaNoRevocaLaSesionVigente() {
+        registrar(usuario(7L, true, false, "GESTOR"));
+        String vigente = iniciarSesion().ejecutar("usuario7@empresa.es", "secreta123").refreshToken();
+
+        assertThatThrownBy(() -> iniciarSesion().ejecutar("usuario7@empresa.es", "otraClave1"))
+                .isInstanceOf(CredencialesInvalidasException.class);
+
+        assertThat(repository.buscarPorHash(HashRefreshToken.calcular(vigente))).map(RefreshToken::revocado).contains(false);
+    }
+
+    @Test
+    void purgarEliminaLosRefreshRevocadosYCaducadosYConservaLosVigentes() {
+        repository.guardar(new RefreshToken(null, 7L, "a".repeat(64), CADUCIDAD_REFRESH, true));
+        repository.guardar(new RefreshToken(null, 7L, "b".repeat(64), AHORA, false));
+        RefreshToken vigente = repository.guardar(
+                new RefreshToken(null, 8L, "c".repeat(64), AHORA.plus(Duration.ofNanos(1000)), false));
+
+        purgarRefreshTokens().ejecutar();
+
+        assertThat(repository.todos()).containsExactly(vigente);
     }
 }
