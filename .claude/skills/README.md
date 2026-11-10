@@ -1,6 +1,6 @@
 # Mapa de skills
 
-> Generado por `/organizar-skills`. No lo edites a mano: vuelve a ejecutar la skill.
+> Generado por `/do-organizar-skills`. No lo edites a mano: vuelve a ejecutar la skill.
 > Las skills siguen en `.claude/skills/<nombre>/`; este mapa solo las agrupa.
 
 ```
@@ -40,8 +40,12 @@ back/
 front/
 └── (sin skills)
 comun/
+├── codigo/
+│   └── do-crud
+├── normas/
+│   └── k-crud
 └── utilidades/
-    └── organizar-skills
+    └── do-organizar-skills
 ```
 
 ## back
@@ -100,8 +104,20 @@ Sin skills.
 
 ## comun
 
+### codigo
+
+| Skill | Ruta | Resumen |
+|---|---|---|
+| `/do-crud` | `.claude/skills/do-crud/SKILL.md` | Implementa un CRUD completo de un recurso con subagentes |
+
+### normas
+
+| Skill | Ruta | Resumen |
+|---|---|---|
+| `/k-crud` | `.claude/skills/k-crud/SKILL.md` | Especificación técnica y auditoría reparadora de CRUD |
+
 ### utilidades
 
 | Skill | Ruta | Resumen |
 |---|---|---|
-| `/organizar-skills` | `.claude/skills/organizar-skills/SKILL.md` | Organiza las skills del proyecto en un mapa front/back → categoría sin mover ni renombrar ninguna |
+| `/do-organizar-skills` | `.claude/skills/do-organizar-skills/SKILL.md` | Organiza las skills del proyecto en un mapa front/back → categoría sin mover ni renombrar ninguna |

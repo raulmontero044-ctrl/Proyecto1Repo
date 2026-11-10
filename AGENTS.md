@@ -40,8 +40,12 @@ back/
 front/
 └── (sin skills)
 comun/
+├── codigo/
+│   └── do-crud
+├── normas/
+│   └── k-crud
 └── utilidades/
-    └── organizar-skills
+    └── do-organizar-skills
 ```
 
 Detalle: [.claude/skills/README.md](.claude/skills/README.md)
