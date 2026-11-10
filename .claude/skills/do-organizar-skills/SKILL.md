@@ -1,11 +1,11 @@
 ---
-name: organizar-skills
+name: do-organizar-skills
 description: Organiza las skills del proyecto en un mapa front/back → categoría sin mover ni renombrar ninguna - lee .claude/skills/*/SKILL.md, clasifica cada skill por prefijo y genera .claude/skills/README.md y la sección de skills de AGENTS.md. Úsala al añadir, quitar o cambiar skills.
 argument-hint: "[opcional: skill concreta a reclasificar]"
 disable-model-invocation: true
 ---
 
-# /organizar-skills
+# /do-organizar-skills
 
 ## Propósito
 
@@ -52,7 +52,9 @@ Ningún otro archivo se crea, modifica, mueve ni renombra.
 | `k-front*` | front | normas |
 | `do-front-test*` | front | testing |
 | `do-front-*` | front | codigo |
-| `organizar-skills` | comun | utilidades |
+| `k-crud` | comun | normas |
+| `do-crud` | comun | codigo |
+| `do-organizar-skills` | comun | utilidades |
 
 2.2. Si una skill no encaja en ninguna regla, o es la indicada en `$ARGUMENTS`, DEBE proponerse lado y categoría a partir de su `description` y confirmarse con el usuario (AskUserQuestion) antes de escribir. Si la decisión depende de un prefijo nuevo, DEBE proponerse añadirlo a la tabla 2.1.
 
@@ -65,7 +67,7 @@ Ningún otro archivo se crea, modifica, mueve ni renombra.
 ````markdown
 # Mapa de skills
 
-> Generado por `/organizar-skills`. No lo edites a mano: vuelve a ejecutar la skill.
+> Generado por `/do-organizar-skills`. No lo edites a mano: vuelve a ejecutar la skill.
 > Las skills siguen en `.claude/skills/<nombre>/`; este mapa solo las agrupa.
 
 ```
@@ -79,7 +81,7 @@ front/
 └── (sin skills)
 comun/
 └── utilidades/
-    └── organizar-skills
+    └── do-organizar-skills
 ```
 
 ## back

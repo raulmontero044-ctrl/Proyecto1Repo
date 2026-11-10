@@ -35,8 +35,8 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 | Procedimiento común | `.claude/skills/do-test/procedimiento-testing.md` |
 | Cómo se hace cada tipo de test | `/k-back-test-{unit,arch,api,e2e}` (`.claude/skills/k-back-test-<tipo>/SKILL.md`) |
 | Especializadas | `.claude/skills/do-test-<tipo>-create/SKILL.md`, `.claude/skills/do-test-<tipo>-repair/SKILL.md` |
-| Agentes | `.claude/agents/test-{analyzer,creator,falsifier,evaluator,repairer,integrator}.md` |
-| Falsación | `.claude/agents/code-falsador.md` |
+| Subagentes | `.claude/skills/do-test/subagents/test-{analyzer,creator,falsifier,evaluator,repairer,integrator}.md` y `preparacion-ramas.md` |
+| Falsación | `.claude/skills/do-test/subagents/code-falsador.md` |
 | Normas | `/k-back-testing`, `/k-back-test-<tipo>`, `/k-back` y las `/k-back-*` de capa |
 | Git | `.claude/skills/do-code-impl/procedimiento-comun.md` secciones 4.1 y 4.3 a 4.7 |
 

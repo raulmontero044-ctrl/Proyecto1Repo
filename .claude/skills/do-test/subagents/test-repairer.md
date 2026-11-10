@@ -16,7 +16,7 @@ Tipo, número de reparación, rama candidata, commit base `B1`, informe del `tes
 
 ## Lecturas obligatorias
 
-Las mismas que `test-creator` (`.claude/agents/test-creator.md`, sección «Lecturas obligatorias»).
+Las mismas que `test-creator` (`.claude/skills/do-test/subagents/test-creator.md`, sección «Lecturas obligatorias»).
 
 ## Reglas
 

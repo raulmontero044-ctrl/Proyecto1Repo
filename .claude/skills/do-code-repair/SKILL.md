@@ -208,14 +208,16 @@ Para cada tarea delegable:
 
 Subagentes recomendados:
 
-| Subagente | Responsabilidad |
-|---|---|
-| Analizador Git | Identificar ramas, commits y conflictos |
-| Analizador de código | Detectar incompatibilidades |
-| Reparador backend | Corregir errores de implementación |
-| Arquitecto | Comprobar límites y dependencias |
-| Tester | Ejecutar y reparar tests |
-| Integrador | Coordinar la integración final |
+| Subagente | Responsabilidad | Definición |
+|---|---|---|
+| Analizador Git | Identificar ramas, commits y conflictos (Fase 1) | `.claude/skills/do-code-repair/subagents/analizador-git.md` |
+| Analizador de código | Detectar incompatibilidades (Fase 3) | `.claude/skills/do-code-repair/subagents/reparador.md` |
+| Reparador backend | Corregir errores de implementación (Fases 2 y 4) | `.claude/skills/do-code-repair/subagents/reparador.md` |
+| Arquitecto | Comprobar límites y dependencias (Fase 6) | `.claude/skills/do-code-repair/subagents/arquitecto.md` |
+| Tester | Ejecutar y reparar tests (Fase 5) | `.claude/skills/do-code-repair/subagents/reparador.md` |
+| Integrador | Coordinar la integración final (Fase 7) | `.claude/skills/do-code-impl/subagents/integrador.md` |
+
+El analizador de código, el reparador backend y el tester son papeles del mismo subagente `reparador`, continuado con `SendMessage` (sección 0). Todos se lanzan según `.claude/skills/do-code-impl/procedimiento-comun.md` sección 1.7.
 
 Los subagentes deberán tener responsabilidades independientes.
 

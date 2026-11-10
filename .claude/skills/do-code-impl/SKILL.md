@@ -32,6 +32,7 @@ Para una única tarea de etapa o de módulo, el usuario PUEDE invocar directamen
 ## Skills relacionadas
 
 - Procedimiento común (modos, subagentes, Fase A, Fase B, Git, informes): `.claude/skills/do-code-impl/procedimiento-comun.md`.
+- Subagentes: `.claude/skills/do-code-impl/subagents/` (preparación Git, implementador, integrador y verificador), lanzados según el procedimiento común sección 1.7.
 - Ejecutoras: `/do-code-basic` (Etapa 1), `/do-code-modular` (Etapa 1→2), `/do-code-architecture` (Etapa 2→3), `/do-code-module` (módulo nuevo).
 - Normas: `/k-back` (modelo de etapas y propiedad de normas) y las `/k-back-*` de capa.
 - `/do-code-repair`: reparación opcional de integraciones tras trabajo paralelo.
@@ -46,7 +47,7 @@ Esta skill se ejecuta en el hilo principal, en modo coordinador (procedimiento c
 
 1.2. Detecta la etapa actual del proyecto inspeccionando los paquetes reales (`/k-back` sección 2) y anótala.
 
-1.3. Registra la línea base global en un subagente con `isolation: "worktree"`, sin cambios, que ejecuta `git fetch origin`, `git switch --detach origin/develop` y `./mvnw -B test`, con número total de tests, clases de test y resultado. Si no está en verde, DEBE informarse con la salida real y detenerse. Esta línea base es la referencia de la verificación final (sección 6.2).
+1.3. Registra la línea base global con el subagente `subagents/verificador.md` en modo `linea-base`, con `isolation: "worktree"`, sin cambios, que ejecuta `git fetch origin`, `git switch --detach origin/develop` y `./mvnw -B test`, con número total de tests, clases de test y resultado. Si no está en verde, DEBE informarse con la salida real y detenerse. Esta línea base es la referencia de la verificación final (sección 6.2).
 
 1.4. Si el plan es ambiguo o le falta información imprescindible (campos, reglas, endpoints, módulos), DEBE preguntarse al usuario antes de lanzar ningún subagente. NO DEBEN inventarse requisitos.
 
@@ -79,9 +80,9 @@ Las ejecutoras tienen `disable-model-invocation: true`, así que NO DEBEN invoca
 
 4.1. Agrupa las tareas en oleadas: cada oleada contiene las tareas cuyas dependencias ya están integradas en `develop`.
 
-4.2. Para cada oleada, lanza un subagente de preparación Git (procedimiento común, sección 4.1) que fije un nombre `feature/<nombre-descriptivo>` único por tarea y cree las ramas desde `origin/develop`.
+4.2. Para cada oleada, lanza el subagente `subagents/preparacion-git.md` (procedimiento común, sección 4.1) que fije un nombre `feature/<nombre-descriptivo>` único por tarea y cree las ramas desde `origin/develop`.
 
-4.3. Lanza en un mismo mensaje, en paralelo, un subagente por tarea independiente con la herramienta `Agent` e `isolation: "worktree"`, con el prompt de la sección 1.4 del procedimiento común. Una oleada con una sola tarea de etapa PUEDE ejecutarse en el hilo principal siguiendo la ejecutora en modo coordinador.
+4.3. Lanza en un mismo mensaje, en paralelo, un subagente `subagents/implementador.md` por tarea independiente con la herramienta `Agent` e `isolation: "worktree"`, con el prompt de la sección 1.4 del procedimiento común. Una oleada con una sola tarea de etapa PUEDE ejecutarse en el hilo principal siguiendo la ejecutora en modo coordinador.
 
 4.4. Espera a que terminen todos los subagentes de la oleada. Las tareas dependientes NO DEBEN lanzarse hasta que sus dependencias estén integradas en `develop` (sección 5) y DEBEN partir del `develop` resultante.
 
@@ -89,7 +90,7 @@ Las ejecutoras tienen `disable-model-invocation: true`, así que NO DEBEN invoca
 
 5.1. Revisa el informe de cada subagente: 10 iteraciones registradas (o aviso justificado de que no había trabajo para 10), V1-V7 en verde, Fase B ejecutada, commits y push hechos. Si falta algo, continúa ese subagente con `SendMessage` o relanza la parte pendiente; NO lo completes implementándolo tú.
 
-5.2. Al terminar cada oleada, lanza el subagente integrador (procedimiento común, sección 4.5) con las ramas de la oleada en orden de dependencias.
+5.2. Al terminar cada oleada, lanza el subagente `subagents/integrador.md` (procedimiento común, sección 4.5) con las ramas de la oleada en orden de dependencias.
 
 5.3. Si varios agentes han trabajado en paralelo y la integración se detiene por conflictos o la verificación global falla tras integrar, PUEDE usarse como paso opcional `/do-code-repair`: se ejecuta en el hilo principal leyendo y siguiendo `.claude/skills/do-code-repair/SKILL.md` (o lo invoca el usuario). Tras la reparación, se comprueba qué ramas quedaron integradas a través de la rama de reparación y solo se integran las restantes.
 
@@ -97,7 +98,7 @@ Las ejecutoras tienen `disable-model-invocation: true`, así que NO DEBEN invoca
 
 6.1. Cada tarea del plan tiene su rama publicada, integrada en `develop` y sus criterios de aceptación cubiertos.
 
-6.2. Verificación final sobre `origin/develop` en un subagente con worktree, sin cambios: `git fetch origin`, `git switch --detach origin/develop`, `./mvnw -B verify` (incluye `ArquitecturaTest` y `ModulosTest` si existe) y comprobación de que el número de tests no ha bajado respecto a la línea base global de la sección 1.3.
+6.2. Verificación final sobre `origin/develop` con el subagente `subagents/verificador.md` en modo `final`, con worktree, sin cambios: `git fetch origin`, `git switch --detach origin/develop`, `./mvnw -B verify` (incluye `ArquitecturaTest` y `ModulosTest` si existe) y comprobación de que el número de tests no ha bajado respecto a la línea base global de la sección 1.3.
 
 6.3. Si la verificación final falla, se trata como una tarea nueva de corrección (o `/do-code-repair`) y se repiten las secciones 4 a 6.
 

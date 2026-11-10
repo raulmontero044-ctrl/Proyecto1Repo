@@ -21,11 +21,30 @@ Los términos DEBE, NO DEBE y PUEDE son normativos.
 
 1.3. Todo subagente que modifique archivos DEBE lanzarse con la herramienta `Agent` y `isolation: "worktree"`, trabajar solo en su rama feature y publicarla. Los subagentes de solo lectura PUEDEN lanzarse sin worktree.
 
-1.4. El prompt de cada subagente de implementación DEBE incluir: tarea y requisitos concretos (sin resumir los que afecten a campos, endpoints o reglas), nombre exacto de la rama, base (`origin/develop`), modo subagente, ruta de este archivo, ruta del `SKILL.md` de la ejecutora que sigue, lista de skills `/k-back-*` que DEBE leer (`.claude/skills/<nombre>/SKILL.md`), las 10 unidades de trabajo planificadas y el formato de informe que debe devolver (sección 6).
+1.4. El subagente de implementación es `.claude/skills/do-code-impl/subagents/implementador.md` (sección 1.7). Su prompt DEBE incluir: tarea y requisitos concretos (sin resumir los que afecten a campos, endpoints o reglas), nombre exacto de la rama, base (`origin/develop`), modo subagente, ruta de este archivo, ruta del `SKILL.md` de la ejecutora que sigue, lista de skills `/k-back-*` que DEBE leer (`.claude/skills/<nombre>/SKILL.md`), las 10 unidades de trabajo planificadas y el formato de informe que debe devolver (sección 6).
 
 1.5. Si la herramienta `Agent` no está disponible en el hilo principal, la ejecutora hace ella misma la preparación (sección 4.1, variante subagente), la implementación y el push y, al terminar, integra ella misma siguiendo la sección 4.5, informando de que no se usaron subagentes. NO DEBE simular subagentes ni afirmar haberlos lanzado.
 
 1.6. El agente `code-falsador` NO forma parte de este procedimiento.
+
+1.7. **Definiciones de subagentes.** Cada subagente que lanza una skill está definido en un archivo `subagents/<nombre>.md` dentro de la skill que es dueña de su procedimiento. Los que comparten varias skills tienen una sola copia, y el resto la referencia por ruta:
+
+| Subagente | Archivo | Lo usan |
+|---|---|---|
+| Preparación Git | `.claude/skills/do-code-impl/subagents/preparacion-git.md` | `do-code-*`, `/k-crud`, `/do-crud` |
+| Implementación | `.claude/skills/do-code-impl/subagents/implementador.md` | `/do-code-impl` y las ejecutoras `do-code-*` en modo coordinador |
+| Integración | `.claude/skills/do-code-impl/subagents/integrador.md` | `do-code-*`, `/k-crud`, `/do-crud` |
+| Verificación de `develop` | `.claude/skills/do-code-impl/subagents/verificador.md` | `/do-code-impl` |
+
+Los de testing están en `.claude/skills/do-test/subagents/`, los de `/do-code-repair` en `.claude/skills/do-code-repair/subagents/`, y los de `/k-crud` y `/do-crud` en sus carpetas `subagents/`.
+
+Estos archivos no son tipos de agente registrados. Se lanzan con la herramienta `Agent` y `subagent_type: "general-purpose"`, y el prompt DEBE empezar por:
+
+```text
+Lee <ruta del archivo del subagente> y sigue sus instrucciones como tu definición de subagente. Usa solo las herramientas de su campo `tools`.
+```
+
+A esa instrucción le sigue el contenido que exija la skill que lo lanza (en las ejecutoras, la sección 1.4). El worktree lo decide la skill que lo lanza, según la sección 1.3.
 
 ## 2. Fase A — Implementación en exactamente 10 iteraciones
 
@@ -79,7 +98,7 @@ La Fase B NO sustituye a la Fase A: se ejecuta después y sobre el resultado ver
 
 ### 4.1. Preparación (subagente de preparación)
 
-En modo coordinador se lanza un subagente de preparación sin worktree y sin modificar archivos de trabajo. En modo subagente, el propio subagente hace estos pasos en su worktree.
+En modo coordinador se lanza el subagente de preparación (`.claude/skills/do-code-impl/subagents/preparacion-git.md`) sin worktree y sin modificar archivos de trabajo. En modo subagente, el propio subagente hace estos pasos en su worktree.
 
 1. Comprueba que el repositorio está limpio (`git status --porcelain`). Si hay cambios sin commit, se detiene e informa: NO los descarta, NO los guarda en `stash` ni los commitea.
 2. Anota la rama actual.
@@ -117,7 +136,7 @@ Si una operación sobre `.git/config` falla por bloqueo concurrente (`could not 
 
 ### 4.5. Integración (subagente integrador, solo modo coordinador)
 
-El subagente integrador se lanza con `isolation: "worktree"` cuando todas las ramas de la tarea están terminadas:
+El subagente integrador (`.claude/skills/do-code-impl/subagents/integrador.md`) se lanza con `isolation: "worktree"` cuando todas las ramas de la tarea están terminadas:
 
 1. Comprueba que cada rama a integrar existe en local y está publicada en `origin` con el mismo hash, que no hay cambios sin commit en ella y que el informe de su implementación tiene las verificaciones en verde.
 2. Ejecuta `git fetch origin` y prepara `develop` desde el remoto: si `develop` no está desprotegida en otro worktree, `git switch develop` y `git merge --ff-only origin/develop`; si lo está, trabaja en `git switch --detach origin/develop` y publicará con `git push origin HEAD:develop`.
